@@ -1,0 +1,271 @@
+{
+  "id": "networking-linux",
+  "slug": "networking-linux",
+  "title": "Ağ Komutları",
+  "subtitle": "ip, ss, curl, ssh, nc — Linux Ağ Yönetimi",
+  "description": "Linux'ta ağ arayüzlerini yönet, bağlantıları test et, SSH ile uzak sistemlere bağlan, curl ve wget ile veri çek.",
+  "icon": "Network",
+  "order": 7,
+  "tags": ["ip", "ssh", "curl", "netstat", "ss", "ping", "ağ", "network"],
+  "modules": [
+    {
+      "id": "network-info",
+      "title": "Ağ Bilgisi — ip, ifconfig, ss",
+      "description": "IP adresi, route tablosu, aktif bağlantılar",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Ağ Bilgisi Komutları",
+          "commands": [
+            {
+              "command": "ip addr show",
+              "description": "Ağ arayüzlerini ve IP adreslerini göster (modern yöntem)",
+              "output": "1: lo: <LOOPBACK> mtu 65536\n    inet 127.0.0.1/8\n2: eth0: <BROADCAST,MULTICAST,UP> mtu 1500\n    inet 192.168.1.100/24 brd 192.168.1.255"
+            },
+            {
+              "command": "ip a",
+              "description": "ip addr show kısaltması",
+              "tip": "ip a = ip addr show. Modern Linux sistemlerde ifconfig yerine kullan"
+            },
+            {
+              "command": "ifconfig",
+              "description": "Ağ arayüzlerini göster (eski yöntem, hâlâ yaygın)",
+              "output": "eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>\n        inet 192.168.1.100 netmask 255.255.255.0 broadcast 192.168.1.255"
+            },
+            {
+              "command": "ip route show",
+              "description": "Yönlendirme tablosunu göster (gateway bilgisi)",
+              "output": "default via 192.168.1.1 dev eth0\n192.168.1.0/24 dev eth0 proto kernel scope link"
+            },
+            {
+              "command": "ss -tuln",
+              "description": "Dinleyen portları göster (netstat yerine ss kullan)",
+              "output": "Netid  State   Recv-Q  Send-Q  Local Address:Port\ntcp    LISTEN  0       128     0.0.0.0:22\ntcp    LISTEN  0       80      0.0.0.0:80\nudp    UNCONN  0       0       0.0.0.0:53",
+              "tip": "-t=TCP, -u=UDP, -l=listening, -n=sayısal port (DNS çözümlemeden)"
+            },
+            {
+              "command": "ss -tulnp",
+              "description": "Dinleyen portlar + hangi uygulama kullanıyor",
+              "output": "tcp LISTEN 0 128 0.0.0.0:22 users:((\"sshd\",pid=1234,fd=3))",
+              "tip": "-p = process (hangi program)"
+            },
+            {
+              "command": "netstat -tuln",
+              "description": "Eski netstat komutu (ss'in önceki versiyonu)",
+              "tip": "netstat yoksa: sudo apt install net-tools"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "connectivity",
+      "title": "Bağlantı Testi — ping, traceroute, dig",
+      "description": "Ağ erişimini test et, DNS sorgula",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Bağlantı Test Komutları",
+          "commands": [
+            {
+              "command": "ping google.com",
+              "description": "Sürekli ping at (Ctrl+C ile dur)",
+              "output": "PING google.com (142.250.185.46): 56 bytes of data\n64 bytes from 142.250.185.46: icmp_seq=0 ttl=56 time=15.2 ms"
+            },
+            {
+              "command": "ping -c 4 192.168.1.1",
+              "description": "Sadece 4 ping at (-c = count)",
+              "tip": "Gateway IP'sine ping atarak yerel ağ bağlantını test et"
+            },
+            {
+              "command": "traceroute google.com",
+              "description": "Paketin hangi hop'lardan geçtiğini göster",
+              "output": "1  192.168.1.1 (192.168.1.1)  1.234 ms\n2  10.0.0.1 (10.0.0.1)  5.678 ms\n3  142.250.185.46 (142.250.185.46)  15.234 ms"
+            },
+            {
+              "command": "dig google.com",
+              "description": "DNS sorgusu yap — tam cevap",
+              "output": ";; ANSWER SECTION:\ngoogle.com.    300    IN    A    142.250.185.46"
+            },
+            {
+              "command": "dig +short google.com",
+              "description": "Sadece IP adresini göster",
+              "output": "142.250.185.46"
+            },
+            {
+              "command": "dig google.com MX",
+              "description": "Mail server (MX) kayıtlarını sorgula"
+            },
+            {
+              "command": "nslookup 192.168.1.100",
+              "description": "Ters DNS — IP'den hostname bul"
+            },
+            {
+              "command": "host google.com",
+              "description": "DNS sorgusu için basit araç",
+              "output": "google.com has address 142.250.185.46\ngoogle.com mail is handled by gmail-smtp-in.l.google.com."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "curl-wget",
+      "title": "curl ve wget — HTTP İstekleri",
+      "description": "Web içeriği indir, API'lerle haberleş, istek gönder",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "curl ve wget Komutları",
+          "commands": [
+            {
+              "command": "curl https://example.com",
+              "description": "Web sayfasının HTML içeriğini terminale getir"
+            },
+            {
+              "command": "curl -I https://example.com",
+              "description": "Sadece HTTP başlıklarını göster (response headers)",
+              "output": "HTTP/2 200\ncontent-type: text/html\nserver: nginx/1.24.0\nx-powered-by: PHP/8.1"
+            },
+            {
+              "command": "curl -o dosya.zip https://example.com/file.zip",
+              "description": "Dosyayı indir ve kaydet (-o = output filename)"
+            },
+            {
+              "command": "curl -L https://short.url/xyz",
+              "description": "Yönlendirmeleri takip et (-L = follow redirects)"
+            },
+            {
+              "command": "curl -X POST -d '{\"user\":\"admin\",\"pass\":\"1234\"}' -H 'Content-Type: application/json' https://api.example.com/login",
+              "description": "POST isteği gönder (API test etme)",
+              "tip": "Web app pentest'te login endpoint'lerini test etmek için kullanılır"
+            },
+            {
+              "command": "curl -u admin:password https://api.example.com/data",
+              "description": "HTTP Basic Authentication ile istek gönder"
+            },
+            {
+              "command": "curl -k https://self-signed-cert.example.com",
+              "description": "SSL sertifikasını doğrulama (-k = insecure)",
+              "warning": "Güvenilir ortamlarda kullan — gerçek sertifika hatalarını gizler"
+            },
+            {
+              "command": "wget https://example.com/file.tar.gz",
+              "description": "Dosya indir (wget curl'e alternatif, büyük dosyalar için iyi)"
+            },
+            {
+              "command": "wget -r -np https://example.com/",
+              "description": "Tüm siteyi recursive indir (-r = recursive, -np = no parent)",
+              "tip": "Pentest'te web sitesini offline analiz için indirme"
+            },
+            {
+              "command": "wget -c https://example.com/büyük-dosya.iso",
+              "description": "Yarıda kalan indirmeye devam et (-c = continue)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ssh-scp",
+      "title": "SSH & SCP — Güvenli Uzak Bağlantı",
+      "description": "SSH ile uzak sisteme bağlan, dosya aktar",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "SSH ve SCP Komutları",
+          "commands": [
+            {
+              "command": "ssh burak@192.168.1.100",
+              "description": "Uzak sisteme SSH ile bağlan",
+              "tip": "Varsayılan port 22. Farklı portsa: ssh -p 2222 burak@192.168.1.100"
+            },
+            {
+              "command": "ssh -p 2222 admin@192.168.1.100",
+              "description": "Özel port üzerinden SSH bağlantısı"
+            },
+            {
+              "command": "ssh -i ~/.ssh/id_rsa burak@192.168.1.100",
+              "description": "Private key ile bağlan (şifresiz giriş)"
+            },
+            {
+              "command": "# SSH anahtar çifti oluştur:\nssh-keygen -t rsa -b 4096 -C 'burak@kali'\n# Oluşturulan dosyalar:\n# ~/.ssh/id_rsa (private key — KİMSEYLE PAYLAŞMA!)\n# ~/.ssh/id_rsa.pub (public key — karşı sisteme kopyalanır)",
+              "description": "RSA anahtar çifti oluşturma"
+            },
+            {
+              "command": "ssh-copy-id burak@192.168.1.100",
+              "description": "Public key'i karşı sisteme kopyala (sonraki bağlantılarda şifre sormaz)"
+            },
+            {
+              "command": "scp dosya.txt burak@192.168.1.100:/home/burak/",
+              "description": "Yerel dosyayı uzak sisteme kopyala"
+            },
+            {
+              "command": "scp -r proje/ burak@192.168.1.100:/home/burak/",
+              "description": "Dizini recursive olarak kopyala (-r)"
+            },
+            {
+              "command": "scp burak@192.168.1.100:/var/log/auth.log ./",
+              "description": "Uzak sistemden yerel makineye kopyala"
+            },
+            {
+              "command": "ssh -L 8080:localhost:80 burak@192.168.1.100",
+              "description": "SSH tünel — yerel 8080'i uzak sistemin 80'ine bağla (port forwarding)",
+              "tip": "Pentest'te iç ağ servislerine erişim için çok kullanılır"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "netcat",
+      "title": "Netcat (nc) — Ağ İsviçre Çakısı",
+      "description": "Port tarama, bağlantı kurma, dosya aktarma, reverse shell",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Netcat Komutları",
+          "commands": [
+            {
+              "command": "nc -zv 192.168.1.100 80",
+              "description": "Port açık mı kontrol et (-z = zero I/O, -v = verbose)",
+              "output": "Connection to 192.168.1.100 80 port [tcp/http] succeeded!"
+            },
+            {
+              "command": "nc -zv 192.168.1.100 20-100",
+              "description": "Port aralığı tara"
+            },
+            {
+              "command": "nc 192.168.1.100 80",
+              "description": "Port 80'e bağlan (HTTP banner grabbing için)"
+            },
+            {
+              "command": "# Dinleyici kur:\nnc -lvnp 4444\n# -l=listen, -v=verbose, -n=DNS çözümleme yok, -p=port",
+              "description": "Gelen bağlantı bekle (reverse shell listener olarak)"
+            },
+            {
+              "command": "# Dosya aktar:\n# Alıcı tarafta:\nnc -lvnp 9999 > alinan-dosya.txt\n# Gönderici tarafta:\nnc 192.168.1.50 9999 < gonderi-dosya.txt",
+              "description": "Ağ üzerinden dosya aktar (netcat file transfer)",
+              "tip": "Güvenli değil — şifrelemez! Lab ortamında kullan"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

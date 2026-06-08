@@ -1,0 +1,165 @@
+{
+  "id": "terminal-basics",
+  "slug": "terminal-basics",
+  "title": "Terminal & Shell Temelleri",
+  "subtitle": "Linux'a İlk Adım",
+  "description": "Terminal nedir, shell nedir, bash nasıl çalışır. İlk komutlar, yardım alma, komut geçmişi ve klavye kısayolları.",
+  "icon": "Terminal",
+  "order": 1,
+  "tags": ["terminal", "bash", "shell", "linux", "başlangıç"],
+  "modules": [
+    {
+      "id": "what-is-shell",
+      "title": "Shell ve Terminal Nedir?",
+      "description": "Temel kavramlar: terminal, shell, bash, komut satırı",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Temel Kavramlar",
+          "content": "**Terminal:** Komut girebileceğin metin tabanlı arayüz. Gnome Terminal, xterm, Konsole gibi uygulamalar birer terminal emülatörüdür.\n\n**Shell:** Terminal'in içinde çalışan yorumlayıcı program. Yazdığın komutları işletim sistemine iletir. En yaygın shell: **Bash** (Bourne Again Shell).\n\n**Komut Satırı (CLI):** Grafik arayüz (GUI) yerine komutlar yazarak sistemi yönettiğin ortam.\n\nNeden öğrenmeli?\n- Siber güvenlikte tüm araçlar terminal üzerinden çalışır\n- Kali Linux, ParrotOS, Ubuntu Server — hepsi terminal ağırlıklı\n- Otomasyon ve scripting ancak terminalden mümkündür\n- Uzak sunuculara SSH ile bağlandığında sadece terminal var"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "İlk Komutlar",
+          "commands": [
+            {
+              "command": "whoami",
+              "description": "Şu an hangi kullanıcı olarak giriş yaptığını gösterir",
+              "output": "burak"
+            },
+            {
+              "command": "pwd",
+              "description": "Şu an hangi dizinde olduğunu gösterir (Print Working Directory)",
+              "output": "/home/burak"
+            },
+            {
+              "command": "date",
+              "description": "Sistem tarih ve saatini gösterir",
+              "output": "Mon Jun  8 15:30:00 UTC 2026"
+            },
+            {
+              "command": "echo 'Merhaba Dünya'",
+              "description": "Terminale metin yazdırır",
+              "output": "Merhaba Dünya"
+            },
+            {
+              "command": "hostname",
+              "description": "Bilgisayarın ağ adını gösterir",
+              "output": "kali"
+            },
+            {
+              "command": "uname -a",
+              "description": "İşletim sistemi ve kernel bilgisini gösterir",
+              "output": "Linux kali 6.1.0-kali9-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.38-1kali1 x86_64 GNU/Linux"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "help-system",
+      "title": "Yardım Alma — man, --help, info",
+      "description": "Herhangi bir komutun nasıl kullanılacağını öğrenmenin yolları",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Yardım Komutları",
+          "commands": [
+            {
+              "command": "man ls",
+              "description": "ls komutunun kılavuz sayfasını açar. q tuşuyla çıkılır, / ile arama yapılır",
+              "tip": "man sayfasında gezinmek için: j/k veya Ok tuşları; q = çıkış; / + kelime = arama; n = sonraki sonuç"
+            },
+            {
+              "command": "ls --help",
+              "description": "ls komutunun kısa yardım metnini gösterir. Çoğu komut --help veya -h bayrağını destekler",
+              "output": "Usage: ls [OPTION]... [FILE]...\nList information about the FILEs (the current directory by default).\n\n  -a  do not ignore entries starting with .\n  -l  use a long listing format\n  -h  with -l, print sizes like 1K 234M 2G\n..."
+            },
+            {
+              "command": "man -k password",
+              "description": "Kelime içeren tüm man sayfalarını listeler (apropos ile aynı)",
+              "output": "chpasswd (8)  - update passwords in batch mode\npasswd (1)    - change user password\npasswd (5)    - the password file"
+            },
+            {
+              "command": "type ls",
+              "description": "Bir komutun ne tür olduğunu söyler (built-in, alias, external binary)",
+              "output": "ls is aliased to 'ls --color=auto'"
+            },
+            {
+              "command": "which python3",
+              "description": "Bir komutun tam dosya yolunu gösterir",
+              "output": "/usr/bin/python3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shortcuts",
+      "title": "Klavye Kısayolları & Komut Geçmişi",
+      "description": "Terminali verimli kullanmanın sırları: Tab, Ctrl+C, history",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Hayat Kurtaran Kısayollar",
+          "commands": [
+            {
+              "command": "# Tab tuşu — Otomatik Tamamlama\nls /home/bu[TAB]\n# → /home/burak/ otomatik tamamlanır\n\n# Dosya ismi başına birkaç harf yaz, Tab'a bas!\ncat /etc/pas[TAB]\n# → cat /etc/passwd",
+              "description": "Tab tuşu: en önemli kısayol! Komut ve dosya isimlerini otomatik tamamlar",
+              "tip": "İki kez Tab'a basarsan olası tüm tamamlamaları listeler"
+            },
+            {
+              "command": "history",
+              "description": "Daha önce yazdığın tüm komutları listeler",
+              "output": "  1  whoami\n  2  pwd\n  3  ls -la\n  4  cd /home\n  5  history"
+            },
+            {
+              "command": "history | grep ssh",
+              "description": "Geçmişte 'ssh' içeren komutları filtreler",
+              "output": "  47  ssh user@192.168.1.1\n  89  ssh-keygen -t rsa"
+            },
+            {
+              "command": "!47",
+              "description": "Geçmişteki 47 numaralı komutu tekrar çalıştırır",
+              "tip": "!! = son komutu tekrar çalıştır; !ssh = son ssh komutu"
+            },
+            {
+              "command": "# Ctrl+C → Çalışan komutu durdur\n# Ctrl+Z → Komutu arka plana al (pause)\n# Ctrl+L → Ekranı temizle (clear ile aynı)\n# Ctrl+A → İmleci satır başına taşı\n# Ctrl+E → İmleci satır sonuna taşı\n# Ctrl+U → İmleci satır başından sil\n# Ctrl+R → Geçmişte ara (reverse search)\n# ↑↓    → Önceki/sonraki komutlara geç",
+              "description": "Tüm kritik terminal kısayolları"
+            },
+            {
+              "command": "clear",
+              "description": "Terminal ekranını temizler (Ctrl+L ile aynı)",
+              "tip": "Ekranı temizlese de komut geçmişi silinmez. history hâlâ çalışır."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prompt",
+      "title": "Prompt Yapısını Anlama",
+      "description": "$ işareti ne demek? # ne demek? Terminaldeki bilgileri okuma",
+      "difficulty": "beginner",
+      "duration": "5 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Prompt Anatomisi",
+          "content": "Terminal prompt'u genellikle şu formattadır:\n\n```\nburak@kali:~$\n```\n\n- **burak** → Kullanıcı adı\n- **@** → 'at' işareti (bağlantı)\n- **kali** → Hostname (bilgisayar adı)\n- **:** → Ayraç\n- **~** → Şu anki dizin (~ = home dizini /home/burak)\n- **$** → Normal kullanıcı ($ = user, # = root/süper kullanıcı)\n\nRoot kullanıcısı için:\n```\nroot@kali:/home/burak#\n```\n\n⚠️ **# işareti görürsen dikkatli ol** — root yetkisiyle çalışıyorsun, her komut sistemi etkileyebilir!"
+        }
+      ]
+    }
+  ]
+}

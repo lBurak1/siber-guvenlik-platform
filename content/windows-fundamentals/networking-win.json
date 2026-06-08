@@ -1,0 +1,278 @@
+{
+  "id": "networking-win",
+  "slug": "networking-win",
+  "title": "Ağ Komutları (CMD/PowerShell)",
+  "subtitle": "ipconfig, netstat, tracert, Test-NetConnection",
+  "description": "Windows'ta ağ yönetimi ve tanılama: IP bilgisi, port tarama, DNS, routing, Wi-Fi şifreleri, ağ paylaşımları.",
+  "icon": "Network",
+  "order": 5,
+  "tags": ["ipconfig", "netstat", "tracert", "nslookup", "Test-NetConnection", "ağ", "windows"],
+  "modules": [
+    {
+      "id": "ip-config",
+      "title": "IP Yapılandırması — ipconfig",
+      "description": "Ağ arayüzleri, IP adresleri, DNS önbelleği",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "ipconfig Komutları",
+          "commands": [
+            {
+              "command": "ipconfig",
+              "description": "Tüm ağ arayüzlerinin IP adresi, subnet mask ve gateway'ini göster",
+              "output": "Windows IP Configuration\n\nEthernet adapter Ethernet:\n   Connection-specific DNS Suffix  :\n   IPv4 Address. . . . . . . . . : 192.168.1.100\n   Subnet Mask . . . . . . . . . : 255.255.255.0\n   Default Gateway . . . . . . . : 192.168.1.1\n\nWireless LAN adapter Wi-Fi:\n   IPv4 Address. . . . . . . . . : 192.168.0.50\n   Default Gateway . . . . . . . : 192.168.0.1"
+            },
+            {
+              "command": "ipconfig /all",
+              "description": "Tüm detaylar: MAC adresi, DNS sunucuları, DHCP bilgisi",
+              "output": "   Physical Address. . . . . . . : AA-BB-CC-DD-EE-FF\n   DHCP Enabled. . . . . . . . . : Yes\n   DHCP Server . . . . . . . . . : 192.168.1.1\n   DNS Servers . . . . . . . . . : 8.8.8.8\n                                   8.8.4.4"
+            },
+            {
+              "command": "ipconfig /flushdns",
+              "description": "DNS önbelleğini temizle (DNS sorunlarında ilk deneme)",
+              "tip": "Site açılmıyor mu? DNS cache'i temizle!"
+            },
+            {
+              "command": "ipconfig /displaydns",
+              "description": "DNS önbelleğini görüntüle (hangi domainler cache'de?)"
+            },
+            {
+              "command": "ipconfig /release",
+              "description": "DHCP'den alınan IP'yi bırak"
+            },
+            {
+              "command": "ipconfig /renew",
+              "description": "DHCP'den yeni IP al"
+            },
+            {
+              "command": "Get-NetIPAddress",
+              "description": "PowerShell: tüm IP adreslerini listele"
+            },
+            {
+              "command": "Get-NetIPAddress -AddressFamily IPv4 | Where-Object {$_.IPAddress -ne '127.0.0.1'}",
+              "description": "PowerShell: loopback hariç IPv4 adresleri"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "connectivity-test",
+      "title": "Bağlantı Testi",
+      "description": "ping, tracert, pathping, Test-NetConnection",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Bağlantı Test Komutları",
+          "commands": [
+            {
+              "command": "ping google.com",
+              "description": "4 ICMP paketi gönder (Windows varsayılanı 4'tür)",
+              "output": "Pinging google.com [142.250.185.46] with 32 bytes of data:\nReply from 142.250.185.46: bytes=32 time=15ms TTL=56\n\nPing statistics: Sent = 4, Received = 4, Lost = 0 (0% loss)"
+            },
+            {
+              "command": "ping -t 192.168.1.1",
+              "description": "Sürekli ping at (-t = continuous, Ctrl+C ile dur)"
+            },
+            {
+              "command": "ping -n 10 google.com",
+              "description": "10 kez ping at (-n = count)"
+            },
+            {
+              "command": "ping -l 1000 192.168.1.1",
+              "description": "1000 byte'lık paket gönder (-l = packet size)"
+            },
+            {
+              "command": "tracert google.com",
+              "description": "Paketi takip et, hangi hop'lardan geçiyor",
+              "output": "Tracing route to google.com [142.250.185.46]\n\n  1     1 ms    1 ms    1 ms  192.168.1.1\n  2     5 ms    5 ms    5 ms  10.0.0.1\n  3    15 ms   16 ms   15 ms  142.250.185.46\n\nTrace complete."
+            },
+            {
+              "command": "tracert -d google.com",
+              "description": "DNS çözümlemeden hızlı traceroute (-d = no DNS)"
+            },
+            {
+              "command": "pathping google.com",
+              "description": "Gelişmiş tracert + istatistikler (ping kaybı, gecikme)"
+            },
+            {
+              "command": "Test-NetConnection -ComputerName google.com -Port 443",
+              "description": "PowerShell: belirli porta bağlantı testi",
+              "output": "ComputerName     : google.com\nRemoteAddress    : 142.250.185.46\nRemotePort       : 443\nTcpTestSucceeded : True",
+              "tip": "netcat (nc) gibi! Port açık mı kontrol etmek için harika."
+            },
+            {
+              "command": "Test-NetConnection -ComputerName 192.168.1.100 -Port 22",
+              "description": "Dahili ağdaki bir sunucunun SSH portunu test et"
+            },
+            {
+              "command": "1..1024 | ForEach-Object { Test-NetConnection -ComputerName 192.168.1.100 -Port $_ -WarningAction SilentlyContinue } | Where-Object TcpTestSucceeded",
+              "description": "PowerShell ile port tarama (ilk 1024 port)",
+              "tip": "Test-NetConnection ile basit port tarama — nmap alternatifi"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dns-windows",
+      "title": "DNS Sorguları",
+      "description": "nslookup, Resolve-DnsName ile DNS analizi",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "DNS Komutları",
+          "commands": [
+            {
+              "command": "nslookup google.com",
+              "description": "DNS sorgusu — domain'in IP'sini bul",
+              "output": "Server:  UnKnown\nAddress:  192.168.1.1\n\nNon-authoritative answer:\nName:    google.com\nAddress:  142.250.185.46"
+            },
+            {
+              "command": "nslookup 142.250.185.46",
+              "description": "Ters DNS sorgusu — IP'den hostname bul"
+            },
+            {
+              "command": "nslookup -type=MX gmail.com",
+              "description": "MX (mail) kayıtlarını sorgula"
+            },
+            {
+              "command": "nslookup -type=TXT google.com",
+              "description": "TXT kayıtlarını sorgula (SPF, DKIM)"
+            },
+            {
+              "command": "nslookup hedef.com 8.8.8.8",
+              "description": "Belirli DNS sunucusunu kullanarak sorgula (8.8.8.8 = Google DNS)"
+            },
+            {
+              "command": "Resolve-DnsName google.com",
+              "description": "PowerShell ile DNS sorgusu"
+            },
+            {
+              "command": "Resolve-DnsName google.com -Type MX",
+              "description": "PowerShell: MX kayıtları"
+            },
+            {
+              "command": "Resolve-DnsName google.com -Server 8.8.8.8",
+              "description": "PowerShell: belirli DNS sunucusu kullan"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "netstat-windows",
+      "title": "Aktif Bağlantılar — netstat, ss",
+      "description": "Açık portları ve aktif bağlantıları izle",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "netstat Komutları",
+          "commands": [
+            {
+              "command": "netstat -an",
+              "description": "Tüm aktif bağlantılar ve dinleyen portları göster",
+              "output": "Active Connections\n\n  Proto  Local Address      Foreign Address    State\n  TCP    0.0.0.0:80         0.0.0.0:0          LISTENING\n  TCP    0.0.0.0:445        0.0.0.0:0          LISTENING\n  TCP    192.168.1.100:3389 0.0.0.0:0          LISTENING"
+            },
+            {
+              "command": "netstat -an | findstr LISTENING",
+              "description": "Sadece dinleyen portları filtrele"
+            },
+            {
+              "command": "netstat -an | findstr :80",
+              "description": "Port 80 ile ilgili bağlantıları bul"
+            },
+            {
+              "command": "netstat -b",
+              "description": "Hangi program hangi portu kullanıyor (Yönetici gerekir)",
+              "output": "  TCP    0.0.0.0:80             0.0.0.0:0          LISTENING\n [nginx.exe]"
+            },
+            {
+              "command": "netstat -rn",
+              "description": "Yönlendirme tablosunu göster (route print ile aynı)"
+            },
+            {
+              "command": "route print",
+              "description": "Routing tablosunu detaylı göster",
+              "output": "Network Destination   Netmask       Gateway        Interface    Metric\n          0.0.0.0     0.0.0.0   192.168.1.1   192.168.1.100      25\n      192.168.1.0   255.255.255.0    On-link     192.168.1.100     281"
+            },
+            {
+              "command": "arp -a",
+              "description": "ARP tablosunu göster (yerel ağdaki cihazlar)",
+              "output": "Interface: 192.168.1.100\n  Internet Address   Physical Address   Type\n  192.168.1.1        aa-bb-cc-dd-ee-ff  dynamic\n  192.168.1.50       11-22-33-44-55-66  dynamic"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wifi-shares",
+      "title": "Wi-Fi Şifreleri & Ağ Paylaşımları",
+      "description": "Kayıtlı Wi-Fi şifrelerini görüntüle, ağ paylaşımlarını yönet",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Wi-Fi ve Paylaşım Komutları",
+          "commands": [
+            {
+              "command": "netsh wlan show profiles",
+              "description": "Daha önce bağlanılan tüm Wi-Fi ağlarını listele",
+              "output": "Profiles on interface Wi-Fi:\n    All User Profile     : EV-KABLOSUZ\n    All User Profile     : OFIS-WIFI\n    All User Profile     : TelefonHotspot"
+            },
+            {
+              "command": "netsh wlan show profile name=\"EV-KABLOSUZ\" key=clear",
+              "description": "Belirli Wi-Fi ağının şifresini görüntüle",
+              "output": "Security settings\n    Authentication         : WPA2-Personal\n    Key Content            : S4nifr3P4ro1a!",
+              "tip": "Pentest veya kendi şifreni unutunca çok işe yarıyor!"
+            },
+            {
+              "command": "for /f \"skip=9 tokens=1,2 delims=:\" %i in ('netsh wlan show profiles') do @echo %j | netsh wlan show profiles %j key=clear | findstr \"Key Content\" && echo.",
+              "description": "Tüm kayıtlı Wi-Fi şifrelerini toplu göster",
+              "tip": "Yönetici CMD'de çalıştır"
+            },
+            {
+              "command": "net view",
+              "description": "Ağdaki paylaşılan kaynakları listele"
+            },
+            {
+              "command": "net view \\\\192.168.1.100",
+              "description": "Belirli bilgisayarın paylaşımlarını göster"
+            },
+            {
+              "command": "net use Z: \\\\192.168.1.100\\paylasim",
+              "description": "Ağ paylaşımını Z: sürücüsü olarak bağla"
+            },
+            {
+              "command": "net use Z: /delete",
+              "description": "Bağlı ağ sürücüsünü kaldır"
+            },
+            {
+              "command": "netsh advfirewall firewall show rule name=all",
+              "description": "Tüm Windows Firewall kurallarını listele"
+            },
+            {
+              "command": "netsh advfirewall set allprofiles state off",
+              "description": "Windows Firewall'ı kapat (Yönetici, pentest lab ortamı)",
+              "warning": "YALNIZCA kendi lab ortamında kullan! Sistemi güvensiz bırakır."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

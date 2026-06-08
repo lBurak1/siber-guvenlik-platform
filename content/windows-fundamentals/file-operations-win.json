@@ -1,0 +1,190 @@
+{
+  "id": "file-operations-win",
+  "slug": "file-operations-win",
+  "title": "Dosya & Dizin Yönetimi (Windows)",
+  "subtitle": "xcopy, robocopy, attrib, icacls, mklink",
+  "description": "Gelişmiş Windows dosya işlemleri: iç içe dizin oluşturma, toplu kopyalama, dosya özelliklerini değiştirme, izin yönetimi ve sembolik link.",
+  "icon": "FolderOpen",
+  "order": 3,
+  "tags": ["xcopy", "robocopy", "attrib", "icacls", "mklink", "dosya", "windows"],
+  "modules": [
+    {
+      "id": "advanced-copy",
+      "title": "Gelişmiş Kopyalama — xcopy, robocopy",
+      "description": "Büyük dosya transferleri, yedekleme, filtreli kopyalama",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "xcopy ve robocopy",
+          "commands": [
+            {
+              "command": "xcopy C:\\Kaynak D:\\Hedef /E /I /H",
+              "description": "Tüm dizini kopyala (/E=boş dahil alt dizinler, /I=hedef dizinse oluştur, /H=gizli dosyalar)",
+              "tip": "xcopy = extended copy. Büyük klasörleri kopyalamak için copy yerine kullan"
+            },
+            {
+              "command": "xcopy C:\\Projeler D:\\Yedek /E /D /Y",
+              "description": "Sadece değişmiş dosyaları kopyala (/D=date, /Y=onay sorma)"
+            },
+            {
+              "command": "robocopy C:\\Kaynak D:\\Hedef /MIR",
+              "description": "Dizinleri senkronize et — /MIR tam ayna kopyası oluşturur",
+              "tip": "robocopy = robust copy. Yedekleme için en güvenilir araç! Yarıda kesilen kopyaları devam ettirir."
+            },
+            {
+              "command": "robocopy C:\\Kaynak D:\\Hedef /E /LOG:C:\\kopya-log.txt",
+              "description": "Kopyalama işlemini logla"
+            },
+            {
+              "command": "robocopy C:\\Kaynak D:\\Hedef *.txt *.docx /S",
+              "description": "Sadece belirli uzantıları kopyala"
+            },
+            {
+              "command": "robocopy C:\\Kaynak \\\\sunucu\\paylasim /E /Z",
+              "description": "Ağ üzerinden kopyala, kesintide devam et (/Z=restartable mode)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "attrib-icacls",
+      "title": "Dosya Özellikleri — attrib, icacls",
+      "description": "Gizle, salt okunur, sistem dosyası, izin yönetimi",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "attrib ve icacls Komutları",
+          "commands": [
+            {
+              "command": "attrib dosya.txt",
+              "description": "Dosya özelliklerini görüntüle",
+              "output": "A          C:\\Users\\burak\\dosya.txt"
+            },
+            {
+              "command": "attrib +h gizli-klasor",
+              "description": "Klasörü gizle (+h = hidden, -h = gizliliği kaldır)"
+            },
+            {
+              "command": "attrib +r +h sistem-dosyasi.txt",
+              "description": "Salt okunur VE gizli yap (+r=readonly)"
+            },
+            {
+              "command": "attrib -r dosya.txt",
+              "description": "Salt okunur özelliğini kaldır (-r)"
+            },
+            {
+              "command": "attrib +h +s klasor /S /D",
+              "description": "Klasörü ve içindekileri gizle+sistem yap (/S=alt dizinler, /D=dizinler dahil)"
+            },
+            {
+              "command": "icacls C:\\klasor",
+              "description": "Dizin izinlerini görüntüle",
+              "output": "C:\\klasor BUILTIN\\Administrators:(OI)(CI)(F)\n          NT AUTHORITY\\SYSTEM:(OI)(CI)(F)\n          BUILTIN\\Users:(OI)(CI)(RX)"
+            },
+            {
+              "command": "icacls dosya.txt /grant burak:F",
+              "description": "burak kullanıcısına tam kontrol ver (F = Full Control)"
+            },
+            {
+              "command": "icacls dosya.txt /grant Users:(R)",
+              "description": "Users grubuna okuma izni ver (R = Read)"
+            },
+            {
+              "command": "icacls dosya.txt /deny Guest:(W)",
+              "description": "Guest kullanıcısından yazma iznini kaldır"
+            },
+            {
+              "command": "icacls C:\\klasor /inheritance:d",
+              "description": "Üst dizinden gelen izin mirasını kes"
+            },
+            {
+              "command": "icacls C:\\klasor /reset",
+              "description": "İzinleri varsayılana sıfırla"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "symlinks",
+      "title": "Sembolik Link — mklink",
+      "description": "Dosya ve klasör kısayolları (junction, symlink)",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "mklink Komutları",
+          "commands": [
+            {
+              "command": "mklink link.txt C:\\hedef\\dosya.txt",
+              "description": "Dosya sembolik linki oluştur (Yönetici gerekir)",
+              "tip": "mklink için CMD'yi Yönetici olarak aç!"
+            },
+            {
+              "command": "mklink /D C:\\KisaYol C:\\uzun\\yol\\klasor",
+              "description": "Dizin sembolik linki (/D = directory)"
+            },
+            {
+              "command": "mklink /J C:\\Junction C:\\hedef\\dizin",
+              "description": "Junction point oluştur (lokal diskler arası, yönetici gerektirmez)"
+            },
+            {
+              "command": "dir /AL C:\\",
+              "description": "Sembolik linkleri göster (/AL = attribute reparse link)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search-windows",
+      "title": "Dosya Arama",
+      "description": "where, dir /s, PowerShell ile dosya arama",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Windows Dosya Arama",
+          "commands": [
+            {
+              "command": "where notepad.exe",
+              "description": "Çalıştırılabilir dosyanın tam yolunu bul (Linux'ta which)",
+              "output": "C:\\Windows\\System32\\notepad.exe"
+            },
+            {
+              "command": "dir /s /b C:\\*.txt 2>nul",
+              "description": "C:\\ altında tüm .txt dosyalarını listele (/b = sadece yol, 2>nul = hata gizle)"
+            },
+            {
+              "command": "dir /s /b C:\\ | findstr \"password\"",
+              "description": "İsimde 'password' geçen dosyaları bul"
+            },
+            {
+              "command": "findstr /s /i \"password\" C:\\*.txt",
+              "description": ".txt dosyaların içinde 'password' ara (/s=recursive, /i=case insensitive)"
+            },
+            {
+              "command": "findstr /s /i /m \"password\" C:\\Users\\*.txt C:\\Users\\*.xml C:\\Users\\*.ini",
+              "description": "Birden fazla uzantıda 'password' içeren dosyaları listele"
+            },
+            {
+              "command": "Get-ChildItem -Recurse C:\\ -ErrorAction SilentlyContinue | Select-String 'password'",
+              "description": "PowerShell ile recursive içerik arama"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

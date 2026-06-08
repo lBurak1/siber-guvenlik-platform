@@ -1,0 +1,101 @@
+{
+  "id": "osi-tcpip",
+  "slug": "osi-tcpip",
+  "title": "OSI & TCP/IP Modelleri",
+  "subtitle": "Ağ İletişiminin Katmanlı Mimarisi",
+  "description": "OSI ve TCP/IP modelleri, ağ iletişimini anlaşılır katmanlara böler. Siber güvenlikte hangi saldırının hangi katmanda gerçekleştiğini bilmek, hem saldırı hem savunma stratejileri için temeldir.",
+  "icon": "🧱",
+  "order": 1,
+  "tags": ["OSI", "TCP/IP", "layers", "protocol", "encapsulation", "networking"],
+  "modules": [
+    {
+      "id": "osi-model",
+      "title": "OSI Modeli — 7 Katman",
+      "description": "Her katmanın görevi, protokolleri ve güvenlik açısından önemi.",
+      "difficulty": "beginner",
+      "duration": "45 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "OSI Modeli Nedir ve Neden Önemli?",
+          "content": "OSI (Open Systems Interconnection) modeli, ISO tarafından 1984'te tanımlanmıştır. 7 katmandan oluşur ve her katmanın belirli bir görevi vardır. Bir pentest uzmanı için OSI modeli, 'bu araç ağda neyi yapıyor?' sorusuna cevap verir.\n\n─── 7. Uygulama (Application) ───\nKullanıcıyla doğrudan etkileşim. HTTP, HTTPS, FTP, SSH, SMTP, DNS\nGüvenlik: XSS, SQLi, CSRF — web açıklarının büyük çoğunluğu burada.\n\n─── 6. Sunum (Presentation) ───\nVeri formatı dönüşümü, şifreleme/şifre çözme, sıkıştırma. SSL/TLS burada.\nGüvenlik: Man-in-the-Middle (MITM), SSL stripping saldırıları.\n\n─── 5. Oturum (Session) ───\nBağlantı kurma, sürdürme ve sonlandırma. NetBIOS, RPC.\nGüvenlik: Session hijacking, replay attacks.\n\n─── 4. Taşıma (Transport) ───\nUçtan uca iletim, port numaraları. TCP (güvenilir), UDP (hızlı).\nGüvenlik: Port tarama (Nmap burada çalışır), SYN flood DoS.\n\n─── 3. Ağ (Network) ───\nIP adresleme ve yönlendirme. IPv4, IPv6, ICMP.\nGüvenlik: IP spoofing, ping sweep, traceroute.\n\n─── 2. Veri Bağlantısı (Data Link) ───\nMAC adresleme, çerçeveleme. Ethernet, Wi-Fi (802.11).\nGüvenlik: ARP poisoning, MAC flooding, VLAN hopping.\n\n─── 1. Fiziksel (Physical) ───\nElektrik/ışık sinyalleri, kablo, port.\nGüvenlik: Fiziksel erişim, keystroke logger, TEMPEST."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "OSI Katmanlarını Görme Komutları",
+          "commands": [
+            {
+              "command": "tcpdump -i eth0 -n",
+              "description": "Katman 2-4 paketleri yakala (Ethernet + IP + TCP/UDP)",
+              "output": "22:15:03.123456 IP 192.168.1.10.54321 > 93.184.216.34.80: Flags [S], seq 1234567890",
+              "flags": [
+                { "flag": "-i eth0", "description": "Ağ arayüzü" },
+                { "flag": "-n", "description": "Hostname'leri çözümleme (hızlı)" },
+                { "flag": "-nn", "description": "Port adlarını da çözümleme" },
+                { "flag": "'port 80'", "description": "Sadece port 80 trafiği" }
+              ]
+            },
+            {
+              "command": "arp -a",
+              "description": "ARP tablosunu göster (Katman 2 — MAC-IP eşleşmeleri)",
+              "output": "? (192.168.1.1) at aa:bb:cc:dd:ee:ff [ether] on eth0\n? (192.168.1.105) at 11:22:33:44:55:66 [ether] on eth0",
+              "tip": "ARP tablosunda aynı MAC ile birden fazla IP → ARP spoofing şüphesi!"
+            },
+            {
+              "command": "traceroute google.com",
+              "description": "Katman 3 — IP yönlendirme yolunu göster",
+              "output": "traceroute to google.com (142.250.185.78)\n 1  192.168.1.1     1.2 ms\n 2  10.0.0.1        8.4 ms\n 3  * * *\n 4  142.250.185.78  22.3 ms"
+            },
+            {
+              "command": "netstat -tulnp",
+              "description": "Katman 4 — Açık TCP/UDP portlarını ve servisleri listele",
+              "output": "Proto Recv-Q Send-Q Local Address    State    PID/Program\ntcp   0      0     0.0.0.0:22       LISTEN   1234/sshd\ntcp   0      0     0.0.0.0:80       LISTEN   5678/apache2\nudp   0      0     0.0.0.0:53       LISTEN   9012/named"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tcpip-model",
+      "title": "TCP/IP Modeli ve Kapsülleme",
+      "description": "İnternetin gerçekte kullandığı 4 katmanlı model ve veri kapsülleme süreci.",
+      "difficulty": "beginner",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "TCP/IP Modeli",
+          "content": "TCP/IP modeli, OSI'nin pratik uygulamasıdır. İnternet bu model üzerinde çalışır.\n\nTCP/IP → OSI Karşılaştırması:\n─ Application     → OSI 5+6+7 (Session + Presentation + Application)\n─ Transport       → OSI 4 (Transport)\n─ Internet        → OSI 3 (Network)\n─ Network Access  → OSI 1+2 (Physical + Data Link)\n\nKapsülleme (Encapsulation): Veri, her katmanda header bilgisiyle sarmalanır.\n[Data] → [TCP Header + Data] → [IP Header + TCP + Data] → [Ethernet Header + IP + TCP + Data]\n\nPentest'teki önemi: Nmap, paketleri ham IP/TCP seviyesinde oluşturur. Wireshark, tüm katmanları soyar ve gösterir. SQLMap, HTTP (uygulama katmanı) üzerinden çalışır."
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "Lab: Wireshark ile Katmanları Gözlemle",
+          "scenario": {
+            "title": "Paket Kapsüllemeyi Canlı Gözlemle",
+            "objective": "Wireshark ile bir HTTP isteği yakala, Ethernet → IP → TCP → HTTP katmanlarını tek tek incele.",
+            "environment": "Kali Linux — Wireshark kurulu, herhangi bir web sayfasına istek",
+            "difficulty": "beginner",
+            "steps": [
+              "Wireshark'ı aç: sudo wireshark",
+              "eth0 arayüzüne çift tıkla ve yakalamayı başlat",
+              "Terminalde: curl http://example.com",
+              "Wireshark'ta http filtresini uygula",
+              "GET isteğine tıkla ve sol panelde katmanları aç:",
+              "Frame (L1-2) → Ethernet (L2) → IP (L3) → TCP (L4) → HTTP (L7)"
+            ],
+            "hints": [
+              "Her katman kendi header'ını gösterir: kaynak/hedef MAC, IP, port",
+              "TCP Sequence number ve Acknowledgment numaralarını not et",
+              "HTTP katmanında GET isteğini ve Host header'ını incele"
+            ],
+            "defenseNote": "Savunma açısından: Her katmanda farklı güvenlik kontrolleri uygulanır. L2: Port security / 802.1X. L3: Firewall / ACL. L4: Stateful inspection. L7: WAF / IDS. Katman bazlı savunma 'Defense in Depth' prensibinin temelidir."
+          }
+        }
+      ]
+    }
+  ]
+}

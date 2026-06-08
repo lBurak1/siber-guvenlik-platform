@@ -1,0 +1,207 @@
+{
+  "id": "filesystem-navigation",
+  "slug": "filesystem-navigation",
+  "title": "Dosya Sistemi Navigasyonu",
+  "subtitle": "ls, pwd, cd ve Dosya Hiyerarşisi",
+  "description": "Linux dosya sistemi yapısını anla. ls ve tüm bayrakları, pwd, cd ile dizinlerde gezinme, gizli dosyalar, tree komutu.",
+  "icon": "FolderOpen",
+  "order": 2,
+  "tags": ["ls", "pwd", "cd", "filesystem", "dizin", "başlangıç"],
+  "modules": [
+    {
+      "id": "linux-fs-structure",
+      "title": "Linux Dosya Sistemi Yapısı",
+      "description": "/ kökünden başlayan hiyerarşi — hangi dizin ne işe yarar",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Kök Dizin ve Alt Dizinler",
+          "content": "Linux'ta her şey `/` (kök) ile başlar. Windows'taki C:\\ gibi düşün ama tek bir ağaç yapısı:\n\n| Dizin | İçeriği |\n|---|---|\n| `/` | Kök — tüm dizinlerin başlangıcı |\n| `/home` | Kullanıcı ev dizinleri (`/home/burak`) |\n| `/root` | Root kullanıcısının ev dizini |\n| `/etc` | Sistem yapılandırma dosyaları |\n| `/bin` | Temel komutlar (ls, cp, mv...) |\n| `/sbin` | Sistem yönetim komutları (root için) |\n| `/usr` | Kullanıcı programları ve kütüphaneler |\n| `/var` | Değişken veri (loglar, veritabanları) |\n| `/tmp` | Geçici dosyalar (yeniden başlatmada silinir) |\n| `/dev` | Donanım aygıtları (disk, USB...) |\n| `/proc` | Çalışan süreçler (sanal dosya sistemi) |\n| `/opt` | Üçüncü taraf uygulamalar |\n\n**Siber güvenlikte kritik:** `/etc/passwd`, `/etc/shadow`, `/var/log/`, `/tmp/` dizinleri sıkça hedef alınır."
+        }
+      ]
+    },
+    {
+      "id": "ls-command",
+      "title": "ls — Dizin İçeriğini Listeleme",
+      "description": "ls komutunun tüm bayrakları ve çıktısını okuma",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "ls Komutları — Sıfırdan İleriye",
+          "commands": [
+            {
+              "command": "ls",
+              "description": "Bulunduğun dizindeki dosya ve klasörleri listeler (gizli dosyalar hariç)",
+              "output": "Desktop  Documents  Downloads  Music  Pictures  Videos"
+            },
+            {
+              "command": "ls /etc",
+              "description": "Belirli bir dizinin içeriğini listele (/etc dizini)",
+              "output": "apt  bash.bashrc  cron.d  hostname  hosts  passwd  shadow  ssh  sudoers"
+            },
+            {
+              "command": "ls -l",
+              "description": "Uzun format — izinler, sahip, boyut, tarih ile listeler",
+              "output": "total 48\ndrwxr-xr-x 2 burak burak 4096 Jun  8 10:00 Desktop\ndrwxr-xr-x 3 burak burak 4096 Jun  7 15:30 Documents\n-rw-r--r-- 1 burak burak 1337 Jun  6 09:15 notes.txt\n-rwxr-xr-x 1 burak burak 8192 Jun  5 11:00 script.sh",
+              "tip": "Çıktıyı okuma: [izinler] [link sayısı] [sahip] [grup] [boyut byte] [tarih] [isim]"
+            },
+            {
+              "command": "ls -la",
+              "description": "Uzun format + GİZLİ dosyaları göster (. ile başlayanlar)",
+              "output": "total 80\ndrwxr-xr-x 12 burak burak 4096 Jun  8 10:00 .\ndrwxr-xr-x  3 root  root  4096 Jan 15 08:00 ..\n-rw-------  1 burak burak  220 Jan 15 08:00 .bash_history\n-rw-r--r--  1 burak burak 3526 Jan 15 08:00 .bashrc\ndrwx------  2 burak burak 4096 Jan 15 08:00 .ssh\ndrwxr-xr-x  2 burak burak 4096 Jun  8 10:00 Desktop",
+              "tip": ". = mevcut dizin, .. = üst dizin. .bashrc, .bash_history gibi gizli config dosyaları burada!"
+            },
+            {
+              "command": "ls -lah",
+              "description": "Uzun format + gizli + İNSAN OKUNUR boyutlar (KB, MB, GB)",
+              "output": "total 80K\ndrwxr-xr-x 12 burak burak 4.0K Jun  8 10:00 .\ndrwxr-xr-x  3 root  root  4.0K Jan 15 08:00 ..\n-rw-------  1 burak burak  220 Jan 15 08:00 .bash_history\n-rw-r--r--  1 burak burak 3.5K Jan 15 08:00 .bashrc\n-rw-r--r--  1 burak burak  13M Jun  5 09:00 backup.tar.gz"
+            },
+            {
+              "command": "ls -lt",
+              "description": "Tarihe göre sıralı listele (en yeni en üstte)",
+              "tip": "Hangi dosyalar en son değişti? Forensics'te kritik!"
+            },
+            {
+              "command": "ls -lS",
+              "description": "Boyuta göre sıralı listele (en büyük en üstte)",
+              "tip": "Büyük dosyaları bulmak için harika"
+            },
+            {
+              "command": "ls -R",
+              "description": "Alt dizinlerle birlikte tüm içeriği listeler (recursive)",
+              "warning": "Büyük dizinlerde çok uzun çıktı üretebilir!"
+            },
+            {
+              "command": "ls *.txt",
+              "description": "Sadece .txt uzantılı dosyaları listele (wildcard/glob)",
+              "output": "notes.txt  passwords.txt  readme.txt"
+            },
+            {
+              "command": "ls -la | grep '^d'",
+              "description": "Sadece dizinleri listele (d ile başlayan satırlar)",
+              "output": "drwxr-xr-x 2 burak burak 4096 Jun  8 Desktop\ndrwxr-xr-x 3 burak burak 4096 Jun  7 Documents"
+            }
+          ]
+        },
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "ls -l Çıktısını Okuma",
+          "content": "```\n-rwxr-xr-x  1  burak  burak  8192  Jun 8  script.sh\n│└─────────┘  │  └───┘  └───┘  └──┘  └───┘  └───────┘\n│  izinler   link  sahip  grup  boyut  tarih    isim\n│\n└── Dosya türü: - = dosya, d = dizin, l = symlink, b = blok aygıt\n```\n\n**İzin bloğu detayı:** `rwxr-xr-x`\n- `rwx` → Sahip (owner): okuma, yazma, çalıştırma\n- `r-x` → Grup: okuma, çalıştırma (yazma yok)\n- `r-x` → Diğerleri: okuma, çalıştırma"
+        }
+      ]
+    },
+    {
+      "id": "cd-pwd",
+      "title": "cd ve pwd — Dizinlerde Gezinme",
+      "description": "cd ile dizin değiştirme, pwd ile konumunu bilme",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Navigasyon Komutları",
+          "commands": [
+            {
+              "command": "pwd",
+              "description": "Şu anki tam dizin yolunu gösterir",
+              "output": "/home/burak/Documents"
+            },
+            {
+              "command": "cd /home/burak",
+              "description": "MUTLAK yol ile dizin değiştir (/ ile başlar = kökten)",
+              "tip": "Mutlak yol: her zaman / ile başlar, nerede olursan ol çalışır"
+            },
+            {
+              "command": "cd Documents",
+              "description": "GÖRECELİ yol ile dizin değiştir (şu anki dizinden devam eder)",
+              "tip": "Göreceli yol: / ile başlamaz, bulunduğun yere göre değişir"
+            },
+            {
+              "command": "cd ..",
+              "description": "Bir üst dizine çık",
+              "output": "# /home/burak/Documents içindeyken:\n# cd .. → /home/burak olur"
+            },
+            {
+              "command": "cd ../..",
+              "description": "İki üst dizine çık",
+              "output": "# /home/burak/Documents içindeyken:\n# cd ../.. → /home olur"
+            },
+            {
+              "command": "cd ~",
+              "description": "Home dizinine git (cd ~ = cd = aynı şey)",
+              "tip": "~ her zaman /home/KULLANICI_ADI demektir"
+            },
+            {
+              "command": "cd -",
+              "description": "Bir önceki dizine geri dön (ping-pong gibi!)",
+              "output": "/home/burak/Downloads\n# Bir önceki neredeysen oraya döner"
+            },
+            {
+              "command": "cd /",
+              "description": "Kök dizine git"
+            },
+            {
+              "command": "cd /etc/ssh",
+              "description": "SSH yapılandırma dizinine git (siber güvenlikte sık kullanılır)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tree-file",
+      "title": "tree ve file — Görsel Yapı ve Dosya Tipi",
+      "description": "Dizin yapısını ağaç görünümünde göster, dosya tipini öğren",
+      "difficulty": "beginner",
+      "duration": "5 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "tree ve file Komutları",
+          "commands": [
+            {
+              "command": "tree",
+              "description": "Mevcut dizini ağaç yapısında görüntüler",
+              "output": ".\n├── Desktop\n│   └── notes.txt\n├── Documents\n│   ├── reports\n│   │   └── report.pdf\n│   └── todo.txt\n└── Downloads\n    └── kali.iso\n\n4 directories, 4 files",
+              "tip": "Kurulu değilse: sudo apt install tree"
+            },
+            {
+              "command": "tree -L 2",
+              "description": "Sadece 2 seviye derinliğe kadar göster",
+              "tip": "-L 1 = sadece ilk seviye, -L 3 = 3 seviye derinlik"
+            },
+            {
+              "command": "tree -a",
+              "description": "Gizli dosyaları da dahil ederek ağaç görünümü"
+            },
+            {
+              "command": "file notes.txt",
+              "description": "Dosyanın gerçek tipini söyler (uzantıya değil içeriğe bakarak)",
+              "output": "notes.txt: ASCII text"
+            },
+            {
+              "command": "file /bin/ls",
+              "description": "ls komutunun dosya tipini göster",
+              "output": "/bin/ls: ELF 64-bit LSB pie executable, x86-64, dynamically linked"
+            },
+            {
+              "command": "file image.jpg",
+              "description": "Bir .jpg dosyasının gerçek tipini kontrol et",
+              "output": "image.jpg: JPEG image data, JFIF standard 1.01",
+              "tip": "Forensics'te kritik! Dosya uzantısı değiştirilebilir ama içerik magic bytes değişmez."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

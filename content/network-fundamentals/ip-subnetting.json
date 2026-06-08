@@ -1,0 +1,80 @@
+{
+  "id": "ip-subnetting",
+  "slug": "ip-subnetting",
+  "title": "IP Adresleme & Subnetting",
+  "subtitle": "CIDR Notasyonu, Ağ Maskesi ve Port Mantığı",
+  "description": "IP adresleme ve subnetting, ağ topolojisini anlamak ve tarama hedeflerini doğru tanımlamak için temeldir. CIDR notasyonu ve port kavramı Nmap kullanımında doğrudan gereklidir.",
+  "icon": "📐",
+  "order": 3,
+  "tags": ["IP", "subnetting", "CIDR", "IPv4", "port", "networking", "nmap"],
+  "modules": [
+    {
+      "id": "ip-basics",
+      "title": "IP Adresleme ve CIDR",
+      "description": "IPv4 yapısı, sınıf sistemi, özel adresler ve CIDR hesaplama.",
+      "difficulty": "beginner",
+      "duration": "50 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "IPv4 Adresleme",
+          "content": "IPv4 adresi, 32 bit (4 oktet) uzunluğundadır. Her oktet 0-255 arasında değer alır.\n\nÖrnek: 192.168.1.105\nBinary: 11000000.10101000.00000001.01101001\n\nÖzel (Özel/Private) IP Aralıkları (RFC 1918):\n- 10.0.0.0/8       → 10.0.0.0 - 10.255.255.255 (16M host)\n- 172.16.0.0/12    → 172.16.0.0 - 172.31.255.255 (1M host)\n- 192.168.0.0/16   → 192.168.0.0 - 192.168.255.255 (65K host)\n\nPentest'teki Önemi: Nmap ile bir /24 ağını taradığınızda (192.168.1.0/24) 256 IP adresine ping gönderilir. Ağ aralığını doğru belirlemek hem zamandan tasarruf hem de ağda iz bırakmamak açısından kritik.\n\nCIDR (Classless Inter-Domain Routing): Ağ maskesini prefix length olarak ifade eder.\n/24 → 255.255.255.0 → 254 kullanılabilir host\n/16 → 255.255.0.0   → 65534 kullanılabilir host\n/8  → 255.0.0.0     → 16M+ kullanılabilir host\n\nPort Mantığı:\nTCP/UDP 65535 port numarası içerir.\n- Well-known ports: 0-1023 (HTTP=80, HTTPS=443, SSH=22, FTP=21)\n- Registered ports: 1024-49151 (MySQL=3306, RDP=3389)\n- Dynamic/Ephemeral: 49152-65535 (istemci tarafı bağlantılar)"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "IP ve Ağ Analizi Komutları",
+          "commands": [
+            {
+              "command": "ip addr show",
+              "description": "Ağ arayüzlerini ve IP adreslerini listele",
+              "output": "2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP>\n    inet 192.168.1.105/24 brd 192.168.1.255 scope global eth0\n    inet6 fe80::a00:27ff:fe4e:66a1/64 scope link"
+            },
+            {
+              "command": "ipcalc 192.168.1.105/24",
+              "description": "CIDR hesaplama — ağ adresi, broadcast, host aralığı",
+              "output": "Address:   192.168.1.105       11000000.10101000.00000001.01101001\nNetmask:   255.255.255.0 = 24  11111111.11111111.11111111.00000000\nNetwork:   192.168.1.0/24      11000000.10101000.00000001.00000000\nHostMin:   192.168.1.1         11000000.10101000.00000001.00000001\nHostMax:   192.168.1.254       11000000.10101000.00000001.11111110\nBroadcast: 192.168.1.255\nHosts/Net: 254",
+              "tip": "ipcalc kurulumu: sudo apt install ipcalc -y"
+            },
+            {
+              "command": "nmap -sn 192.168.1.0/24 --open",
+              "description": "Ağdaki canlı hostları bul (ping sweep)",
+              "output": "Nmap scan report for 192.168.1.1\nHost is up (0.0012s latency).\nNmap scan report for 192.168.1.105\nHost is up (0.0008s latency).\nNmap done: 256 IP addresses (3 hosts up)"
+            },
+            {
+              "command": "ss -tulnp",
+              "description": "Sisteme açık portları listele (netstat'ın modern alternatifi)",
+              "output": "Netid State  Recv-Q Send-Q Local Address:Port\ntcp   LISTEN 0      128    0.0.0.0:22    PID=1234/sshd\ntcp   LISTEN 0      511    0.0.0.0:80    PID=5678/apache2\nudp         0      0      0.0.0.0:53    PID=9012/named"
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "Lab: Ağ Haritası Çıkarma",
+          "scenario": {
+            "title": "Yerel Ağdaki Tüm Cihazları Tespit Et",
+            "objective": "Kendi ağındaki (192.168.x.x/24) tüm cihazları bul, IP-MAC eşleşmelerini listele ve açık portları tespit et.",
+            "environment": "Kali Linux — Kendi yerel ağı veya TryHackMe lab ağı",
+            "difficulty": "beginner",
+            "steps": [
+              "Kendi IP adresini öğren: ip addr show | grep inet",
+              "Ağ aralığını hesapla: ipcalc <kendi_ip>/24",
+              "Ping sweep: sudo nmap -sn 192.168.x.0/24",
+              "Canlı hostları listele ve IP adreslerini not al",
+              "Seçilen bir hosta port taraması: sudo nmap -p 1-1000 192.168.x.y",
+              "ARP tablosunu görüntüle: arp -a"
+            ],
+            "hints": [
+              "Broadcast adresi (.255) ve ağ adresi (.0) hariç tut",
+              "Router genellikle .1 adresinde bulunur",
+              "sudo nmap -sS -O --osscan-guess ile OS tahmini de ekle"
+            ],
+            "defenseNote": "Savunma: Firewall ile ICMP (ping) yanıtlarını engelleyin — ancak bu basit Nmap taramalarını engellemez (TCP SYN da çalışır). VLAN segmentasyonu ile ağı bölün. 802.1X port authentication ile yetkisiz cihazları engelleyin."
+          }
+        }
+      ]
+    }
+  ]
+}

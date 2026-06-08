@@ -1,0 +1,134 @@
+{
+  "id": "burpsuite",
+  "slug": "burpsuite",
+  "title": "Burp Suite",
+  "subtitle": "Web Uygulama Güvenliği için Kapsamlı Proxy Aracı",
+  "description": "Burp Suite, web uygulamalarının güvenlik testinde endüstri standardı olarak kabul gören entegre bir platform. Proxy, Scanner, Repeater, Intruder, Decoder ve daha fazlasını içerir.",
+  "team": "red-team",
+  "category": "Web Uygulama Güvenliği",
+  "phase": "Interception / Exploitation",
+  "icon": "🔥",
+  "color": "#ff6633",
+  "tags": ["burpsuite", "proxy", "intercept", "repeater", "intruder", "web", "MITM"],
+  "modules": [
+    {
+      "id": "proxy-setup",
+      "title": "Proxy Kurulumu ve Temel Kullanım",
+      "description": "Burp Suite proxy'yi tarayıcıya bağla, HTTP trafiğini yakala ve incele.",
+      "difficulty": "beginner",
+      "duration": "45 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Burp Suite Nedir?",
+          "content": "Burp Suite, PortSwigger tarafından geliştirilen web uygulama güvenlik testi platformudur. İki sürümü vardır: Community (ücretsiz) ve Professional (ücretli).\n\nTemel modüller:\n- Proxy: Tarayıcı trafiğini araya girer ve düzenler\n- Repeater: HTTP isteklerini tekrar gönderir ve yanıtı analiz eder\n- Intruder: Otomatize parametre fuzzing ve brute force\n- Decoder: Veri encode/decode işlemleri\n- Comparer: İki yanıtı karşılaştırır\n- Scanner (Pro): Otomatize zafiyet taraması\n- Sequencer: Session token rastgelelik analizi\n\nBurp Suite, MITM (Man-in-the-Middle) proxy olarak çalışır. Tarayıcı ile web sunucusu arasına girerek tüm HTTP/HTTPS trafiğini yakalar, incelemenizi ve değiştirmenizi sağlar."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum ve Proxy Yapılandırması",
+          "installation": {
+            "note": "Kali Linux'ta Burp Suite Community Edition önceden yüklüdür. Kurulum sonrası tarayıcı proxy ayarı gerekir.",
+            "linux": [
+              "# Kali'de başlatmak için:",
+              "burpsuite",
+              "",
+              "# Tarayıcı proxy ayarı (Firefox):",
+              "# Settings > Network Settings > Manual Proxy",
+              "# HTTP Proxy: 127.0.0.1  Port: 8080",
+              "",
+              "# CA sertifika kurulumu:",
+              "# Burp çalışırken Firefox'ta http://burp adresine git",
+              "# 'CA Certificate' indir ve Firefox'a import et"
+            ],
+            "windows": [
+              "# portswigger.net/burp/communitydownload adresinden indirin",
+              "# Installer çalıştırın",
+              "# Aynı proxy ve sertifika kurulumu gereklidir"
+            ]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Proxy ve Intercept Kullanımı",
+          "commands": [
+            {
+              "command": "# Intercept ON konumundayken bir web sayfasına git",
+              "description": "Proxy > Intercept sekmesinde 'Intercept is on' durumunda HTTP isteği yakalanır",
+              "output": "GET /login HTTP/1.1\nHost: hedef.com\nUser-Agent: Mozilla/5.0\nAccept: text/html\nCookie: session=abc123\nConnection: close",
+              "tip": "Yakalanan isteği 'Send to Repeater' (Ctrl+R) ile Repeater'a gönderin."
+            },
+            {
+              "command": "# Repeater'da Request bölümüne ekle:",
+              "description": "Repeater — isteği tekrar gönder, parametreleri değiştir, yanıtı analiz et",
+              "output": "# Örnek: Cookie değerini değiştirip admin yetkisi almayı dene\nGET /admin HTTP/1.1\nHost: hedef.com\nCookie: role=admin; session=abc123\n\n# Send butonuna bas ve Response'u incele"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "intruder-repeater",
+      "title": "Repeater ve Intruder Teknikleri",
+      "description": "Repeater ile manuel analiz, Intruder ile otomatize saldırılar gerçekleştir.",
+      "difficulty": "intermediate",
+      "duration": "70 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Repeater vs Intruder",
+          "content": "Repeater: Tek bir isteği tekrar tekrar göndermenizi, her seferinde değişiklik yapmanızı sağlar. IDOR (Insecure Direct Object Reference) tespiti, parametre manipülasyonu ve bypass denemeleri için idealdir.\n\nIntruder: Belirli pozisyonlara (parametre, header, vb.) wordlist değerlerini otomatik yerleştirerek toplu test yapar. Brute force, fuzzing ve username enumeration için kullanılır.\n\nIntruder saldırı tipleri:\n- Sniper: Tek pozisyon, tek wordlist — en yaygın\n- Battering ram: Tüm pozisyonlara aynı değer\n- Pitchfork: Birden fazla pozisyona paralel liste\n- Cluster bomb: Tüm kombinasyonları dene (en kapsamlı)"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Intruder ile Brute Force ve Fuzzing",
+          "commands": [
+            {
+              "command": "# Intruder > Positions sekmesinde §parametreyi§ işaretle",
+              "description": "Login brute force — Sniper modu",
+              "output": "POST /login HTTP/1.1\nHost: hedef.com\nContent-Type: application/x-www-form-urlencoded\n\nusername=admin&password=§BURAYA_WORDLIST§\n\n# Payloads sekmesinde wordlist seç:\n# Payload type: Simple list\n# Load: /usr/share/wordlists/rockyou.txt (veya küçük liste)",
+              "warning": "Community Edition'da Intruder hız kısıtlaması var. Professional için Burp ya da alternatif olarak hydra kullanın."
+            },
+            {
+              "command": "# HTTP History'den isteği sağ tıkla > Send to Intruder",
+              "description": "IDOR testi — user ID parametresini iteration ile değiştir",
+              "output": "GET /api/user/§1§/profile HTTP/1.1\n\n# Payload: Numbers 1-500\n# Sonuçta: boyut veya status kodu farklı olan satırlara dikkat et"
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: OWASP WebGoat — Session Hijacking",
+          "scenario": {
+            "title": "Cookie Manipülasyonu ve Yetki Yükseltme",
+            "objective": "Burp Suite ile normal kullanıcı oturumunu yakala, cookie değerlerini analiz et ve admin yetkisi elde et.",
+            "environment": "OWASP WebGoat (Docker) — localhost:8080/WebGoat",
+            "difficulty": "intermediate",
+            "steps": [
+              "WebGoat'u başlat: docker run -p 8080:8080 webgoat/goat-and-wolf",
+              "Burp Proxy'yi aç ve tarayıcı ayarlarını yap",
+              "WebGoat'a normal kullanıcı olarak giriş yap",
+              "Giriş isteğini Burp Proxy'de yakala",
+              "Cookie değerlerini Decoder modülünde analiz et (Base64?)",
+              "role=user değerini role=admin ile değiştir",
+              "Repeater ile değiştirilmiş isteği gönder",
+              "Admin paneline erişim sağlandı mı kontrol et"
+            ],
+            "hints": [
+              "Cookie'ler çoğu zaman Base64 encode edilir — Decoder > Decode as Base64",
+              "Bazı sistemler JWT kullanır — jwt.io ile parse et",
+              "Response'ta Set-Cookie header'larına dikkat et"
+            ],
+            "flag": "WebGoat{cookie_manipulation_success}",
+            "defenseNote": "Savunma: Cookie'lere HttpOnly ve Secure flag ekleyin. Yetki kontrollerini SADECE sunucu tarafında yapın, client-side değerlere güvenmeyin. JWT kullanan sistemlerde signature doğrulamasını ihmal etmeyin. Session token'ların rastgeleliğini ve süre sınırlamasını uygulayın."
+          }
+        }
+      ]
+    }
+  ]
+}

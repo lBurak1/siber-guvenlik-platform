@@ -1,0 +1,202 @@
+{
+  "id": "package-management",
+  "slug": "package-management",
+  "title": "Paket Yönetimi",
+  "subtitle": "APT, dpkg, snap, pip",
+  "description": "Debian/Ubuntu/Kali sistemlerde paket kurma, güncelleme, kaldırma. Python paketleri ve pip yönetimi.",
+  "icon": "Package",
+  "order": 8,
+  "tags": ["apt", "dpkg", "pip", "snap", "paket", "kurulum"],
+  "modules": [
+    {
+      "id": "apt",
+      "title": "APT — Ana Paket Yöneticisi",
+      "description": "Debian tabanlı sistemlerde (Kali, Ubuntu) paket yönetimi",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "APT Nedir?",
+          "content": "**APT (Advanced Package Tool):** Debian ve türevlerinde paket yönetimi aracı. Paketleri depodan (repository) indirir, bağımlılıkları otomatik çözer.\n\n**Kali Linux'ta önemli depolar:**\n- `kali-rolling` → Kali araçları\n- `main`, `contrib`, `non-free` → Debian temel paketler\n\n**Paket güncelleme akışı:**\n1. `apt update` → Paket listesini güncelle (indirmez, sadece liste)\n2. `apt upgrade` → Kurulu paketleri güncelle\n3. `apt install <paket>` → Yeni paket kur"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "APT Komutları",
+          "commands": [
+            {
+              "command": "sudo apt update",
+              "description": "Paket listesini depodan güncelle (her zaman önce bu!)",
+              "tip": "Paket kurmadan önce mutlaka apt update yap — güncel liste olmadan eski sürümü kurabilirsin"
+            },
+            {
+              "command": "sudo apt upgrade",
+              "description": "Kurulu tüm paketleri güncelle"
+            },
+            {
+              "command": "sudo apt full-upgrade",
+              "description": "Tam güncelleme (bağımlılıkları da günceller, eski paketleri kaldırabilir)"
+            },
+            {
+              "command": "sudo apt install nmap",
+              "description": "Nmap kur"
+            },
+            {
+              "command": "sudo apt install -y nmap gobuster ffuf",
+              "description": "Birden fazla paket kur, onay sormadan (-y = yes to all)",
+              "tip": "Siber güvenlik araçlarını tek komutla kur!"
+            },
+            {
+              "command": "sudo apt install --reinstall nmap",
+              "description": "Paketi yeniden kur (bozuk kurulumlar için)"
+            },
+            {
+              "command": "sudo apt remove nmap",
+              "description": "Paketi kaldır (config dosyalarını korur)"
+            },
+            {
+              "command": "sudo apt purge nmap",
+              "description": "Paketi tam kaldır (config dosyaları dahil)",
+              "tip": "Temiz kaldırma istiyorsan purge kullan"
+            },
+            {
+              "command": "sudo apt autoremove",
+              "description": "Artık gerekmeyen bağımlılık paketlerini kaldır"
+            },
+            {
+              "command": "sudo apt autoclean",
+              "description": "İndirilen eski paket dosyalarını temizle (disk alanı kazan)"
+            },
+            {
+              "command": "apt search nmap",
+              "description": "'nmap' içeren paketleri ara",
+              "output": "Sorting...\nnmap/kali-rolling 7.94 amd64\n  The Network Mapper\nnmap-common/kali-rolling 7.94 all\n  Architecture independent files for nmap"
+            },
+            {
+              "command": "apt show nmap",
+              "description": "Paket detaylarını göster (sürüm, bağımlılık, açıklama)"
+            },
+            {
+              "command": "apt list --installed",
+              "description": "Kurulu tüm paketleri listele"
+            },
+            {
+              "command": "apt list --installed | grep nmap",
+              "description": "Belirli bir paketin kurulu olup olmadığını kontrol et"
+            },
+            {
+              "command": "sudo apt update && sudo apt install -y kali-linux-top10",
+              "description": "Kali'nin en popüler 10 aracını kur (tek komut!)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dpkg",
+      "title": "dpkg — .deb Paket Yönetimi",
+      "description": "İndirilen .deb dosyalarını kurma ve yönetme",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "dpkg Komutları",
+          "commands": [
+            {
+              "command": "sudo dpkg -i burpsuite.deb",
+              "description": ".deb dosyasını kur (-i = install)",
+              "tip": "dpkg bağımlılıkları otomatik çözmez! Hata alırsan: sudo apt install -f"
+            },
+            {
+              "command": "sudo apt install -f",
+              "description": "Kırık bağımlılıkları düzelt (-f = fix broken)",
+              "tip": "dpkg kurulumu bağımlılık hatası verirse hemen bunu çalıştır"
+            },
+            {
+              "command": "dpkg -l",
+              "description": "Kurulu tüm paketleri listele"
+            },
+            {
+              "command": "dpkg -l | grep nmap",
+              "description": "Nmap'in kurulu olup olmadığını kontrol et",
+              "output": "ii  nmap  7.94  amd64  The Network Mapper"
+            },
+            {
+              "command": "dpkg -L nmap",
+              "description": "Paketin kurduğu dosyaları listele",
+              "output": "/usr/bin/nmap\n/usr/share/man/man1/nmap.1.gz\n/usr/share/nmap/"
+            },
+            {
+              "command": "dpkg -S /usr/bin/nmap",
+              "description": "Bir dosyanın hangi paketçe kurulduğunu bul",
+              "output": "nmap: /usr/bin/nmap"
+            },
+            {
+              "command": "sudo dpkg --remove nmap",
+              "description": "Paketi kaldır (dpkg ile)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pip",
+      "title": "pip — Python Paket Yöneticisi",
+      "description": "Python araçları ve kütüphanelerini kurma",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "pip Komutları",
+          "commands": [
+            {
+              "command": "pip3 install requests",
+              "description": "requests kütüphanesini kur"
+            },
+            {
+              "command": "pip3 install requests beautifulsoup4 lxml",
+              "description": "Birden fazla Python paketi kur"
+            },
+            {
+              "command": "pip3 install -r requirements.txt",
+              "description": "requirements.txt'teki tüm paketleri kur (proje bağımlılıkları)",
+              "tip": "Git reposu indirince hep bu komut çalıştırılır!"
+            },
+            {
+              "command": "pip3 list",
+              "description": "Kurulu Python paketlerini listele"
+            },
+            {
+              "command": "pip3 show impacket",
+              "description": "Paket detaylarını göster (sürüm, konum, bağımlılıklar)"
+            },
+            {
+              "command": "pip3 install --upgrade requests",
+              "description": "Paketi güncel sürüme yükselt"
+            },
+            {
+              "command": "pip3 uninstall requests",
+              "description": "Paketi kaldır"
+            },
+            {
+              "command": "pip3 install impacket",
+              "description": "Impacket'ı kur (SMB, Kerberos, NTLM — pentest araçları)",
+              "tip": "Siber güvenlikte sık kullanılan Python araçları: impacket, scapy, pwntools, requests"
+            },
+            {
+              "command": "python3 -m venv myenv\nsource myenv/bin/activate\npip3 install -r requirements.txt",
+              "description": "Sanal ortam (virtual environment) oluştur ve aktifleştir",
+              "tip": "Farklı projelerin bağımlılıkları birbirini etkilemesin diye venv kullan"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,137 @@
+{
+  "id": "log-analysis",
+  "slug": "log-analysis",
+  "title": "Log Analizi",
+  "subtitle": "Apache/Nginx Loglarında Saldırı İzlerinin Tespiti",
+  "description": "Web sunucu loglarını analiz ederek Nmap taramalarını, SQL injection denemelerini, brute force saldırılarını ve diğer tehditleri tespit etme metodolojisi.",
+  "team": "blue-team",
+  "category": "Log Analizi",
+  "phase": "Detection / Incident Response",
+  "icon": "📋",
+  "color": "#06b6d4",
+  "tags": ["log-analysis", "apache", "nginx", "access-log", "detection", "incident-response", "SIEM", "blue-team"],
+  "modules": [
+    {
+      "id": "log-basics",
+      "title": "Log Format ve Temel Analiz",
+      "description": "Apache ve Nginx log formatlarını anla, komut satırı araçlarıyla temel analiz yap.",
+      "difficulty": "beginner",
+      "duration": "50 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Web Sunucu Logları Neden Kritik?",
+          "content": "Web sunucu access logları, sitenize yapılan her isteğin kaydını tutar. Doğru analiz edildiğinde şunları tespit edebilirsiniz:\n- Nmap ve diğer araçların ağ taramaları\n- SQL enjeksiyon denemeleri (SQLMap)\n- Dizin/dosya keşfi (Gobuster, ffuf)\n- Brute force saldırıları\n- Web shell erişimi ve komut çalıştırma\n- Veri sızıntısı (büyük boyutlu response)\n\nApache Log Formatı (Combined):\n%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"\n\nAlanlar:\n- %h: İstemci IP adresi\n- %t: Zaman damgası\n- %r: İstek satırı (METHOD URI HTTP/version)\n- %>s: HTTP durum kodu\n- %b: Response boyutu (byte)\n- %{User-agent}i: Kullanıcı ajanı"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel Log Analizi Komutları",
+          "commands": [
+            {
+              "command": "cat /var/log/apache2/access.log | head -20",
+              "description": "Apache access log ilk 20 satır",
+              "output": "192.168.1.105 - - [15/Jan/2024:22:30:01 +0300] \"GET / HTTP/1.1\" 200 11234 \"-\" \"Mozilla/5.0\"\n192.168.1.105 - - [15/Jan/2024:22:30:02 +0300] \"GET /robots.txt HTTP/1.1\" 200 65 \"-\" \"Nmap Scripting Engine\"\n10.0.0.5 - - [15/Jan/2024:22:31:15 +0300] \"GET /admin HTTP/1.1\" 404 512 \"-\" \"gobuster/3.6\"",
+              "tip": "User-Agent alanı araç tespitinin en hızlı yoludur."
+            },
+            {
+              "command": "awk '{print $1}' /var/log/apache2/access.log | sort | uniq -c | sort -rn | head -20",
+              "description": "En fazla istek yapan IP'leri listele",
+              "output": "   5234 10.0.0.5\n    891 192.168.1.1\n    234 203.0.113.99\n     45 192.168.1.105\n      8 8.8.8.8"
+            },
+            {
+              "command": "grep -E \"(union|select|insert|drop|update|delete|sleep|benchmark|1=1|'--|\\\"--|\\/\\*|\\*\\/)\" /var/log/apache2/access.log -i",
+              "description": "SQL injection denemelerini tespit et",
+              "output": "10.0.0.5 - [15/Jan/2024:22:45:12] \"GET /product.php?id=1+UNION+SELECT+1,2,3-- HTTP/1.1\" 200 892\n10.0.0.5 - [15/Jan/2024:22:45:13] \"GET /product.php?id=1'+AND+SLEEP(5)-- HTTP/1.1\" 200 892\n10.0.0.5 - [15/Jan/2024:22:45:14] \"GET /product.php?id=1'+ORDER+BY+3-- HTTP/1.1\" 500 0"
+            },
+            {
+              "command": "grep -E \"(User-Agent|agent).*(sqlmap|nmap|nikto|masscan|gobuster|ffuf|dirbuster|python-requests|curl\\/[0-9])\" /var/log/apache2/access.log -i",
+              "description": "Bilinen pentest araçlarının User-Agent'larını tespit et",
+              "output": "10.0.0.5 - [15/Jan/2024:22:45:10] \"GET /product.php?id=1 HTTP/1.1\" 200 892 \"-\" \"sqlmap/1.7.11#stable (https://sqlmap.org)\"\n10.0.0.7 - [15/Jan/2024:23:01:45] \"GET / HTTP/1.1\" 200 11234 \"-\" \"gobuster/3.6.0\"\n10.0.0.8 - [15/Jan/2024:23:15:22] \"GET / HTTP/1.1\" 200 11234 \"-\" \"Nmap Scripting Engine\""
+            },
+            {
+              "command": "awk '{print $9}' /var/log/apache2/access.log | sort | uniq -c | sort -rn",
+              "description": "HTTP durum kodlarına göre dağılım",
+              "output": "  12453 200\n   3211 404\n    892 403\n    234 301\n     45 500\n      8 200",
+              "tip": "Yüksek 404 sayısı: dizin brute force. Yüksek 500: SQL injection veya uygulama hatası."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "log-advanced",
+      "title": "İleri Analiz: Saldırı Zaman Çizelgesi ve Alarm Korelasyonu",
+      "description": "Nmap taramalarını, SQLMap saldırılarını ve brute force girişimlerini loglardan tespit et.",
+      "difficulty": "intermediate",
+      "duration": "80 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Gelişmiş Tespit Teknikleri",
+          "commands": [
+            {
+              "command": "# Nmap HTTP script taraması tespiti\ngrep -E \"(Nmap|nmap-script|\\.php\\?.*test=|/robots\\.txt|/favicon\\.ico|/sitemap\\.xml|HEAD /)\" /var/log/apache2/access.log | awk '{print $1, $4, $7}' | head -20",
+              "description": "Nmap HTTP scriptlerinin logdaki izleri",
+              "output": "10.0.0.5 [15/Jan/2024:22:30:01] /robots.txt\n10.0.0.5 [15/Jan/2024:22:30:01] /sitemap.xml\n10.0.0.5 [15/Jan/2024:22:30:02] /favicon.ico\n10.0.0.5 [15/Jan/2024:22:30:02] /.well-known/security.txt\n-- User-Agent: Nmap Scripting Engine"
+            },
+            {
+              "command": "# SQLMap tespiti: Çok sayıda parametre mutasyonu\ngrep \"10.0.0.5\" /var/log/apache2/access.log | grep \"/product.php\" | awk '{print $4, $7}' | head -30",
+              "description": "SQLMap saldırısının logdaki karakteristik deseni",
+              "output": "[22:45:10] /product.php?id=1\n[22:45:11] /product.php?id=1%27\n[22:45:12] /product.php?id=1+AND+1%3D1\n[22:45:13] /product.php?id=1+AND+1%3D2\n[22:45:14] /product.php?id=1+UNION+SELECT+NULL--\n[22:45:15] /product.php?id=1+UNION+SELECT+NULL%2CNULL--\n... (yüzlerce satır aynı IP, aynı endpoint)",
+              "tip": "SQLMap imzası: Aynı endpoint'e kısa sürede, sistematik parametre değişimleriyle çok sayıda istek."
+            },
+            {
+              "command": "# Brute force tespiti: Kısa sürede çok sayıda 401/403\nawk '$9 == \"401\" || $9 == \"403\" {print $1}' /var/log/apache2/access.log | sort | uniq -c | sort -rn | head -10",
+              "description": "Login brute force IP tespiti",
+              "output": "   892 10.0.0.5   <- BRU FORCE ŞÜPHELİSİ\n    45 192.168.1.1\n     8 203.0.113.2"
+            },
+            {
+              "command": "# Büyük boyutlu response — data exfiltration tespiti\nawk '$10 > 1000000 {print $1, $4, $7, $10}' /var/log/apache2/access.log",
+              "description": "1MB üzerindeki response'ları bul — veri sızıntısı şüphesi",
+              "output": "10.0.0.5 [15/Jan/2024:22:50:22] /export.php?table=users&format=csv 4592134"
+            },
+            {
+              "command": "# Zaman bazlı saldırı analizi — dakika başına istek sayısı\ngrep \"10.0.0.5\" /var/log/apache2/access.log | awk '{print $4}' | cut -d: -f1,2,3 | uniq -c",
+              "description": "Saldırganın dakika başına istek yoğunluğunu görselleştir",
+              "output": "      3 [15/Jan/2024:22:29\n      8 [15/Jan/2024:22:30   <- Keşif başlıyor\n    423 [15/Jan/2024:22:31   <- Tarama yoğunluğu\n   1234 [15/Jan/2024:22:45   <- SQLMap saldırısı\n    892 [15/Jan/2024:22:50   <- Brute force\n      2 [15/Jan/2024:22:55   <- Saldırı bitiyor"
+            }
+          ]
+        },
+        {
+          "id": "defense",
+          "type": "defense",
+          "title": "Savunma ve Otomatik Alarm Kurulumu",
+          "content": "Log analizini otomatize etmek için:\n\n1. fail2ban: IP'leri otomatik blokla\n   sudo apt install fail2ban\n   /etc/fail2ban/jail.local dosyasında kural tanımla\n   SQL injection için özel filter: /etc/fail2ban/filter.d/apache-sqli.conf\n\n2. GoAccess: Gerçek zamanlı web log analizi\n   sudo apt install goaccess\n   goaccess /var/log/apache2/access.log -o report.html --log-format=COMBINED\n\n3. Elasticsearch + Kibana (ELK Stack): Kurumsal düzey SIEM\n   Filebeat ile logları topla -> Logstash ile parse et -> Elasticsearch'e gönder -> Kibana'da görselleştir\n\n4. ModSecurity WAF: Apache/Nginx modülü, SQL injection ve XSS'i otomatik engeller\n   sudo apt install libapache2-mod-security2\n   OWASP CRS (Core Rule Set) kurallarını etkinleştir"
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: Apache Log Forensics",
+          "scenario": {
+            "title": "Saldırıyı Loglardan Yeniden İnşa Et",
+            "objective": "Verilen Apache access.log dosyasını analiz ederek: Saldırganın IP'sini, kullandığı aracı, hedef aldığı endpoint'i ve başarılı olup olmadığını tespit et.",
+            "environment": "Kali Linux — apache_access.log dosyası (lokal analiz)",
+            "difficulty": "intermediate",
+            "steps": [
+              "En fazla istek yapan IP'leri listele: awk '{print $1}' access.log | sort | uniq -c | sort -rn",
+              "Şüpheli IP'nin User-Agent'ını kontrol et: grep '10.0.0.5' access.log | awk '{print $12}' | sort -u",
+              "SQL injection imzası ara: grep -i 'union\\|select\\|sleep' access.log",
+              "Başarılı istekleri bul (200 status): grep '10.0.0.5' access.log | awk '$9==200'",
+              "Zaman çizelgesi oluştur: grep '10.0.0.5' access.log | awk '{print $4}' | head -5"
+            ],
+            "hints": [
+              "User-Agent 'sqlmap' içeriyorsa araç tespiti kolay",
+              "Aynı endpoint'e 100+ istek = otomasyon şüphesi",
+              "500 status kodu ile biten SQL injection istekleri başarısız denemeleri gösterir"
+            ],
+            "flag": "CTF{log_analysis_detective}",
+            "defenseNote": "Gerçek dünyada log analizi için: Logları merkezi SIEM'e gönderin (Splunk, Elastic). Alarm korelasyonu kurun: '1 dakikada aynı IP'den 100+ 4xx'. Logları değiştirilemez depolamaya kaydedin (write-once storage). NTP ile log zaman senkronizasyonunu sağlayın — forensics için kritik."
+          }
+        }
+      ]
+    }
+  ]
+}

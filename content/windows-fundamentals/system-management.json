@@ -1,0 +1,310 @@
+{
+  "id": "system-management",
+  "slug": "system-management",
+  "title": "Sistem & Servis Yönetimi",
+  "subtitle": "tasklist, sc, net user, wmic, Get-Service",
+  "description": "Windows süreç yönetimi, servis kontrolü, kullanıcı ve grup yönetimi, registry sorguları, sistem bilgisi.",
+  "icon": "Cpu",
+  "order": 4,
+  "tags": ["tasklist", "sc", "net user", "wmic", "registry", "servis", "kullanıcı"],
+  "modules": [
+    {
+      "id": "process-management-win",
+      "title": "Süreç Yönetimi",
+      "description": "Çalışan süreçleri listele, sonlandır, yönet",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Süreç Yönetimi Komutları",
+          "commands": [
+            {
+              "command": "tasklist",
+              "description": "Tüm çalışan süreçleri listele",
+              "output": "Image Name     PID Session      Mem Usage\nnotepad.exe   1234 Console     12,000 K\nchrome.exe    5678 Console    350,000 K"
+            },
+            {
+              "command": "tasklist /FI \"IMAGENAME eq notepad.exe\"",
+              "description": "Belirli süreci filtrele"
+            },
+            {
+              "command": "tasklist /FI \"STATUS eq running\" /FI \"MEMUSAGE gt 100000\"",
+              "description": "100MB'dan fazla RAM kullanan çalışan süreçler"
+            },
+            {
+              "command": "taskkill /PID 1234 /F",
+              "description": "PID ile süreç sonlandır (/F = force)"
+            },
+            {
+              "command": "taskkill /IM chrome.exe /F",
+              "description": "İsimle tüm Chrome süreçlerini sonlandır"
+            },
+            {
+              "command": "Get-Process",
+              "description": "PowerShell ile süreçleri listele"
+            },
+            {
+              "command": "Get-Process | Sort-Object CPU -Descending | Select-Object -First 5 | Format-Table Name, CPU, WorkingSet",
+              "description": "CPU kullanımına göre ilk 5 süreci göster"
+            },
+            {
+              "command": "Stop-Process -Name notepad -Force",
+              "description": "PowerShell ile süreci sonlandır"
+            },
+            {
+              "command": "Stop-Process -Id 1234 -Force",
+              "description": "PowerShell ile PID ile sonlandır"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "services",
+      "title": "Servis Yönetimi — sc, Get-Service",
+      "description": "Windows servislerini yönet, başlat, durdur, sorgula",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Servis Komutları",
+          "commands": [
+            {
+              "command": "sc query",
+              "description": "Tüm servisleri ve durumlarını listele"
+            },
+            {
+              "command": "sc query wuauserv",
+              "description": "Windows Update servisini sorgula",
+              "output": "SERVICE_NAME: wuauserv\n        TYPE               : 20  WIN32_SHARE_PROCESS\n        STATE              : 4  RUNNING"
+            },
+            {
+              "command": "sc start wuauserv",
+              "description": "Servisi başlat (Yönetici gerekir)"
+            },
+            {
+              "command": "sc stop wuauserv",
+              "description": "Servisi durdur"
+            },
+            {
+              "command": "sc config wuauserv start= auto",
+              "description": "Servisin başlangıç tipini ayarla (auto/manual/disabled)"
+            },
+            {
+              "command": "sc qc servis-adi",
+              "description": "Servis yapılandırmasını sorgula (binary path, start type)"
+            },
+            {
+              "command": "Get-Service",
+              "description": "PowerShell: tüm servisleri listele"
+            },
+            {
+              "command": "Get-Service | Where-Object {$_.Status -eq 'Running'}",
+              "description": "Sadece çalışan servisleri göster"
+            },
+            {
+              "command": "Start-Service -Name 'wuauserv'",
+              "description": "PowerShell ile servisi başlat"
+            },
+            {
+              "command": "Stop-Service -Name 'wuauserv' -Force",
+              "description": "PowerShell ile servisi durdur"
+            },
+            {
+              "command": "Set-Service -Name 'wuauserv' -StartupType Automatic",
+              "description": "PowerShell ile başlangıç tipini ayarla"
+            },
+            {
+              "command": "net start",
+              "description": "Çalışan servisleri listele (eski yöntem)"
+            },
+            {
+              "command": "net start wuauserv",
+              "description": "Servisi başlat (net komutu)"
+            },
+            {
+              "command": "net stop wuauserv",
+              "description": "Servisi durdur (net komutu)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "user-management-win",
+      "title": "Kullanıcı & Grup Yönetimi",
+      "description": "net user, net localgroup, Get-LocalUser",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Kullanıcı Yönetimi Komutları",
+          "commands": [
+            {
+              "command": "net user",
+              "description": "Sistemdeki kullanıcıları listele",
+              "output": "User accounts for \\\\DESKTOP-ABC\n\nAdministrator  burak  Guest  pentest"
+            },
+            {
+              "command": "net user burak",
+              "description": "Kullanıcı detaylarını göster (son giriş, gruplar, şifre bitiş...)"
+            },
+            {
+              "command": "net user yenikullanici Parola123! /add",
+              "description": "Yeni kullanıcı oluştur (Yönetici gerekir)"
+            },
+            {
+              "command": "net user burak Yeni@Parola123",
+              "description": "Kullanıcı şifresini değiştir"
+            },
+            {
+              "command": "net user eski-kullanici /delete",
+              "description": "Kullanıcıyı sil"
+            },
+            {
+              "command": "net localgroup",
+              "description": "Yerel grupları listele",
+              "output": "Aliases for \\\\DESKTOP-ABC\n\nAdministrators\nGuests\nRemote Desktop Users\nUsers"
+            },
+            {
+              "command": "net localgroup Administrators",
+              "description": "Administrators grubundaki üyeleri listele",
+              "output": "Members of Administrators:\nAdministrator\nburak"
+            },
+            {
+              "command": "net localgroup Administrators yenikullanici /add",
+              "description": "Kullanıcıyı Administrators grubuna ekle"
+            },
+            {
+              "command": "net localgroup Administrators kullanici /delete",
+              "description": "Kullanıcıyı Administrators grubundan çıkar"
+            },
+            {
+              "command": "Get-LocalUser",
+              "description": "PowerShell: yerel kullanıcıları listele"
+            },
+            {
+              "command": "Get-LocalGroupMember -Group 'Administrators'",
+              "description": "PowerShell: Administrators grubunu listele"
+            },
+            {
+              "command": "New-LocalUser -Name 'pentest' -Password (ConvertTo-SecureString 'Test@123' -AsPlainText -Force)",
+              "description": "PowerShell ile yeni kullanıcı oluştur"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "registry",
+      "title": "Registry Sorguları",
+      "description": "reg query, reg add — Windows kayıt defteri",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Registry Komutları",
+          "commands": [
+            {
+              "command": "reg query HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+              "description": "Başlangıçta çalışan programları listele",
+              "output": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\n    SecurityHealth    REG_EXPAND_SZ    %SystemRoot%\\system32\\SecurityHealthSystray.exe"
+            },
+            {
+              "command": "reg query HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",
+              "description": "Windows sürüm bilgisini registry'den oku"
+            },
+            {
+              "command": "reg query \"HKCU\\Software\\SimonTatham\\PuTTY\\Sessions\" /s",
+              "description": "PuTTY kayıtlı oturumları ara (şifresiz anahtar/IP bilgisi)",
+              "tip": "Pentest'te kayıtlı oturum bilgileri değerlidir"
+            },
+            {
+              "command": "reg query HKLM /f password /t REG_SZ /s 2>nul",
+              "description": "Registry'de 'password' kelimesini ara (tüm HKLM)",
+              "tip": "Düz metin parola arayışı — pentest'te çok faydalı"
+            },
+            {
+              "command": "reg query HKCU /f password /t REG_SZ /s 2>nul",
+              "description": "Mevcut kullanıcı registry'sinde parola ara"
+            },
+            {
+              "command": "reg add HKCU\\Software\\TestKey /v TestValue /t REG_SZ /d 'MerherbaKey' /f",
+              "description": "Registry anahtarı ekle"
+            },
+            {
+              "command": "reg delete HKCU\\Software\\TestKey /f",
+              "description": "Registry anahtarını sil"
+            },
+            {
+              "command": "reg export HKLM\\SOFTWARE\\MyApp C:\\yedek.reg",
+              "description": "Registry anahtarını .reg dosyasına aktar"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wmic",
+      "title": "WMIC ve Sistem Bilgisi",
+      "description": "wmic ile donanım ve yazılım bilgisi toplama",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "WMIC Komutları",
+          "commands": [
+            {
+              "command": "wmic os get Caption,Version,BuildNumber",
+              "description": "İşletim sistemi bilgisi",
+              "output": "Caption                          Version       BuildNumber\nMicrosoft Windows 10 Pro         10.0.19041    19041"
+            },
+            {
+              "command": "wmic cpu get Name,NumberOfCores",
+              "description": "CPU bilgisi"
+            },
+            {
+              "command": "wmic memorychip get Capacity",
+              "description": "RAM kapasitesi (her modül ayrı gösterilir)"
+            },
+            {
+              "command": "wmic qfe list brief",
+              "description": "Kurulu yamaları (hotfix) listele",
+              "output": "HotFixID   InstalledOn\nKB5003637  6/8/2026\nKB4562830  5/15/2026"
+            },
+            {
+              "command": "wmic product get Name,Version",
+              "description": "Kurulu programları listele"
+            },
+            {
+              "command": "wmic startup list brief",
+              "description": "Başlangıç programlarını listele"
+            },
+            {
+              "command": "wmic logicaldisk get Caption,FreeSpace,Size",
+              "description": "Disk kullanım bilgisi"
+            },
+            {
+              "command": "wmic useraccount list brief",
+              "description": "Tüm kullanıcı hesaplarını listele"
+            },
+            {
+              "command": "wmic service list brief",
+              "description": "Tüm servisleri listele"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

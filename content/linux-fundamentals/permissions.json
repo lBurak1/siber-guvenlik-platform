@@ -1,0 +1,249 @@
+{
+  "id": "permissions",
+  "slug": "permissions",
+  "title": "İzinler & Kullanıcı Yönetimi",
+  "subtitle": "chmod, chown, sudo, useradd",
+  "description": "Linux izin sistemi (rwxrwxrwx), octal notasyon, chmod ve chown kullanımı, sudo, kullanıcı ve grup yönetimi.",
+  "icon": "Lock",
+  "order": 5,
+  "tags": ["chmod", "chown", "sudo", "izinler", "kullanıcı", "güvenlik"],
+  "modules": [
+    {
+      "id": "permission-basics",
+      "title": "İzin Sistemi — rwxrwxrwx",
+      "description": "Linux izin mantığını ve ls -l çıktısını okuma",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "İzin Sistemi Nedir?",
+          "content": "Linux'ta her dosya ve dizinin üç farklı kullanıcı grubuna ait izinleri vardır:\n\n```\n-rwxr-xr--  1  burak  developers  4096  Jun 8  script.sh\n```\n\n**Dosya türü:**\n- `-` = normal dosya\n- `d` = dizin (directory)\n- `l` = sembolik link\n- `b` = blok aygıt\n\n**İzin blokları (3 grup × 3 karakter):**\n```\nrwx  r-x  r--\n│    │    │\n│    │    └── Diğerleri (others/world) — Sistemdeki herkes\n│    └────── Grup (group) — Dosyanın grubundakiler\n└─────────── Sahip (owner/user) — Dosyanın sahibi\n```\n\n**Her karakter:**\n- `r` = read (okuma)\n- `w` = write (yazma)\n- `x` = execute (çalıştırma)\n- `-` = izin yok\n\n**Dizinlerde özel anlam:**\n- `r` = dizin içini listeleyebilir (ls)\n- `w` = dizine dosya ekleyip silebilir\n- `x` = dizine girebilir (cd)"
+        }
+      ]
+    },
+    {
+      "id": "chmod",
+      "title": "chmod — İzin Değiştirme",
+      "description": "Sembolik ve octal notasyonla chmod kullanımı",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Octal (Sayısal) Notasyon",
+          "content": "Her izin bir bit değerine karşılık gelir:\n\n| İzin | Bit | Değer |\n|------|-----|-------|\n| r    |  1  |   4   |\n| w    |  1  |   2   |\n| x    |  1  |   1   |\n| -    |  0  |   0   |\n\n**Toplama mantığı:**\n- `rwx` = 4+2+1 = **7**\n- `rw-` = 4+2+0 = **6**\n- `r-x` = 4+0+1 = **5**\n- `r--` = 4+0+0 = **4**\n- `---` = 0+0+0 = **0**\n\n**Yaygın izin setleri:**\n```\n755 = rwxr-xr-x  → Çalıştırılabilir dosyalar, dizinler\n644 = rw-r--r--  → Normal dosyalar, config\n600 = rw-------  → Gizli dosyalar (SSH private key!)\n777 = rwxrwxrwx  → Herkese tam izin (TEHLİKELİ!)\n700 = rwx------  → Sadece sahip erişebilir\n```"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "chmod Örnekleri",
+          "commands": [
+            {
+              "command": "chmod 755 script.sh",
+              "description": "Octal: sahip=rwx, grup=r-x, diğer=r-x (script çalıştırılabilir)",
+              "output": "# Önce: -rw-r--r--\n# Sonra: -rwxr-xr-x"
+            },
+            {
+              "command": "chmod 644 config.txt",
+              "description": "Octal: sahip=rw-, grup=r--, diğer=r-- (normal dosya için standart)"
+            },
+            {
+              "command": "chmod 600 ~/.ssh/id_rsa",
+              "description": "SSH private key için doğru izin — sadece sahip okuyabilir",
+              "tip": "SSH private key 644 veya 777 olursa SSH bağlantısı reddeder!"
+            },
+            {
+              "command": "chmod +x script.sh",
+              "description": "Sembolik: herkese çalıştırma izni ekle",
+              "tip": "chmod +x en sık kullanılan chmod — scripti çalıştırılabilir yap"
+            },
+            {
+              "command": "chmod u+x,g-w,o-rwx dosya.sh",
+              "description": "Sembolik: sahibe +x ekle, gruptan -w çıkar, diğerlerinden her şeyi kaldır",
+              "tip": "u=user/owner, g=group, o=others, a=all (hepsi)"
+            },
+            {
+              "command": "chmod a-x dosya.txt",
+              "description": "Herkesten çalıştırma iznini kaldır (a = all)"
+            },
+            {
+              "command": "chmod -R 755 /var/www/html",
+              "description": "Dizin ve tüm içeriğine recursive olarak uygula (-R)",
+              "warning": "chmod -R 777 / gibi şeyler tüm sistemi tehlikeye atar!"
+            },
+            {
+              "command": "chmod o+t /tmp",
+              "description": "Sticky bit ekle — sadece dosya sahibi silebilir (public dizinlerde önemli)",
+              "tip": "ls -la çıktısında t olarak görünür: drwxrwxrwt"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chown",
+      "title": "chown & chgrp — Sahiplik Değiştirme",
+      "description": "Dosya sahipliğini ve grubunu değiştirme",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "chown ve chgrp Komutları",
+          "commands": [
+            {
+              "command": "chown burak dosya.txt",
+              "description": "Dosyanın sahibini 'burak' yap (root yetkisi gerekebilir)"
+            },
+            {
+              "command": "chown burak:developers dosya.txt",
+              "description": "Sahip ve grup değiştir (kullanıcı:grup formatı)"
+            },
+            {
+              "command": "chown -R burak:www-data /var/www/html",
+              "description": "Web sunucu dizininin sahibini recursive değiştir"
+            },
+            {
+              "command": "chgrp docker /var/run/docker.sock",
+              "description": "Sadece grubu değiştir"
+            },
+            {
+              "command": "ls -la dosya.txt",
+              "description": "Sahiplik değişimini doğrula",
+              "output": "-rw-r--r-- 1 burak developers 1337 Jun 8 dosya.txt"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sudo-users",
+      "title": "sudo, su — Yetki Yükseltme",
+      "description": "Kullanıcı geçişi ve root yetkileriyle komut çalıştırma",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "sudo ve su Komutları",
+          "commands": [
+            {
+              "command": "sudo apt update",
+              "description": "Root yetkisiyle komut çalıştır (kendi şifreni girersin)",
+              "tip": "sudo = superuser do. Kendi şifreni ister, root şifresi değil."
+            },
+            {
+              "command": "sudo -l",
+              "description": "Hangi komutları sudo ile çalıştırabileceğini listele",
+              "output": "User burak may run the following commands on kali:\n    (ALL : ALL) ALL",
+              "tip": "Pentest'te: sudo -l ile kullanıcının sudo yetkilerini kontrol et!"
+            },
+            {
+              "command": "sudo su",
+              "description": "Root kullanıcısına geç (sudo yetkisi ile)"
+            },
+            {
+              "command": "sudo -i",
+              "description": "Root shell aç (home dizini /root olur)"
+            },
+            {
+              "command": "su - burak",
+              "description": "burak kullanıcısına geç (burak'ın şifresi gerekir)",
+              "tip": "su - = login shell (environment değişkenleri de güncellenir)"
+            },
+            {
+              "command": "sudo bash",
+              "description": "Root shell — sudo yetkisi varsa şifresiz root shell"
+            },
+            {
+              "command": "sudo !!",
+              "description": "Son komutu sudo ile tekrar çalıştır (sudo erişimi gerekirken unutunca!)",
+              "tip": "!! = son komut; sudo !! = son komutu root olarak çalıştır"
+            },
+            {
+              "command": "visudo",
+              "description": "Sudoers dosyasını güvenli düzenle (sudo ile çalıştır)",
+              "warning": "Sudoers dosyasını doğrudan nano ile düzenleme — sözdizimi hatası sistemi kilitler!"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "user-management",
+      "title": "Kullanıcı ve Grup Yönetimi",
+      "description": "useradd, passwd, groupadd — kullanıcı işlemleri",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Kullanıcı Yönetimi Komutları",
+          "commands": [
+            {
+              "command": "whoami",
+              "description": "Şu anki kullanıcı adını göster",
+              "output": "burak"
+            },
+            {
+              "command": "id",
+              "description": "Kullanıcı ID, grup ID ve grupları göster",
+              "output": "uid=1000(burak) gid=1000(burak) groups=1000(burak),4(adm),27(sudo),1001(docker)"
+            },
+            {
+              "command": "id burak",
+              "description": "Belirtilen kullanıcının bilgilerini göster"
+            },
+            {
+              "command": "groups",
+              "description": "Üye olduğun grupları listele",
+              "output": "burak adm sudo docker"
+            },
+            {
+              "command": "cat /etc/passwd | grep '/bin/bash'",
+              "description": "Shell'i olan (login yapabilen) kullanıcıları listele",
+              "tip": "Pentest'te: hangi kullanıcılar aktif?"
+            },
+            {
+              "command": "sudo useradd -m -s /bin/bash yenikullanici",
+              "description": "Yeni kullanıcı oluştur (-m = home dizini oluştur, -s = shell belirt)"
+            },
+            {
+              "command": "sudo passwd yenikullanici",
+              "description": "Kullanıcının şifresini ayarla"
+            },
+            {
+              "command": "sudo usermod -aG sudo yenikullanici",
+              "description": "Kullanıcıyı sudo grubuna ekle (-aG = append to group)",
+              "tip": "-aG olmadan sadece -G kullanırsan mevcut gruplardan çıkar!"
+            },
+            {
+              "command": "sudo userdel -r eski-kullanici",
+              "description": "Kullanıcıyı ve home dizinini sil (-r = remove home)"
+            },
+            {
+              "command": "sudo groupadd pentesters",
+              "description": "Yeni grup oluştur"
+            },
+            {
+              "command": "last",
+              "description": "Son oturum açma geçmişini göster",
+              "output": "burak pts/0 192.168.1.50 Mon Jun  8 10:15 still logged in\nroot tty1              Mon Jun  7 09:00 - 09:30 (00:30)"
+            },
+            {
+              "command": "lastlog",
+              "description": "Tüm kullanıcıların son giriş bilgilerini göster",
+              "tip": "Pentest'te: hangi kullanıcılar son zamanlarda aktifti?"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

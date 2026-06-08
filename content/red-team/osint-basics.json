@@ -1,0 +1,104 @@
+{
+  "id": "osint-basics",
+  "slug": "osint-basics",
+  "title": "OSINT Temelleri",
+  "subtitle": "Açık Kaynak İstihbarat Toplama",
+  "description": "OSINT (Open Source Intelligence), kamuya açık kaynaklardan sistematik bilgi toplama disiplinidir. Hedef hakkında aktif saldırıya geçmeden önce maksimum bilgi toplamanın sanatıdır.",
+  "team": "red-team",
+  "category": "Bilgi Toplama",
+  "phase": "Reconnaissance",
+  "icon": "🔍",
+  "color": "#8b5cf6",
+  "tags": ["osint", "reconnaissance", "passive", "information-gathering", "whois", "shodan"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Pasif Keşif Teknikleri",
+      "description": "Hedefe hiç dokunmadan kamuya açık kaynaklardan bilgi toplama yöntemleri.",
+      "difficulty": "beginner",
+      "duration": "60 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "OSINT Nedir ve Neden Önemlidir?",
+          "content": "OSINT, pasif keşif aşamasının temelidir. Hedef sisteme hiç paket göndermeden — dolayısıyla iz bırakmadan — olabildiğince çok bilgi toplamayı amaçlar.\n\nBilgi toplama kaynakları: Web sitesi ve kaynak kodu, WHOIS kayıtları, DNS kayıtları, Shodan/Censys (IoT ve servis veritabanları), Google/Bing arama motorları, LinkedIn/sosyal medya, GitHub/GitLab (sızdırılmış credential'lar), Wayback Machine (eski site versiyonları), Certificate Transparency logları.\n\nBilgi toplama -> Tarama -> Zafiyet analizi -> Sömürü -> Yetki yükseltme -> Yanal hareket zincirinde ilk halka OSINT'tir. Ne kadar fazla bilgi, o kadar dar ve etkili saldırı vektörü."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "OSINT Araçları ve Komutları",
+          "commands": [
+            {
+              "command": "whois hedef.com",
+              "description": "Domain kayıt bilgileri — kayıt sahibi, tarih, nameservers",
+              "output": "Domain Name: HEDEF.COM\nRegistrar: GoDaddy.com, LLC\nCreated Date: 2018-03-15\nExpiry Date: 2025-03-15\nName Server: NS1.HEDEF.COM\nRegistrant Email: admin@hedef.com"
+            },
+            {
+              "command": "dig hedef.com ANY",
+              "description": "Tüm DNS kayıtlarını sorgula",
+              "output": "hedef.com.    IN A     203.0.113.1\nhedef.com.    IN MX    mail.hedef.com.\nhedef.com.    IN TXT   v=spf1 include:...\nhedef.com.    IN NS    ns1.hedef.com.",
+              "flags": [
+                { "flag": "dig A hedef.com", "description": "IPv4 adresi" },
+                { "flag": "dig MX hedef.com", "description": "Mail server" },
+                { "flag": "dig TXT hedef.com", "description": "SPF, DKIM, Google site doğrulama vb." },
+                { "flag": "dig axfr hedef.com @ns1.hedef.com", "description": "Zone transfer denemesi (yanlış yapılandırılmış DNS'lerde)" }
+              ]
+            },
+            {
+              "command": "theHarvester -d hedef.com -b google,bing,linkedin -l 500",
+              "description": "E-posta, subdomain ve çalışan bilgisi toplama",
+              "output": "[*] Emails found: 3\nadmin@hedef.com\nit@hedef.com\ninfo@hedef.com\n\n[*] Hosts found: 5\nmail.hedef.com:203.0.113.2\ndev.hedef.com:203.0.113.3",
+              "flags": [
+                { "flag": "-d DOMAIN", "description": "Hedef domain" },
+                { "flag": "-b KAYNAK", "description": "Arama motoru/kaynak (all, google, bing, linkedin, hunter)" },
+                { "flag": "-l LIMIT", "description": "Maksimum sonuç sayısı" }
+              ]
+            },
+            {
+              "command": "shodan search hostname:hedef.com",
+              "description": "Shodan — internete açık servis ve cihaz tespiti",
+              "output": "203.0.113.1:80    Apache/2.4.18\n203.0.113.1:22    OpenSSH 7.2\n203.0.113.1:3389  Windows RDP",
+              "tip": "shodan.io üzerinde ücretsiz hesap oluşturarak API key alabilirsiniz.",
+              "flags": [
+                { "flag": "shodan host IP", "description": "Belirli IP'deki açık servisleri göster" },
+                { "flag": "org:\"Hedef Şirket\"", "description": "Şirkete ait IP aralıklarını bul" }
+              ]
+            },
+            {
+              "command": "curl -s https://crt.sh/?q=%.hedef.com&output=json | python3 -m json.tool | grep name_value | sort -u",
+              "description": "Certificate Transparency — tüm alt alan adlarını listele",
+              "output": "\"name_value\": \"admin.hedef.com\"\n\"name_value\": \"api.hedef.com\"\n\"name_value\": \"dev.hedef.com\"\n\"name_value\": \"staging.hedef.com\"",
+              "tip": "Bu yöntem subdomain brute force'a gerek kalmadan SSL sertifika loglarından keşif yapar."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: Hedef Şirket Keşfi",
+          "scenario": {
+            "title": "Pasif OSINT ile Hedef Profili Oluşturma",
+            "objective": "Verilen bir domain hakkında WHOIS, DNS, Shodan ve Certificate Transparency kullanarak kapsamlı bir bilgi profili oluştur.",
+            "environment": "TryHackMe — Passive Reconnaissance Room",
+            "difficulty": "beginner",
+            "steps": [
+              "whois hedefsite.com ile domain sahibini ve kayıt tarihini bul",
+              "dig ANY ile tüm DNS kayıtlarını topla",
+              "crt.sh ile alt alan adlarını listele",
+              "Shodan'da domain için açık servisleri araştır",
+              "theHarvester ile e-posta adreslerini topla",
+              "Wayback Machine'de (web.archive.org) eski versiyonlara bak"
+            ],
+            "hints": [
+              "Zone Transfer: dig axfr @nameserver domain — çoğu sistem bunu engeller ama bazıları açık bırakır",
+              "GitHub'da domain adını aratın — credential sızıntıları sıkça burada bulunur",
+              "LinkedIn'de şirket çalışanları IT personel yapısını ortaya koyar"
+            ],
+            "defenseNote": "Savunma: WHOIS privacy servisi kullanın. DNS zone transfer'ı kısıtlayın (bind9: allow-transfer { none; }). Gereksiz subdomain ve servis kaydı oluşturmayın. Çalışanları OSINT farkındalığı konusunda eğitin. GitHub'da pre-commit hook ile credential sızıntısını önleyin (truffleHog, git-secrets)."
+          }
+        }
+      ]
+    }
+  ]
+}

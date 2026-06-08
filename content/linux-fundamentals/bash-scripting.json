@@ -1,0 +1,255 @@
+{
+  "id": "bash-scripting",
+  "slug": "bash-scripting",
+  "title": "Bash Scripting Temelleri",
+  "subtitle": "Otomasyon ve Script Yazımı",
+  "description": "Bash script yaz, değişken kullan, if/else ve döngülerle otomasyon oluştur, fonksiyon tanımla, cron ile zamanla.",
+  "icon": "Code",
+  "order": 9,
+  "tags": ["bash", "script", "otomasyon", "if", "for", "while", "fonksiyon", "cron"],
+  "modules": [
+    {
+      "id": "first-script",
+      "title": "İlk Bash Script — Shebang ve Çalıştırma",
+      "description": "Script oluştur, izin ver, çalıştır",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "İlk Script",
+          "commands": [
+            {
+              "command": "#!/bin/bash\n# Bu bir yorum satırı\necho 'Merhaba Dünya!'\necho \"Tarih: $(date)\"\necho \"Kullanıcı: $USER\"",
+              "description": "Temel bir bash script (merhaba.sh olarak kaydet)",
+              "tip": "#!/bin/bash = shebang. Script'in hangi yorumlayıcıyla çalışacağını belirtir. HER ZAMAN ilk satırda olmalı!"
+            },
+            {
+              "command": "chmod +x merhaba.sh",
+              "description": "Script'i çalıştırılabilir yap (zorunlu!)"
+            },
+            {
+              "command": "./merhaba.sh",
+              "description": "Script'i çalıştır",
+              "output": "Merhaba Dünya!\nTarih: Mon Jun  8 15:30:00 UTC 2026\nKullanıcı: burak"
+            },
+            {
+              "command": "bash merhaba.sh",
+              "description": "Alternatif çalıştırma yöntemi (chmod +x gerekmez)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "variables",
+      "title": "Değişkenler",
+      "description": "Değişken tanımla, kullan, özel değişkenler",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Değişken Kullanımı",
+          "commands": [
+            {
+              "command": "#!/bin/bash\nAD='Burak'\nYAS=25\nIP='192.168.1.100'\n\necho \"Merhaba $AD!\"\necho \"Yaşın: $YAS\"\necho \"Hedef IP: $IP\"",
+              "description": "Değişken tanımlama ve kullanma",
+              "tip": "= işaretinin her iki tarafında BOŞ ALAN OLMAMALI! YANLIS: AD = 'Burak', DOĞRU: AD='Burak'"
+            },
+            {
+              "command": "# Komut çıktısını değişkene ata:\nIP=$(hostname -I | awk '{print $1}')\nTARIH=$(date +%Y-%m-%d)\nKULLANICI=$(whoami)\n\necho \"IP: $IP\"\necho \"Tarih: $TARIH\"\necho \"Kullanıcı: $KULLANICI\"",
+              "description": "Komut çıktısını değişkene kaydet (command substitution)"
+            },
+            {
+              "command": "#!/bin/bash\n# Özel değişkenler:\necho \"Script adı: $0\"\necho \"1. argüman: $1\"\necho \"2. argüman: $2\"\necho \"Toplam argüman: $#\"\necho \"Tüm argümanlar: $@\"\necho \"Son komut exit kodu: $?\"",
+              "description": "Özel (built-in) değişkenler",
+              "tip": "$1 $2 $3 = script'e geçirilen argümanlar. ./script.sh arg1 arg2"
+            },
+            {
+              "command": "# Kullanıcıdan girdi al:\nread -p 'Hedef IP: ' HEDEF_IP\nread -sp 'Parola: ' PAROLA  # -s = sessiz (gizli giriş)\necho\necho \"$HEDEF_IP adresine bağlanılıyor...\"",
+              "description": "read ile kullanıcıdan girdi al"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "conditionals",
+      "title": "Koşullar — if, elif, else",
+      "description": "Koşullu mantık ve karşılaştırma operatörleri",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "if-elif-else Yapısı",
+          "commands": [
+            {
+              "command": "#!/bin/bash\nYAS=20\n\nif [ $YAS -ge 18 ]; then\n  echo 'Reşit'\nelif [ $YAS -ge 13 ]; then\n  echo 'Ergen'\nelse\n  echo 'Çocuk'\nfi",
+              "description": "Temel if-elif-else yapısı",
+              "tip": "[ ] içinde boşluklara dikkat: [ $YAS -ge 18 ] doğru, [$YAS-ge 18] hatalı"
+            },
+            {
+              "command": "# Sayısal karşılaştırma operatörleri:\n# -eq  = eşit (equal)\n# -ne  = eşit değil (not equal)\n# -lt  = küçüktür (less than)\n# -le  = küçük eşit (less or equal)\n# -gt  = büyüktür (greater than)\n# -ge  = büyük eşit (greater or equal)\n\n# String karşılaştırma:\n# =  veya ==   → eşit\n# !=           → eşit değil\n# -z DEGISKEN  → string boş mu?\n# -n DEGISKEN  → string dolu mu?",
+              "description": "Karşılaştırma operatörleri referansı"
+            },
+            {
+              "command": "#!/bin/bash\n# Dosya/dizin kontrolleri:\nif [ -f '/etc/passwd' ]; then\n  echo 'Dosya mevcut'\nfi\n\nif [ -d '/home/burak' ]; then\n  echo 'Dizin mevcut'\nfi\n\nif [ -x '/usr/bin/nmap' ]; then\n  echo 'nmap kurulu ve çalıştırılabilir'\nelse\n  echo 'nmap bulunamadı, kuruluyor...'\n  sudo apt install -y nmap\nfi",
+              "description": "Dosya/dizin varlık kontrolleri",
+              "tip": "-f=dosya, -d=dizin, -x=çalıştırılabilir, -r=okunabilir, -w=yazılabilir, -e=var mı?"
+            },
+            {
+              "command": "#!/bin/bash\n# Argüman kontrolü:\nif [ $# -eq 0 ]; then\n  echo \"Kullanım: $0 <hedef-ip>\"\n  exit 1\nfi\n\nHEDEF=$1\necho \"Taranıyor: $HEDEF\"",
+              "description": "Script'e argüman geçilmesini zorunlu kıl"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "loops",
+      "title": "Döngüler — for, while",
+      "description": "Tekrarlayan işlemler için döngü yapıları",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "for ve while Döngüleri",
+          "commands": [
+            {
+              "command": "#!/bin/bash\n# for döngüsü — liste üzerinde:\nfor IP in 192.168.1.1 192.168.1.2 192.168.1.3; do\n  echo \"Taranıyor: $IP\"\n  ping -c 1 -W 1 $IP > /dev/null && echo \"$IP → AKTİF\" || echo \"$IP → pasif\"\ndone",
+              "description": "IP listesi üzerinde döngü — ping sweep",
+              "tip": "Siber güvenlikte host keşfi için kullanılan pattern"
+            },
+            {
+              "command": "#!/bin/bash\n# for döngüsü — sayı aralığı:\nfor i in {1..10}; do\n  echo \"Deneme $i\"\ndone\n\n# Veya C-style:\nfor ((i=1; i<=10; i++)); do\n  echo \"Sayaç: $i\"\ndone",
+              "description": "Sayı aralığı ile döngü"
+            },
+            {
+              "command": "#!/bin/bash\n# for döngüsü — dosyalar üzerinde:\nfor DOSYA in /var/log/*.log; do\n  SATIR=$(wc -l < \"$DOSYA\")\n  echo \"$DOSYA: $SATIR satır\"\ndone",
+              "description": "Dizindeki tüm .log dosyaları üzerinde döngü"
+            },
+            {
+              "command": "#!/bin/bash\n# while döngüsü:\nSAYAC=1\nwhile [ $SAYAC -le 5 ]; do\n  echo \"Deneme $SAYAC\"\n  SAYAC=$((SAYAC + 1))\ndone",
+              "description": "while döngüsü — koşul sağlandığı sürece çalış"
+            },
+            {
+              "command": "#!/bin/bash\n# Dosyayı satır satır oku:\nwhile IFS= read -r SATIR; do\n  echo \"İşleniyor: $SATIR\"\ndone < kullanicilar.txt",
+              "description": "Dosyayı satır satır oku ve işle"
+            },
+            {
+              "command": "#!/bin/bash\n# Kelime listesiyle brute force simülasyonu:\nwhile IFS= read -r PAROLA; do\n  echo \"Deneniyor: $PAROLA\"\n  # Gerçek araçta: hydra, medusa vs.\ndone < /usr/share/wordlists/rockyou.txt",
+              "description": "Wordlist üzerinde döngü — pentest otomasyonu"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "functions",
+      "title": "Fonksiyonlar",
+      "description": "Tekrar kullanılabilir kod blokları oluştur",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Fonksiyon Tanımlama",
+          "commands": [
+            {
+              "command": "#!/bin/bash\n\n# Fonksiyon tanımla:\nselam_ver() {\n  echo \"Merhaba $1!\"\n  echo \"Bugün: $(date +%A)\"\n}\n\nbanner_goster() {\n  echo '================================'\n  echo '   Siber Güvenlik Tarama Aracı  '\n  echo '================================'\n}\n\n# Fonksiyonları çağır:\nbanner_goster\nselam_ver 'Burak'\nselam_ver 'Dünya'",
+              "description": "Fonksiyon tanımlama ve çağırma"
+            },
+            {
+              "command": "#!/bin/bash\n\nport_kontrol() {\n  local IP=$1\n  local PORT=$2\n  \n  nc -zv $IP $PORT 2>/dev/null\n  if [ $? -eq 0 ]; then\n    echo \"[AÇIK] $IP:$PORT\"\n    return 0\n  else\n    echo \"[KAPALI] $IP:$PORT\"\n    return 1\n  fi\n}\n\n# Kullan:\nport_kontrol 192.168.1.100 80\nport_kontrol 192.168.1.100 443\nport_kontrol 192.168.1.100 22",
+              "description": "Port kontrol fonksiyonu — gerçek bir araç!",
+              "tip": "local = yerel değişken, sadece fonksiyon içinde geçerli"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cron",
+      "title": "Cron — Görev Zamanlama",
+      "description": "Scriptleri otomatik, düzenli aralıklarla çalıştır",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Crontab Sözdizimi",
+          "content": "Cron satırı formatı:\n```\n* * * * * /komut/yolu\n│ │ │ │ │\n│ │ │ │ └── Haftanın günü (0-7, 0=Pazar)\n│ │ │ └──── Ay (1-12)\n│ │ └────── Ayın günü (1-31)\n│ └──────── Saat (0-23)\n└────────── Dakika (0-59)\n```\n\n**Örnekler:**\n```\n* * * * *           → Her dakika\n0 * * * *           → Her saat başında\n0 0 * * *           → Her gün gece yarısı\n0 6 * * 1           → Her Pazartesi sabah 6'da\n*/5 * * * *         → Her 5 dakikada bir\n0 0 1 * *           → Her ayın ilk günü\n@reboot /script.sh  → Her yeniden başlatmada\n```"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Crontab Kullanımı",
+          "commands": [
+            {
+              "command": "crontab -e",
+              "description": "Crontab dosyasını düzenle (görev ekle/kaldır)"
+            },
+            {
+              "command": "crontab -l",
+              "description": "Mevcut cron görevlerini listele",
+              "output": "# Cron görevleri:\n0 */6 * * * /home/burak/scripts/backup.sh\n*/30 * * * * /home/burak/scripts/log-check.sh"
+            },
+            {
+              "command": "# Crontab örnekleri:\n# Her gece 2'de yedek al:\n0 2 * * * /home/burak/scripts/backup.sh >> /var/log/backup.log 2>&1\n\n# Her 10 dakikada log kontrol:\n*/10 * * * * /home/burak/scripts/log-monitor.sh\n\n# Sistem başlatmada script çalıştır:\n@reboot /home/burak/scripts/startup.sh",
+              "description": "Yaygın cron görevi örnekleri"
+            },
+            {
+              "command": "crontab -r",
+              "description": "Tüm cron görevlerini sil",
+              "warning": "Dikkat! Tüm görevleri siler, geri alınamaz"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "real-script",
+      "title": "Gerçek Senaryo — Pentest Otomasyon Script'i",
+      "description": "Tüm öğrendiklerini bir araya getiren tam script",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "Ağ Keşif Script'i",
+          "scenario": {
+            "title": "Basit Ağ Keşif Aracı Yaz",
+            "objective": "Verilen bir ağ bloğundaki aktif hostları, açık portları ve banner bilgilerini otomatik toplayan bir bash script yaz.",
+            "environment": "Kali Linux terminal",
+            "difficulty": "intermediate",
+            "steps": [
+              "nano ~/scripts/network-scan.sh oluştur",
+              "Argüman kontrolü ekle ($1 = ağ bloğu, yoksa hata ver)",
+              "for döngüsüyle .1-.254 range'ini tara",
+              "Her IP için ping -c1 -W1 ile kontrol",
+              "Aktif hostlara nc ile port 22, 80, 443 kontrolü",
+              "Sonuçları ~/results/scan-$(date +%Y%m%d).txt dosyasına kaydet",
+              "chmod +x script, ./network-scan.sh 192.168.1 çalıştır"
+            ],
+            "hints": [
+              "for IP in {1..254}; do ... done yapısı ile subnet tara",
+              "ping -c1 -W1 $HEDEF > /dev/null 2>&1 && echo 'aktif'",
+              "nc -zw1 $IP $PORT 2>/dev/null && echo '[AÇIK]'",
+              "Sonuçları tee komutu ile hem ekrana yaz hem dosyaya kaydet"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

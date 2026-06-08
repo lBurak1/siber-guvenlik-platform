@@ -1,0 +1,46 @@
+{
+  "port": 25,
+  "service": "SMTP",
+  "protocol": "TCP",
+  "description": "Simple Mail Transfer Protocol — e-posta gönderim protokolü. Kullanıcı enumeration (VRFY/EXPN), open relay ve phishing testleri için hedef alınır.",
+  "risk": "medium",
+  "sections": [
+    {
+      "id": "enum",
+      "title": "SMTP Enumeration",
+      "commands": [
+        {
+          "label": "Nmap SMTP Script Taraması",
+          "command": "nmap -sV -p 25 --script smtp-commands,smtp-enum-users,smtp-open-relay 192.168.1.105",
+          "description": "Desteklenen SMTP komutları, kullanıcı listeleme ve open relay tespiti",
+          "output": "25/tcp open smtp Postfix smtpd\n| smtp-commands: HELO, MAIL, RCPT, VRFY, EXPN\n| smtp-enum-users: admin, john, info\n| smtp-open-relay: Server is an open relay"
+        },
+        {
+          "label": "VRFY ile Kullanıcı Kontrolü",
+          "command": "smtp-user-enum -M VRFY -U /usr/share/seclists/Usernames/top-usernames-shortlist.txt -t 192.168.1.105",
+          "description": "Senaryo: VRFY komutu aktifse kullanıcı adı enumeration",
+          "output": "192.168.1.105: admin EXISTS\n192.168.1.105: john EXISTS\n192.168.1.105: root EXISTS"
+        },
+        {
+          "label": "NetCat ile Manuel SMTP Enumeration",
+          "command": "nc -nv 192.168.1.105 25",
+          "description": "Manuel VRFY ve EXPN tespiti",
+          "output": "220 hedef-linux ESMTP Postfix\nVRFY admin\n252 2.0.0 admin\nVRFY fakeuser\n550 5.1.1 <fakeuser>: Recipient address rejected"
+        }
+      ]
+    },
+    {
+      "id": "access",
+      "title": "SMTP Test ve E-posta Gönderme",
+      "commands": [
+        {
+          "label": "Swaks ile Test E-postası",
+          "command": "swaks --to victim@hedef.com --from attacker@fake.com --server 192.168.1.105 --body 'Test phishing mail'",
+          "description": "Senaryo: Open relay kontrolü — dışarıdan e-posta gönderebiyor muyum?",
+          "tip": "Open relay varsa phishing kampanyasında kullanılabilir."
+        }
+      ]
+    }
+  ],
+  "defenseNote": "SMTP güvenlik önlemleri: VRFY ve EXPN komutlarını devre dışı bırakın. Open relay'i kapatın (Postfix: mynetworks sadece localhost). SPF, DKIM ve DMARC kayıtları ekleyin. STARTTLS ile şifrelemeyi zorunlu kılın. E-posta sunucusunu internete doğrudan açmayın."
+}

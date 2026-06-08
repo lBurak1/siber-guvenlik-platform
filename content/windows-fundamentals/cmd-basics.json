@@ -1,0 +1,276 @@
+{
+  "id": "cmd-basics",
+  "slug": "cmd-basics",
+  "title": "Komut İstemi (CMD) Temelleri",
+  "subtitle": "Windows'ta Komut Satırı",
+  "description": "CMD'yi sıfırdan öğren. dir, cd, mkdir, copy, move, del, ipconfig, netstat — Windows komut satırının temelleri.",
+  "icon": "Terminal",
+  "order": 1,
+  "tags": ["cmd", "dir", "mkdir", "ipconfig", "netstat", "windows", "başlangıç"],
+  "modules": [
+    {
+      "id": "cmd-intro",
+      "title": "CMD'ye Giriş",
+      "description": "CMD nedir, nasıl açılır, prompt yapısı",
+      "difficulty": "beginner",
+      "duration": "5 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "CMD Nedir?",
+          "content": "**CMD (Command Prompt / Komut İstemi):** Windows'un yerleşik komut satırı yorumlayıcısı. `cmd.exe` olarak çalışır.\n\n**Nasıl açılır:**\n- `Win + R` → `cmd` yaz → Enter\n- Başlat → 'cmd' ara → sağ tık → **Yönetici olarak çalıştır**\n- Dosya Gezgini adres çubuğuna `cmd` yaz → Enter\n\n**Prompt yapısı:**\n```\nC:\\Users\\burak>\n└── Mevcut dizin\n       └── > = normal kullanıcı (Administrator: # gibi)\n```\n\n**CMD vs PowerShell:**\n- CMD → Eski, basit, her Windows'ta var\n- PowerShell → Modern, güçlü, nesne tabanlı\n- Siber güvenlikte her ikisi de çok kullanılır\n\n**Önemli CMD özellikleri:**\n- Tab tamamlama destekler (Linux gibi)\n- Büyük/küçük harf duyarsız (DIR = dir = Dir)\n- Yol ayracı: \\ (Linux'ta /)"
+        }
+      ]
+    },
+    {
+      "id": "navigation",
+      "title": "Dizin Navigasyonu",
+      "description": "dir, cd, cls — CMD'de gezinme",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Navigasyon Komutları",
+          "commands": [
+            {
+              "command": "dir",
+              "description": "Mevcut dizindeki dosya ve klasörleri listele (Linux ls gibi)",
+              "output": " Volume in drive C is Windows\n Directory of C:\\Users\\burak\n\n08.06.2026  10:00    <DIR>          Desktop\n08.06.2026  09:30    <DIR>          Documents\n08.06.2026  08:15         1.337     notlar.txt\n               1 File(s)          1.337 bytes"
+            },
+            {
+              "command": "dir /a",
+              "description": "Gizli dosyaları da göster (/a = all attributes)",
+              "tip": "/a:h = sadece gizli, /a:d = sadece dizinler, /a:r = read-only"
+            },
+            {
+              "command": "dir /s *.txt",
+              "description": "Alt dizinlerde de .txt dosyalarını ara (/s = subdirectories)"
+            },
+            {
+              "command": "dir /o:s",
+              "description": "Boyuta göre sırala (/o:d = tarihe göre, /o:n = isme göre)"
+            },
+            {
+              "command": "cd Desktop",
+              "description": "Desktop dizinine gir (göreceli yol)"
+            },
+            {
+              "command": "cd C:\\Users\\burak\\Documents",
+              "description": "Mutlak yol ile dizin değiştir"
+            },
+            {
+              "command": "cd ..",
+              "description": "Bir üst dizine çık"
+            },
+            {
+              "command": "cd \\",
+              "description": "Kök dizine git (C:\\ veya D:\\ gibi sürücü köküne)"
+            },
+            {
+              "command": "cd /d D:\\",
+              "description": "Farklı sürücüye geç (/d bayrağı gerekli!)",
+              "tip": "Sadece cd D: yazarsan çalışmaz! /d bayrağı ile sürücü geçişi yapılır."
+            },
+            {
+              "command": "cls",
+              "description": "Ekranı temizle (Linux'ta clear)"
+            },
+            {
+              "command": "ver",
+              "description": "Windows sürümünü göster",
+              "output": "Microsoft Windows [Version 10.0.26100.3915]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "file-operations-cmd",
+      "title": "Dosya İşlemleri",
+      "description": "md, type, copy, move, del, ren — dosya yönetimi",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Dosya Yönetim Komutları",
+          "commands": [
+            {
+              "command": "md yeni-klasor",
+              "description": "Klasör oluştur (mkdir de çalışır)",
+              "tip": "md = mkdir — ikisi de çalışır"
+            },
+            {
+              "command": "md C:\\CTF\\web\\sql",
+              "description": "İç içe dizin oluştur (varsa hata vermez)"
+            },
+            {
+              "command": "type notlar.txt",
+              "description": "Dosya içeriğini görüntüle (Linux'ta cat)",
+              "output": "Bu benim notlarım.\nSiber güvenlik notları."
+            },
+            {
+              "command": "echo Merhaba > notlar.txt",
+              "description": "Dosyaya metin yaz (üzerine yazar)"
+            },
+            {
+              "command": "echo Yeni satır >> notlar.txt",
+              "description": "Dosyanın sonuna ekle (>> = append)"
+            },
+            {
+              "command": "copy kaynak.txt hedef.txt",
+              "description": "Dosyayı kopyala"
+            },
+            {
+              "command": "copy dosya.txt C:\\Yedek\\",
+              "description": "Dosyayı başka dizine kopyala"
+            },
+            {
+              "command": "move dosya.txt C:\\Desktop\\",
+              "description": "Dosyayı taşı"
+            },
+            {
+              "command": "ren eski-isim.txt yeni-isim.txt",
+              "description": "Dosyayı yeniden adlandır (rename)"
+            },
+            {
+              "command": "del dosya.txt",
+              "description": "Dosyayı sil",
+              "warning": "CMD'de silme kalıcı değil — Geri Dönüşüm Kutusu'na gider. /F ile zorla sil."
+            },
+            {
+              "command": "del /f /q *.tmp",
+              "description": "Tüm .tmp dosyalarını zorla sil (/f = force, /q = sessiz)"
+            },
+            {
+              "command": "rd bos-klasor",
+              "description": "Boş klasörü sil (rmdir de çalışır)"
+            },
+            {
+              "command": "rd /s /q dolu-klasor",
+              "description": "İçi dolu klasörü sil (/s = subdirs, /q = onay sorma)",
+              "warning": "Geri alınamaz! Silmeden önce dir ile kontrol et"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "system-info-cmd",
+      "title": "Sistem Bilgisi Komutları",
+      "description": "systeminfo, whoami, tasklist, set — sistem durumu",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Sistem Bilgisi Komutları",
+          "commands": [
+            {
+              "command": "whoami",
+              "description": "Mevcut kullanıcı adını göster",
+              "output": "desktop-abc123\\burak"
+            },
+            {
+              "command": "whoami /priv",
+              "description": "Kullanıcı ayrıcalıklarını listele (pentest'te kritik!)",
+              "output": "PRIVILEGES INFORMATION\nPrivilege Name                  State\n=============================== ========\nSeShutdownPrivilege             Disabled\nSeChangeNotifyPrivilege         Enabled\nSeImpersonatePrivilege          Enabled"
+            },
+            {
+              "command": "whoami /groups",
+              "description": "Üye olunan grupları listele"
+            },
+            {
+              "command": "systeminfo",
+              "description": "Detaylı sistem bilgisi (OS, RAM, CPU, yamalar)",
+              "tip": "Pentest'te: hangi yamalar eksik? Bu çıktıyı windows-exploit-suggester'a ver"
+            },
+            {
+              "command": "systeminfo | findstr /B /C:\"OS\" /C:\"Hotfix\"",
+              "description": "Sadece OS ve Hotfix satırlarını göster"
+            },
+            {
+              "command": "set",
+              "description": "Tüm ortam değişkenlerini listele (PATH, USERNAME, TEMP...)",
+              "output": "COMPUTERNAME=DESKTOP-ABC123\nPATH=C:\\Windows\\system32;C:\\Windows\nUSERNAME=burak\nUSERPROFILE=C:\\Users\\burak"
+            },
+            {
+              "command": "set USERNAME",
+              "description": "Belirli ortam değişkenini göster",
+              "output": "USERNAME=burak"
+            },
+            {
+              "command": "tasklist",
+              "description": "Çalışan süreçleri listele (Linux'ta ps aux)",
+              "output": "Image Name     PID Session    Mem Usage\nnotepad.exe   1234 Console    12,345 K\nchrome.exe    5678 Console   345,678 K"
+            },
+            {
+              "command": "tasklist /FI \"IMAGENAME eq notepad.exe\"",
+              "description": "Belirli süreçleri filtrele"
+            },
+            {
+              "command": "taskkill /PID 1234 /F",
+              "description": "Süreç ID ile zorla sonlandır (/F = force)"
+            },
+            {
+              "command": "taskkill /IM notepad.exe /F",
+              "description": "İsimle tüm Notepad süreçlerini sonlandır"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "network-cmd",
+      "title": "Ağ Komutları (Hızlı Başvuru)",
+      "description": "ipconfig, ping, netstat, arp — temel ağ komutları",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel Ağ Komutları",
+          "commands": [
+            {
+              "command": "ipconfig",
+              "description": "IP adresi, subnet mask, gateway bilgisi",
+              "output": "Windows IP Configuration\n\nEthernet adapter Ethernet:\n   IPv4 Address. . . : 192.168.1.100\n   Subnet Mask . . . : 255.255.255.0\n   Default Gateway . : 192.168.1.1"
+            },
+            {
+              "command": "ipconfig /all",
+              "description": "Tüm detaylar: MAC adresi, DNS, DHCP sunucusu"
+            },
+            {
+              "command": "ipconfig /flushdns",
+              "description": "DNS önbelleğini temizle"
+            },
+            {
+              "command": "ping google.com",
+              "description": "4 ping at",
+              "output": "Pinging google.com [142.250.185.46] with 32 bytes of data:\nReply from 142.250.185.46: bytes=32 time=15ms TTL=56"
+            },
+            {
+              "command": "ping -t 192.168.1.1",
+              "description": "Sürekli ping at (-t = continuous, Ctrl+C ile dur)"
+            },
+            {
+              "command": "netstat -an",
+              "description": "Aktif bağlantılar ve dinleyen portlar",
+              "output": "Active Connections\n  Proto  Local Address    Foreign Address  State\n  TCP    0.0.0.0:80       0.0.0.0:0        LISTENING\n  TCP    192.168.1.100:445 0.0.0.0:0       LISTENING"
+            },
+            {
+              "command": "netstat -b",
+              "description": "Hangi program hangi portu kullanıyor (yönetici gerekebilir)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

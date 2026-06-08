@@ -1,0 +1,172 @@
+{
+  "id": "protocols-deep",
+  "slug": "protocols-deep",
+  "title": "Kritik Protokoller",
+  "subtitle": "ARP · DNS · DHCP · HTTP/S · FTP · SMB — Güvenlik Açısından",
+  "description": "Ağın temel protokollerinin nasıl çalıştığını ve her birinin ne tür güvenlik açıklarını barındırdığını öğren. Bu protokolleri anlamak, hem saldırı vektörlerini hem de tespit mekanizmalarını kavramak için şarttır.",
+  "icon": "📡",
+  "order": 4,
+  "tags": ["ARP", "DNS", "DHCP", "HTTP", "HTTPS", "FTP", "SMB", "protocols", "networking"],
+  "modules": [
+    {
+      "id": "layer2-protocols",
+      "title": "ARP ve DHCP",
+      "description": "Katman 2 protokolleri ve güvenlik açıkları.",
+      "difficulty": "beginner",
+      "duration": "40 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "ARP — Adres Çözümleme Protokolü",
+          "content": "ARP (Address Resolution Protocol), IP adresini MAC adresine çeviren Katman 2-3 arası protokoldür.\n\nÇalışma Mekanizması:\n1. Host A, 192.168.1.1'in MAC adresini bilmiyor\n2. Broadcast gönderir: 'FF:FF:FF:FF:FF:FF → Kim 192.168.1.1?'\n3. 192.168.1.1 (Router): 'Ben! Benim MAC'im AA:BB:CC:DD:EE:FF'\n4. Host A, ARP tablosuna kaydeder\n\nGüvenlik Açığı — ARP Spoofing/Poisoning:\nARP'ta kimlik doğrulama yoktur! Herhangi bir cihaz 'Ben 192.168.1.1'im' diye broadcast yapabilir.\nSonuç: MITM (Man-in-the-Middle) saldırısı. Ağdaki tüm trafik saldırgan üzerinden geçer.\n\nDHCP — Dynamic Host Configuration Protocol:\nCihazlara otomatik IP, gateway, DNS bilgisi verir.\nGüvenlik Açığı — DHCP Starvation + DHCP Rogue Server:\n1. Saldırgan sahte MAC'lerle tüm DHCP pool'unu tüketir\n2. Sahte DHCP server kurar, kendi IP'sini gateway olarak verir\n3. Sonuç: Tüm ağ trafiği saldırgan üzerinden geçer"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "ARP ve DHCP Analiz Komutları",
+          "commands": [
+            {
+              "command": "sudo arpspoof -i eth0 -t 192.168.1.10 192.168.1.1",
+              "description": "ARP Spoofing — hedef cihaza 'Ben router'ım' de (SADECE lab ortamında!)",
+              "warning": "Bu komut ağ trafiğini keser ve yetkisiz kullanımda ciddi hukuki yaptırımlara yol açar. YALNIZCA kendi lab ağınızda test edin.",
+              "tip": "ARP spoofing için önce IP forward aktif et: echo 1 > /proc/sys/net/ipv4/ip_forward",
+              "flags": [
+                { "flag": "-i eth0", "description": "Ağ arayüzü" },
+                { "flag": "-t 192.168.1.10", "description": "Hedef (kurban) IP" },
+                { "flag": "192.168.1.1", "description": "Sahte router IP" }
+              ]
+            },
+            {
+              "command": "sudo arp-scan --interface=eth0 --localnet",
+              "description": "Yerel ağdaki tüm ARP yanıt veren cihazları listele",
+              "output": "192.168.1.1\tAA:BB:CC:DD:EE:FF\t(Router)\n192.168.1.10\t11:22:33:44:55:66\t(Unknown)\n192.168.1.105\t77:88:99:AA:BB:CC\t(Kali)",
+              "tip": "Duplicate IP (aynı IP için iki farklı MAC) → ARP spoofing uyarısı!"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dns-protocol",
+      "title": "DNS — Alan Adı Sistemi",
+      "description": "DNS'in çalışma mantığı, kayıt türleri ve güvenlik açıkları.",
+      "difficulty": "beginner",
+      "duration": "35 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "DNS Nasıl Çalışır?",
+          "content": "DNS (Domain Name System), alan adlarını (google.com) IP adreslerine çevirir. İnternetin 'telefon rehberidir'.\n\nDNS Sorgu Süreci:\n1. Tarayıcı: 'google.com'un IP'si nedir?' → Local cache kontrol\n2. Recursive resolver (ISP DNS): Cache'de yoksa→ Root nameserver\n3. Root NS: '.com' için nameserver adresi verir\n4. .com TLD NS: 'google.com' için nameserver adresi verir\n5. Google Authoritative NS: '142.250.x.x' IP'sini verir\n\nDNS Kayıt Türleri:\n- A: IPv4 adresi (google.com → 142.250.x.x)\n- AAAA: IPv6 adresi\n- MX: Mail sunucusu\n- CNAME: Alias (www → google.com)\n- TXT: SPF, DKIM, doğrulama\n- NS: Authoritative nameserver\n- PTR: Reverse DNS (IP → domain)\n\nGüvenlik Açıkları:\n- DNS Spoofing/Cache Poisoning: Sahte DNS yanıtı enjekte et\n- Zone Transfer: Misconfigure edilmişse tüm DNS kayıtları çekilebilir\n- DNS Tünelleme: Veri, DNS sorguları içinde sızdırılır\n- Subdomain Takeover: Kullanılmayan CNAME kayıtları ele geçirilebilir"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "DNS Analiz ve Enumeration",
+          "commands": [
+            {
+              "command": "dig google.com A +short",
+              "description": "DNS A kaydı sorgula (IPv4 adresi)",
+              "output": "142.250.185.78"
+            },
+            {
+              "command": "dig hedef.com ANY +noall +answer",
+              "description": "Tüm DNS kayıt türlerini sorgula",
+              "output": "hedef.com. 300 IN A     203.0.113.1\nhedef.com. 300 IN MX    10 mail.hedef.com.\nhedef.com. 300 IN TXT   \"v=spf1 include:...\"\nhedef.com. 300 IN NS    ns1.hedef.com."
+            },
+            {
+              "command": "dig axfr hedef.com @ns1.hedef.com",
+              "description": "Zone Transfer denemesi — misconfigure DNS'lerde tüm kayıtlar döker",
+              "output": "# Başarılı zone transfer (yanlış yapılandırılmış DNS'lerde):\nhedef.com. IN SOA ns1.hedef.com. admin.hedef.com.\nhedef.com. IN A 203.0.113.1\nadmin.hedef.com. IN A 203.0.113.5\ndev.hedef.com.   IN A 10.0.0.50   ← iç IP!",
+              "tip": "AXFR başarılıysa tüm subdomain haritasını çekmiş olursunuz — altın değerinde OSINT!"
+            },
+            {
+              "command": "dnsenum --dnsserver 8.8.8.8 --enum hedef.com -f /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt",
+              "description": "DNS enumeration ve subdomain brute force",
+              "output": "Name Servers:\n  ns1.hedef.com - 203.0.113.10\n\nSubdomains:\n  admin.hedef.com - 203.0.113.5\n  api.hedef.com - 203.0.113.6\n  dev.hedef.com - 10.0.0.50"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "smb-http-protocols",
+      "title": "HTTP/S, FTP ve SMB",
+      "description": "Web, dosya transfer ve ağ paylaşım protokollerinin güvenlik açıkları.",
+      "difficulty": "intermediate",
+      "duration": "50 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "HTTP/S, FTP ve SMB Güvenlik Özeti",
+          "content": "HTTP (HyperText Transfer Protocol):\nDurumsuz (stateless) istek-yanıt protokolü. Şifresiz — trafik dinlenebilir!\nGüvenlik açıkları: SQLi, XSS, CSRF, path traversal, IDOR, authentication bypass.\nHTTPS = HTTP + TLS şifreleme. Sertifika doğrulaması kritik.\n\nFTP (File Transfer Protocol) — Port 21:\n1971'den beri kullanılıyor. Cleartext! Kimlik bilgileri şifresiz iletilir.\nAnonymous login: Kullanıcı adı 'anonymous', şifre herhangi bir email.\nGüvenlik açıkları: Anonymous access, cleartext credentials, bounce attack.\nAlternatif: SFTP (SSH üzerinden) veya FTPS (FTP+TLS)\n\nSMB (Server Message Block) — Port 445:\nWindows ağ paylaşımı protokolü. Yazıcı, dosya paylaşımı.\nGüvenlik açıkları:\n- MS17-010 (EternalBlue): SMBv1 zafiyeti, WannaCry ve NotPetya bunu kullandı\n- Pass-the-Hash: NTLM hash ile kimlik doğrulaması\n- NTLM Relay: Kimlik bilgisi aktarma saldırısı\n- Null Session: Kimlik doğrulama olmadan bağlantı (eski Windows)\nSMBv1 tamamen devre dışı bırakılmalıdır!"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "HTTP, FTP ve SMB Analiz Komutları",
+          "commands": [
+            {
+              "command": "curl -v http://hedef.com/ 2>&1 | grep -E '(Server:|X-Powered|< HTTP)'",
+              "description": "HTTP response header'larından teknoloji tespiti",
+              "output": "< HTTP/1.1 200 OK\n< Server: Apache/2.4.18 (Ubuntu)\n< X-Powered-By: PHP/7.0.33"
+            },
+            {
+              "command": "ftp 192.168.1.105",
+              "description": "FTP'ye bağlan — anonymous login dene",
+              "output": "Connected to 192.168.1.105.\n220 vsftpd 3.0.3\nName: anonymous\nPassword: (herhangi email)\n230 Login successful.\nftp> ls\n-rw-r--r-- 1 ftp ftp 1024 Jan 15 flag.txt\nftp> get flag.txt"
+            },
+            {
+              "command": "smbclient -L //192.168.1.105 -N",
+              "description": "SMB paylaşımlarını listele (null session)",
+              "output": "Sharename  Type    Comment\n---------  ----    -------\nIPC$       IPC     IPC Service\npublic     Disk    Public Share\nadmin$     Disk    Remote Admin",
+              "flags": [
+                { "flag": "-L //IP", "description": "Paylaşımları listele" },
+                { "flag": "-N", "description": "Şifresiz bağlan (null session)" },
+                { "flag": "-U kullanici", "description": "Kullanıcı adıyla bağlan" }
+              ]
+            },
+            {
+              "command": "smbclient //192.168.1.105/public -N",
+              "description": "Public SMB paylaşımına bağlan ve dosyaları incele",
+              "output": "smb: \\> ls\n  .                   D  0  Mon Jan 15 22:30:01 2024\n  ..                  D  0  Mon Jan 15 22:30:01 2024\n  notes.txt           A  1024  Mon Jan 15\nsmb: \\> get notes.txt"
+            },
+            {
+              "command": "enum4linux -a 192.168.1.105",
+              "description": "SMB/Windows enumeration — kullanıcılar, gruplar, paylaşımlar",
+              "output": "Users via RPC:\n  Administrator\n  john\n  guest\n\nShares via RPC:\n  public (Disk)\n  admin$ (Disk)",
+              "tip": "enum4linux-ng daha modern alternatifidir: enum4linux-ng -A 192.168.1.105"
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "Lab: SMB Enumeration ve FTP Anonymous Login",
+          "scenario": {
+            "title": "Protokol Zafiyetleri ile İlk Erişim",
+            "objective": "TryHackMe veya Metasploitable2 üzerinde FTP anonymous login ve SMB enumeration ile flag dosyasına eriş.",
+            "environment": "Metasploitable2 (Docker: docker run -d -p 21:21 -p 445:445 tleemcjr/metasploitable2) veya TryHackMe",
+            "difficulty": "beginner",
+            "steps": [
+              "Nmap ile FTP ve SMB portlarını tara: nmap -sV -p 21,445 <hedef>",
+              "FTP anonymous login dene: ftp <hedef> → kullanıcı: anonymous",
+              "FTP'de ls ve get komutlarıyla dosyaları incele",
+              "SMB paylaşımlarını listele: smbclient -L //<hedef> -N",
+              "Erişilebilir paylaşımlara gir: smbclient //<hedef>/tmp -N",
+              "enum4linux ile kullanıcı listesini çıkar"
+            ],
+            "hints": [
+              "FTP binary mode ile dosya bozulmadan indirilir: binary komutunu gir",
+              "SMB'de put ve get komutları çalışır",
+              "Metasploitable2'nin varsayılan şifresi msfadmin:msfadmin"
+            ],
+            "defenseNote": "Savunma: FTP'yi SFTP/FTPS ile değiştirin. SMBv1'i devre dışı bırakın: Set-SmbServerConfiguration -EnableSMB1Protocol $false. SMB paylaşımlarına izin listesi uygulayın. Null session'ı engelleyin: Registry HKLM\\System\\CurrentControlSet\\Control\\Lsa → RestrictAnonymous=2."
+          }
+        }
+      ]
+    }
+  ]
+}

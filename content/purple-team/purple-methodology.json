@@ -1,0 +1,119 @@
+{
+  "id": "purple-methodology",
+  "slug": "purple-methodology",
+  "title": "Purple Team Metodolojisi",
+  "subtitle": "Red ve Blue Takımların Senkronizasyonu ile Güvenlik Döngüsü",
+  "description": "Purple Team, Red Team saldırı simülasyonlarını Blue Team'in tespit ve savunma mekanizmalarıyla birleştirerek güvenlik açıklarını gerçek zamanlı olarak kapatma disiplinidir. MITRE ATT&CK çerçevesi temel alınır.",
+  "team": "purple-team",
+  "category": "Metodoloji",
+  "phase": "Simulate / Detect / Improve",
+  "icon": "🔀",
+  "color": "#a855f7",
+  "tags": ["purple-team", "MITRE-ATT&CK", "atomic-red-team", "detection-engineering", "threat-simulation", "SOC"],
+  "modules": [
+    {
+      "id": "purple-intro",
+      "title": "Purple Team'e Giriş ve MITRE ATT&CK",
+      "description": "Purple Team kavramını, MITRE ATT&CK çerçevesini ve senkronize çalışma metodolojisini öğren.",
+      "difficulty": "intermediate",
+      "duration": "60 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Purple Team Nedir?",
+          "content": "Purple Team, Red Team (saldırı) ile Blue Team (savunma) arasındaki köprüdür. Geleneksel Red Team değerlendirmelerinde bulgular raporlanır ve düzeltme aylar sürer. Purple Team bu döngüyü gerçek zamanlı hale getirir.\n\nPurple Team çalışma döngüsü:\n1. Tehdit İstihbaratı: Hangi tehdit aktörleri bu sektörü hedefliyor?\n2. Saldırı Simülasyonu: Red Team, gerçek TTPs (Tactics, Techniques, Procedures) uygular\n3. Gerçek Zamanlı Gözlem: Blue Team simülasyonu izler, tespit kurallarını test eder\n4. Boşluk Analizi: Tespit edilemeyen saldırılar tespit edilir\n5. Kural Geliştirme: SIEM, IDS kuralları iyileştirilir\n6. Tekrar Test: Yeni kurallara karşı simülasyon tekrarlanır\n\nMITRE ATT&CK (Adversarial Tactics, Techniques & Common Knowledge):\nDünya genelinde gözlemlenen gerçek saldırı tekniklerini kategorize eden bilgi tabanı. 14 taktik, 200+ teknik içerir. URL: attack.mitre.org"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Atomic Red Team ile Saldırı Simülasyonu",
+          "commands": [
+            {
+              "command": "# Atomic Red Team kurulumu (PowerShell)\nIEX (IWR 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/install-atomicredteam.ps1' -UseBasicParsing)\nInstall-AtomicRedTeam -getAtomics",
+              "description": "Atomic Red Team framework'ü kur",
+              "tip": "Atomic Red Team, MITRE ATT&CK tekniklerini test edilmiş scriptlerle simüle eder."
+            },
+            {
+              "command": "# T1059.001 — PowerShell tehdit tekniği simülasyonu\nInvoke-AtomicTest T1059.001 -ShowDetails",
+              "description": "MITRE tekniği detaylarını görüntüle",
+              "output": "Technique: Command and Scripting Interpreter: PowerShell\nAtomics: 10 test(s)\nAtomic Test #1: Mimikatz - Dump Credentials from Windows Credential Manager\nAtomic Test #2: PowerShell Download Cradle\n..."
+            },
+            {
+              "command": "Invoke-AtomicTest T1059.001 -TestNumbers 1",
+              "description": "Seçili Atomic Test'i çalıştır ve SIEM alarmı tetiklendi mi izle",
+              "warning": "Bu komutları SADECE izole test ortamında çalıştırın. Kurumsal altyapıda yetkisiz çalıştırma yasal yaptırımlara yol açar."
+            },
+            {
+              "command": "# Linux — Credential erişim simülasyonu (T1003)\n# Blue Team: Auditd veya SIEM'de /etc/shadow erişimini izle\nInvoke-AtomicTest T1003.008",
+              "description": "Linux /etc/shadow erişim simülasyonu ve Blue Team tespiti",
+              "output": "# Blue Team SIEM kuralı (Elastic/Splunk):\n# event.category:process AND process.name:/etc/shadow\n# veya\n# auditd: syscall=open AND a0=/etc/shadow"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "detection-engineering",
+      "title": "Detection Engineering — SIEM Kural Yazımı",
+      "description": "Sigma kuralları ile taşınabilir tespit mantığı yaz ve SIEM'e dönüştür.",
+      "difficulty": "advanced",
+      "duration": "90 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Detection Engineering Nedir?",
+          "content": "Detection Engineering, tehdit simülasyonlarından elde edilen bulguları SIEM, IDS/IPS ve EDR sistemleri için tespit kuralına dönüştürme sürecidir.\n\nSigma: SIEM agnostik kural formatı. Splunk, Elastic, QRadar, Microsoft Sentinel gibi farklı platformlara dönüştürülebilir.\n\nKural yazım döngüsü:\n1. Red Team teknik çalıştırır\n2. Blue Team logları inceler: Hangi log alanları doldu?\n3. Sigma kuralı yaz\n4. sigmac aracıyla hedef SIEM'e dönüştür\n5. Üretim ortamına deploy et\n6. False positive oranını izle\n7. Kural iyileştir\n\nYield (verim) metrikleri: True Positive Rate, False Positive Rate, Mean Time to Detect (MTTD), Mean Time to Respond (MTTR)"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Sigma Kural Yazımı",
+          "commands": [
+            {
+              "command": "# Örnek Sigma Kuralı — Nmap Tarama Tespiti\n# /etc/sigma/rules/network/nmap_scan.yml",
+              "description": "Nmap port taraması için Sigma kuralı",
+              "output": "title: Nmap Port Scan Detection\nid: a9d5c95e-1234-4567-8901-abcdef012345\nstatus: experimental\ndescription: Detects Nmap port scan activity via Apache access logs\nreferences:\n  - https://nmap.org\nauthor: SecAcademy\ndate: 2024/01/15\ntags:\n  - attack.reconnaissance\n  - attack.t1046\nlogsource:\n  category: webserver\n  product: apache\ndetection:\n  selection:\n    cs-useragent|contains:\n      - 'Nmap'\n      - 'nmap'\n      - 'Nmap Scripting Engine'\n  condition: selection\nfalsepositives:\n  - Legitimate security scanning\nlevel: medium"
+            },
+            {
+              "command": "# SQLMap Tespiti Sigma Kuralı",
+              "description": "SQLMap saldırısı için Sigma kuralı",
+              "output": "title: SQLMap SQL Injection Tool Detection\nstatus: stable\ndescription: Detects SQLMap usage via User-Agent and URI patterns\ntags:\n  - attack.t1190\n  - attack.initial_access\nlogsource:\n  category: webserver\ndetection:\n  selection_ua:\n    cs-useragent|contains: 'sqlmap'\n  selection_uri:\n    cs-uri-query|contains:\n      - 'UNION+SELECT'\n      - 'AND+SLEEP'\n      - '1=1--'\n      - \"' OR '\"\n  condition: selection_ua or selection_uri\nlevel: high\nfalsepositives:\n  - None expected"
+            },
+            {
+              "command": "# Sigma -> Elasticsearch dönüşümü\npip3 install sigmac\nsigmac -t es-qs -c tools/config/winlogbeat.yml rules/network/nmap_scan.yml",
+              "description": "Sigma kuralını Elasticsearch query string'e çevir",
+              "output": "(cs-useragent:\"Nmap\" OR cs-useragent:\"Nmap Scripting Engine\")"
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "Purple Team Egzersizi: Credential Dumping Simülasyonu",
+          "scenario": {
+            "title": "Red vs Blue — Mimikatz Tespiti",
+            "objective": "Red Team: Windows test ortamında Mimikatz ile LSASS'tan credential dump et. Blue Team: Windows Event Log ve SIEM'de bu aktiviteyi tespit et. Purple Team: Tespit edilemezse kural yaz.",
+            "environment": "İzole Windows VM (test ortamı) + Elastic SIEM veya Splunk Free",
+            "difficulty": "advanced",
+            "steps": [
+              "Red Team: Test VM'de Invoke-AtomicTest T1003.001 (LSASS Memory)",
+              "Blue Team: Windows Event Viewer'da 4624 (logon), 4688 (process creation) olaylarını izle",
+              "Blue Team: Sysmon Event ID 10 (ProcessAccess) ile lsass.exe erişimini tespit et",
+              "Purple Team: SIEM'de kural var mı kontrol et",
+              "Kural yoksa Sigma kuralı yaz ve deploy et",
+              "Red Team tekrar simüle et — artık alarm üretiyor mu?"
+            ],
+            "hints": [
+              "Sysmon Event ID 10: lsass.exe'ye GrantedAccess 0x1010 şüpheli",
+              "Windows Event 4688: Yeni process — mimikatz.exe veya powershell.exe ile anormal arg",
+              "Sigma kural repo: github.com/SigmaHQ/sigma"
+            ],
+            "defenseNote": "Gerçek dünya Purple Team programı: Periyodik (aylık/çeyreklik) simülasyonlar planlayın. MITRE ATT&CK Navigator ile kapsama haritası oluşturun — hangi teknikler için tespit kuralınız var? Threat intelligence ile öncelik verin: Sektörünüzü hedefleyen aktörlerin TTPs'ini önce test edin."
+          }
+        }
+      ]
+    }
+  ]
+}

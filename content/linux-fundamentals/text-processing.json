@@ -1,0 +1,343 @@
+{
+  "id": "text-processing",
+  "slug": "text-processing",
+  "title": "Metin İşleme & Pipe",
+  "subtitle": "grep, find, awk, sed, Yönlendirme",
+  "description": "cat, head, tail, grep ile dosya arama; find ile sistem tarama; pipe (|) ile komutları zincirle; > ve >> ile çıktı yönlendir.",
+  "icon": "Search",
+  "order": 4,
+  "tags": ["grep", "find", "pipe", "awk", "sed", "redirect", "metin işleme"],
+  "modules": [
+    {
+      "id": "file-reading",
+      "title": "Dosya Okuma — cat, head, tail, less",
+      "description": "Dosya içeriğini farklı yöntemlerle görüntüle",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Dosya Okuma Komutları",
+          "commands": [
+            {
+              "command": "cat /etc/passwd",
+              "description": "Dosyanın tüm içeriğini ekrana yaz",
+              "output": "root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\nburak:x:1000:1000::/home/burak:/bin/bash"
+            },
+            {
+              "command": "cat -n dosya.txt",
+              "description": "Satır numarasıyla göster (-n = number lines)"
+            },
+            {
+              "command": "head -n 10 /var/log/syslog",
+              "description": "İlk 10 satırı göster (varsayılan 10, -n ile değiştirilir)",
+              "tip": "head -5 /etc/passwd → ilk 5 kullanıcıyı gösterir"
+            },
+            {
+              "command": "tail -n 20 /var/log/auth.log",
+              "description": "Son 20 satırı göster"
+            },
+            {
+              "command": "tail -f /var/log/syslog",
+              "description": "Log dosyasını CANLI izle (-f = follow, yeni satırları anlık gösterir)",
+              "tip": "Sistem loglarını gerçek zamanlı takip etmek için kritik! Ctrl+C ile dur."
+            },
+            {
+              "command": "less /etc/passwd",
+              "description": "Büyük dosyaları sayfa sayfa oku (q = çık, / = ara, n = sonraki, Space = sonraki sayfa)",
+              "tip": "cat yerine büyük dosyalar için less kullan — tüm dosyayı hafızaya almaz"
+            },
+            {
+              "command": "wc -l /etc/passwd",
+              "description": "Dosyadaki satır sayısını say",
+              "output": "32 /etc/passwd"
+            },
+            {
+              "command": "wc -w dosya.txt",
+              "description": "Kelime sayısını say (-w = words, -c = bytes, -l = lines)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "grep",
+      "title": "grep — Metin Arama",
+      "description": "Dosyalarda ve komut çıktılarında kelime/pattern arama",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "grep Komutları",
+          "commands": [
+            {
+              "command": "grep 'root' /etc/passwd",
+              "description": "'root' kelimesini /etc/passwd içinde ara",
+              "output": "root:x:0:0:root:/root:/bin/bash"
+            },
+            {
+              "command": "grep -i 'ROOT' /etc/passwd",
+              "description": "Büyük/küçük harf duyarsız arama (-i = case insensitive)",
+              "output": "root:x:0:0:root:/root:/bin/bash"
+            },
+            {
+              "command": "grep -n 'error' /var/log/syslog",
+              "description": "Satır numarasıyla göster (-n = line number)",
+              "output": "142: Jun 8 error: connection timeout\n289: Jun 8 error: disk full"
+            },
+            {
+              "command": "grep -v 'nologin' /etc/passwd",
+              "description": "'nologin' OLMAYAN satırları göster (-v = invert match)",
+              "tip": "Shell'i olan kullanıcıları bulmak için kullanılır"
+            },
+            {
+              "command": "grep -r 'password' /etc/",
+              "description": "Dizin içinde recursive arama (-r = recursive)",
+              "output": "/etc/mysql/my.cnf:password=secret123\n/etc/ftp.conf:DefaultPassword=admin"
+            },
+            {
+              "command": "grep -rl 'password' /etc/",
+              "description": "Sadece dosya adlarını göster (-l = list files only), recursive",
+              "tip": "Hangi dosyalarda 'password' geçiyor bulmak için hızlı yol"
+            },
+            {
+              "command": "grep -c 'GET' access.log",
+              "description": "Kaç satırda eşleşme var, sayısını göster (-c = count)",
+              "output": "1337"
+            },
+            {
+              "command": "grep -A 3 -B 1 'error' /var/log/syslog",
+              "description": "Eşleşme + 3 satır sonrasını ve 1 satır öncesini göster",
+              "tip": "-A = after (sonra), -B = before (önce), -C = context (her ikisi)"
+            },
+            {
+              "command": "grep -E 'admin|root|sudo' /etc/passwd",
+              "description": "Birden fazla pattern ara (Extended regex, | = VEYA)"
+            },
+            {
+              "command": "grep '^root' /etc/passwd",
+              "description": "'root' ile BAŞLAYAN satırları bul (^ = satır başı regex)",
+              "output": "root:x:0:0:root:/root:/bin/bash"
+            },
+            {
+              "command": "grep '/bin/bash$' /etc/passwd",
+              "description": "'/bin/bash' ile BİTEN satırları bul ($ = satır sonu regex)",
+              "tip": "Bu komut shell'i olan tüm kullanıcıları bulur!"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "find",
+      "title": "find — Dosya Arama",
+      "description": "Sistemde dosya ve dizin ara — siber güvenlikte çok kritik",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "find Komutları",
+          "commands": [
+            {
+              "command": "find /home -name 'notlar.txt'",
+              "description": "/home altında 'notlar.txt' adlı dosyayı bul",
+              "output": "/home/burak/Documents/notlar.txt"
+            },
+            {
+              "command": "find / -name '*.conf' 2>/dev/null",
+              "description": "Tüm sistemde .conf uzantılı dosyaları bul (hata mesajlarını gizle)",
+              "tip": "2>/dev/null → hata mesajlarını /dev/null'a gönder, temiz çıktı alırsın"
+            },
+            {
+              "command": "find /tmp -name '*.sh' -type f",
+              "description": "Sadece dosya tipinde ara (-type f = file, -type d = directory)",
+              "tip": "Pentest'te /tmp içindeki script'leri aramak için"
+            },
+            {
+              "command": "find / -perm -4000 2>/dev/null",
+              "description": "SUID biti aktif dosyaları bul (privilege escalation için kritik!)",
+              "output": "/usr/bin/passwd\n/usr/bin/sudo\n/usr/bin/pkexec\n/bin/su",
+              "tip": "SUID dosyalar root yetkiyle çalışır — exploitable SUID'leri ara!"
+            },
+            {
+              "command": "find / -perm -2 -type f 2>/dev/null",
+              "description": "Herkesin yazabildiği dosyaları bul (güvenlik açığı!)"
+            },
+            {
+              "command": "find /home -mtime -7",
+              "description": "Son 7 günde değiştirilen dosyaları bul (-mtime = modified time)",
+              "tip": "-mtime -1 = son 24 saat, +30 = 30 günden eski"
+            },
+            {
+              "command": "find / -size +50M 2>/dev/null",
+              "description": "50 MB'dan büyük dosyaları bul"
+            },
+            {
+              "command": "find /var/log -name '*.log' -mtime -1 -exec ls -lh {} \\;",
+              "description": "Bulunan dosyalar üzerinde komut çalıştır (-exec)",
+              "tip": "{} = bulunan dosya, \\; = komut sonu"
+            },
+            {
+              "command": "find / -user burak 2>/dev/null",
+              "description": "'burak' kullanıcısına ait tüm dosyaları bul"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pipes-redirect",
+      "title": "Pipe ve Yönlendirme — | > >> < 2>",
+      "description": "Linux'un süper gücü: komutları birbirine bağla, çıktıları yönlendir",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Pipe ve Yönlendirme Kavramı",
+          "content": "Linux'ta her komutun 3 kanalı vardır:\n- **stdin (0):** Girdi — klavye veya başka komuttan\n- **stdout (1):** Normal çıktı — terminale\n- **stderr (2):** Hata çıktısı — terminale\n\n**Pipe (`|`):** Bir komutun stdout'unu, sonraki komutun stdin'ine bağlar\n**Redirect (`>`):** stdout'u dosyaya yazar (dosyayı sıfırlar)\n**Append (`>>`):** stdout'u dosyaya ekler (mevcut içeriği korur)\n**stdin (`<`):** Dosyayı komuta girdi olarak ver\n**stderr redirect (`2>`):** Hata çıktısını dosyaya yaz"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Pipe ve Yönlendirme Örnekleri",
+          "commands": [
+            {
+              "command": "cat /etc/passwd | grep '/bin/bash'",
+              "description": "cat çıktısını grep'e pipe'la — shell'i olan kullanıcıları bul",
+              "output": "root:x:0:0:root:/root:/bin/bash\nburak:x:1000:1000::/home/burak:/bin/bash"
+            },
+            {
+              "command": "ps aux | grep 'nginx' | grep -v grep",
+              "description": "Çalışan nginx süreçlerini bul (grep -v grep = grep'i kendini hariç tut)",
+              "tip": "Birden fazla pipe zinciri kurabilirsin!"
+            },
+            {
+              "command": "cat /etc/passwd | cut -d':' -f1 | sort",
+              "description": "Kullanıcı adlarını çıkar (: ile ayır, 1. alanı al), alfabetik sırala",
+              "output": "burak\ndaemon\nmail\nnobody\nroot\nsync"
+            },
+            {
+              "command": "cat access.log | sort | uniq -c | sort -rn | head -10",
+              "description": "Log dosyasında en çok tekrar eden IP'leri bul",
+              "tip": "Bu komut zinciri log analysis'te çok kullanılır!"
+            },
+            {
+              "command": "ls -la > dizin-listesi.txt",
+              "description": "ls çıktısını dosyaya kaydet (üstüne yazar)",
+              "tip": "Pentest raporu için dizin içeriğini kaydet"
+            },
+            {
+              "command": "nmap -sV 192.168.1.1 > nmap-sonuc.txt",
+              "description": "Nmap çıktısını dosyaya kaydet"
+            },
+            {
+              "command": "echo 'Yeni log girişi' >> /var/log/myapp.log",
+              "description": "Log dosyasına satır ekle (>> = append)"
+            },
+            {
+              "command": "grep 'error' /var/log/syslog 2>/dev/null",
+              "description": "Hata mesajlarını gizle (Permission denied gibi hatalar görünmez)"
+            },
+            {
+              "command": "grep 'error' /var/log/syslog > hatalar.txt 2>&1",
+              "description": "Hem normal çıktıyı hem hataları aynı dosyaya yaz (2>&1 = stderr'i stdout'a yönlendir)"
+            },
+            {
+              "command": "sort dosya.txt | uniq > tekil-satirlar.txt",
+              "description": "Tekrar eden satırları kaldır, sonucu dosyaya kaydet"
+            },
+            {
+              "command": "wc -l < /etc/passwd",
+              "description": "Dosyayı stdin olarak ver (< ile)",
+              "output": "32"
+            },
+            {
+              "command": "tee cikti.txt",
+              "description": "tee: hem ekrana yaz hem dosyaya kaydet (T-pipe)\nörnek: ls -la | tee dizin-listesi.txt",
+              "tip": "tee -a = append modunda kullan"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sort-cut-awk",
+      "title": "Metin İşleme Araçları — sort, cut, awk, sed",
+      "description": "Güçlü metin manipülasyon araçları",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "sort, cut, awk, sed",
+          "commands": [
+            {
+              "command": "sort kullanicilar.txt",
+              "description": "Satırları alfabetik sırala"
+            },
+            {
+              "command": "sort -r sayilar.txt",
+              "description": "Ters sırala (-r = reverse)"
+            },
+            {
+              "command": "sort -n sayilar.txt",
+              "description": "Sayısal sırala (-n = numeric)"
+            },
+            {
+              "command": "sort -u dosya.txt",
+              "description": "Sırala ve tekrarları kaldır (-u = unique)"
+            },
+            {
+              "command": "cut -d':' -f1,3 /etc/passwd",
+              "description": "Sütun kesme: ':' ile ayır, 1. ve 3. alanı al",
+              "output": "root:0\ndaemon:1\nburak:1000"
+            },
+            {
+              "command": "cut -d',' -f2 liste.csv",
+              "description": "CSV'den 2. sütunu çıkar"
+            },
+            {
+              "command": "awk -F':' '{print $1, $7}' /etc/passwd",
+              "description": "awk: ':' ayracıyla kullanıcı adı ve shell'i yazdır",
+              "output": "root /bin/bash\nburak /bin/bash\nnobody /usr/sbin/nologin"
+            },
+            {
+              "command": "awk '{print NR, $0}' dosya.txt",
+              "description": "Her satıra numara ekle (NR = satır numarası)"
+            },
+            {
+              "command": "awk '/error/ {print}' /var/log/syslog",
+              "description": "'error' içeren satırları yazdır (grep alternatifi)"
+            },
+            {
+              "command": "sed 's/eski/yeni/g' dosya.txt",
+              "description": "Dosyadaki tüm 'eski' kelimelerini 'yeni' ile değiştir (g = global)",
+              "tip": "s/eski/yeni/ = sadece ilk eşleşmeyi değiştirir; g = tüm satırdaki"
+            },
+            {
+              "command": "sed -i 's/password/****/g' config.txt",
+              "description": "Dosyayı yerinde düzenle (-i = in-place), password'ları gizle",
+              "warning": "sed -i orijinal dosyayı değiştirir! Önce yedek al: cp config.txt config.txt.bak"
+            },
+            {
+              "command": "sed -n '5,10p' dosya.txt",
+              "description": "Sadece 5-10. satırları yazdır (-n = quiet, p = print)"
+            },
+            {
+              "command": "sed '/^#/d' dosya.txt",
+              "description": "# ile başlayan satırları sil (yorumları kaldır)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

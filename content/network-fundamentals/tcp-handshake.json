@@ -1,0 +1,93 @@
+{
+  "id": "tcp-handshake",
+  "slug": "tcp-handshake",
+  "title": "TCP Üçlü El Sıkışması",
+  "subtitle": "SYN → SYN/ACK → ACK ve Nmap Bağlantısı",
+  "description": "TCP'nin güvenilir bağlantı mekanizması olan 3-way handshake, hem ağ haberleşmesinin temelini hem de Nmap tarama tekniklerinin çalışma mantığını anlamak için kritik öneme sahiptir.",
+  "icon": "🤝",
+  "order": 2,
+  "tags": ["TCP", "handshake", "SYN", "ACK", "nmap", "port-scan", "flags"],
+  "modules": [
+    {
+      "id": "handshake-basics",
+      "title": "3-Way Handshake Mekanizması",
+      "description": "SYN-SYN/ACK-ACK döngüsünü ve TCP bayraklarını öğren.",
+      "difficulty": "beginner",
+      "duration": "40 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "TCP 3-Way Handshake Nasıl Çalışır?",
+          "content": "TCP (Transmission Control Protocol), bağlantı kurulmadan önce üçlü el sıkışması (3-way handshake) yapar:\n\n1. SYN (Synchronize)\n   İstemci → Sunucu: 'Bağlanmak istiyorum. Benim ISN (Initial Sequence Number) değerim X.'\n   TCP Bayrakları: SYN=1, ACK=0\n\n2. SYN-ACK (Synchronize-Acknowledge)\n   Sunucu → İstemci: 'Tamam, bağlantıyı kabul ediyorum. Benim ISN değerim Y. Senin X+1 paketini bekliyorum.'\n   TCP Bayrakları: SYN=1, ACK=1\n\n3. ACK (Acknowledge)\n   İstemci → Sunucu: 'Anladım. Y+1 paketini bekliyorum.' Bağlantı kuruldu.\n   TCP Bayrakları: SYN=0, ACK=1\n\nTCP Bayrakları (Flags): Toplam 6 temel bayrak:\n- SYN: Bağlantı başlatma\n- ACK: Onay\n- FIN: Bağlantı kapatma (temiz)\n- RST: Bağlantı sıfırlama (anlık)\n- PSH: Verivi hemen gönder\n- URG: Acil veri\n\nNmap ile İlişkisi:\n- TCP Connect scan (-sT): Tam 3-way handshake tamamlar — loglanır!\n- SYN scan (-sS): Sadece SYN gönderir, SYN/ACK aldıktan sonra RST ile keser → yarım bağlantı, daha az log\n- FIN/NULL/Xmas scan: Garip bayrak kombinasyonları — bazı IDS'leri atlatmak için\n- RST yanıtı = port kapalı\n- Yanıt yok = port filtered (firewall varlığı)"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Handshake'i Gözlemle ve Analiz Et",
+          "commands": [
+            {
+              "command": "sudo tcpdump -i eth0 -nn 'tcp and host 93.184.216.34' -S",
+              "description": "Belirli bir host ile TCP el sıkışmasını yakala",
+              "output": "22:30:01.001 IP 192.168.1.10.52341 > 93.184.216.34.80: Flags [S],  seq 1234567890\n22:30:01.023 IP 93.184.216.34.80   > 192.168.1.10.52341: Flags [S.], seq 987654321, ack 1234567891\n22:30:01.023 IP 192.168.1.10.52341 > 93.184.216.34.80:  Flags [.],  ack 987654322",
+              "tip": "[S] = SYN, [S.] = SYN+ACK, [.] = ACK, [F.] = FIN+ACK, [R] = RST",
+              "flags": [
+                { "flag": "-S", "description": "Sequence numaralarını mutlak göster" },
+                { "flag": "-nn", "description": "Hostname ve port adlarını çözümleme" }
+              ]
+            },
+            {
+              "command": "sudo nmap -sS -p 80 93.184.216.34 --packet-trace 2>&1 | head -20",
+              "description": "Nmap SYN scan paket izini gör",
+              "output": "SENT (0.0351s) TCP 192.168.1.10:63241 > 93.184.216.34:80 S\nRCVD (0.0589s) TCP 93.184.216.34:80 > 192.168.1.10:63241 SA\nSENT (0.0590s) TCP 192.168.1.10:63241 > 93.184.216.34:80 R\n80/tcp open http",
+              "flags": [
+                { "flag": "--packet-trace", "description": "Gönderilen ve alınan paketleri göster" }
+              ]
+            },
+            {
+              "command": "sudo nmap -sT -p 80 93.184.216.34 --packet-trace 2>&1 | head -20",
+              "description": "Nmap TCP Connect scan (tam handshake) — farkı gör",
+              "output": "SENT (0.0351s) TCP 192.168.1.10:63242 > 93.184.216.34:80 S\nRCVD (0.0589s) TCP 93.184.216.34:80 > 192.168.1.10:63242 SA\nSENT (0.0590s) TCP 192.168.1.10:63242 > 93.184.216.34:80 A  ← ACK gönderilir\nSENT (0.0591s) TCP 192.168.1.10:63242 > 93.184.216.34:80 FA ← FIN+ACK ile kapatılır",
+              "tip": "-sS'te RST ile keserken, -sT'de tam FIN+ACK döngüsü yapar. -sT loglanma ihtimali daha yüksek."
+            },
+            {
+              "command": "sudo nmap -sN -p 80 192.168.1.1",
+              "description": "NULL scan — hiç bayrak yok. Açık/filtered portlarda yanıt gelmez",
+              "flags": [
+                { "flag": "-sN", "description": "NULL scan (bayrak yok)" },
+                { "flag": "-sF", "description": "FIN scan (sadece FIN bayrağı)" },
+                { "flag": "-sX", "description": "Xmas scan (FIN+PSH+URG)" }
+              ],
+              "warning": "Bu tarama teknikleri modern Windows sistemlerinde çalışmaz (RFC uyumsuz yanıt verir)."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "Lab: Nmap Tarama Türlerini Wireshark ile Karşılaştır",
+          "scenario": {
+            "title": "-sS ve -sT Taramalarının Farkını Gözlemle",
+            "objective": "Aynı porta -sS ve -sT ile tara, Wireshark'ta oluşan paket farklılıklarını gözlemle ve savunma açısından hangisinin daha kolay tespit edildiğini belirle.",
+            "environment": "Kali Linux — hedef: localhost (127.0.0.1) veya TryHackMe makinesi",
+            "difficulty": "beginner",
+            "steps": [
+              "Wireshark'ı aç, lo (loopback) veya eth0 arayüzünü seç",
+              "Terminal 1: sudo nmap -sS -p 80 127.0.0.1",
+              "Wireshark'ta 'tcp.port==80 && tcp.flags.syn==1' filtresini uygula",
+              "Terminal 2: sudo nmap -sT -p 80 127.0.0.1",
+              "Aynı filtreyi uygula — paket sayısını karşılaştır",
+              "Hangi taramada RST paketi var? Hangisinde FIN+ACK?"
+            ],
+            "hints": [
+              "SYN scan: gördüğünüz son paket RST olmalı",
+              "Connect scan: FIN, FIN+ACK, ACK döngüsünü görmeli",
+              "-sS root yetkisi gerektiriyor — sudo nmap"
+            ],
+            "defenseNote": "Savunma: SYN flood ve port tarama tespiti için Snort kuralı: alert tcp any any -> $HOME_NET any (flags:S; threshold: type threshold, track by_src, count 20, seconds 1; msg:\"Port Scan\"; sid:1000001;). Ateş duvarında SYN cookie'yi aktif edin."
+          }
+        }
+      ]
+    }
+  ]
+}

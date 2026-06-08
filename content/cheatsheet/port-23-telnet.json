@@ -1,0 +1,57 @@
+{
+  "port": 23,
+  "service": "Telnet",
+  "protocol": "TCP",
+  "description": "Telnet — cleartext uzak yönetim protokolü. TÜM veriler (kimlik bilgileri dahil) şifresiz iletilir. SSH ile değiştirilmesi zorunludur; ancak eski ağ cihazları, yazıcılar ve IoT cihazlarda hâlâ sıkça görülür.",
+  "risk": "critical",
+  "sections": [
+    {
+      "id": "enum",
+      "title": "Telnet Enumeration",
+      "commands": [
+        {
+          "label": "Nmap Telnet Taraması",
+          "command": "nmap -sV -p 23 --script telnet-encryption,telnet-ntlm-info 192.168.1.105",
+          "description": "Telnet şifreleme durumu ve banner bilgisi",
+          "output": "23/tcp open telnet Linux telnetd\n| telnet-ntlm-info:\n|   Target Name: HEDEF\n|   NetBIOS Domain Name: WORKGROUP"
+        },
+        {
+          "label": "Banner Grabbing",
+          "command": "nc -nv 192.168.1.105 23",
+          "description": "NetCat ile Telnet banner'ı yakala",
+          "output": "Trying 192.168.1.105...\nConnected to 192.168.1.105.\nEscape character is '^]'.\nLinux 5.15 (hedef-linux)\nlogin:"
+        }
+      ]
+    },
+    {
+      "id": "access",
+      "title": "Telnet Bağlantısı",
+      "commands": [
+        {
+          "label": "Telnet Bağlantısı",
+          "command": "telnet 192.168.1.105",
+          "description": "Senaryo: Telnet ile bağlan — kimlik bilgilerini gir",
+          "warning": "Tüm trafik düz metin! Wireshark ile ağdaki herkes görebilir."
+        },
+        {
+          "label": "Wireshark ile Telnet Sniff",
+          "command": "# Wireshark filter:\ntcp.port == 23\n# Follow TCP Stream → tüm kimlik bilgileri görünür!",
+          "description": "Senaryo: Aynı ağdaki Telnet trafiğini dinle — cleartext kimlik bilgileri",
+          "tip": "Bu nedenle Telnet hiçbir koşulda kullanılmamalıdır."
+        }
+      ]
+    },
+    {
+      "id": "bruteforce",
+      "title": "Telnet Brute Force",
+      "commands": [
+        {
+          "label": "Hydra Telnet Brute Force",
+          "command": "hydra -l admin -P /usr/share/wordlists/rockyou.txt telnet://192.168.1.105 -t 4",
+          "description": "Senaryo: Telnet için parola brute force"
+        }
+      ]
+    }
+  ],
+  "defenseNote": "Telnet güvenlik önlemleri: Telnet'i tamamen devre dışı bırakın ve SSH ile değiştirin. Ağ cihazlarında (router, switch) Telnet'i kapatın: no service telnet (Cisco IOS). Firewall ile 23 portunu tamamen kapatın. Telnet zorunluysa en azından VPN üzerinden erişim sağlayın. Snort/Suricata kuralıyla Telnet trafiğini tespit edin."
+}

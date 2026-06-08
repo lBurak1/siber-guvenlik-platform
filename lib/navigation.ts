@@ -1,0 +1,250 @@
+export const navigation = {
+  "network-fundamentals": {
+    label: "Ağ Temelleri",
+    color: "emerald",
+    description: "Siber güvenliğin temeli",
+    categories: [
+      {
+        id: "models",
+        title: "Ağ Modelleri",
+        icon: "Layers",
+        tools: [
+          { id: "osi-tcpip", title: "OSI & TCP/IP Modelleri", slug: "osi-tcpip" },
+          { id: "tcp-handshake", title: "TCP El Sıkışması", slug: "tcp-handshake" },
+        ],
+      },
+      {
+        id: "addressing",
+        title: "Adresleme",
+        icon: "Network",
+        tools: [
+          { id: "ip-subnetting", title: "IP & Subnetting (CIDR)", slug: "ip-subnetting" },
+        ],
+      },
+      {
+        id: "protocols",
+        title: "Kritik Protokoller",
+        icon: "Radio",
+        tools: [
+          { id: "protocols-deep", title: "ARP, DNS, DHCP, HTTP/S, SMB", slug: "protocols-deep" },
+        ],
+      },
+    ],
+  },
+  "red-team": {
+    label: "Red Team",
+    color: "red",
+    description: "Ofansif Güvenlik",
+    categories: [
+      {
+        id: "osint",
+        title: "Bilgi Toplama",
+        icon: "Search",
+        tools: [
+          { id: "osint-basics", title: "OSINT Temelleri", slug: "osint-basics" },
+          { id: "google-dorking", title: "Google Dorking", slug: "google-dorking" },
+        ],
+      },
+      {
+        id: "network",
+        title: "Ağ Keşfi",
+        icon: "Network",
+        tools: [
+          { id: "nmap", title: "Nmap", slug: "nmap" },
+        ],
+      },
+      {
+        id: "webapp",
+        title: "Web Uygulama",
+        icon: "Globe",
+        tools: [
+          { id: "gobuster", title: "Gobuster", slug: "gobuster" },
+          { id: "ffuf", title: "ffuf", slug: "ffuf" },
+          { id: "sqlmap", title: "SQLMap", slug: "sqlmap" },
+          { id: "burpsuite", title: "Burp Suite", slug: "burpsuite" },
+        ],
+      },
+      {
+        id: "post-exploit",
+        title: "Post-Exploitation",
+        icon: "Terminal",
+        tools: [
+          { id: "linux-privesc", title: "Linux PrivEsc", slug: "linux-privesc" },
+          { id: "windows-privesc", title: "Windows PrivEsc", slug: "windows-privesc" },
+        ],
+      },
+      {
+        id: "wifi",
+        title: "Wi-Fi Pentest",
+        icon: "Wifi",
+        tools: [
+          { id: "wifi-pentest", title: "Kablosuz Ağ Güvenliği", slug: "wifi-pentest" },
+        ],
+      },
+      {
+        id: "mobile",
+        title: "Mobil Pentest",
+        icon: "Smartphone",
+        tools: [
+          { id: "mobile-pentest", title: "Mobil Uygulama Güvenliği", slug: "mobile-pentest" },
+        ],
+      },
+    ],
+  },
+  "blue-team": {
+    label: "Blue Team",
+    color: "blue",
+    description: "Defansif Güvenlik",
+    categories: [
+      {
+        id: "network-analysis",
+        title: "Ağ Analizi",
+        icon: "ActivitySquare",
+        tools: [
+          { id: "wireshark", title: "Wireshark", slug: "wireshark" },
+        ],
+      },
+      {
+        id: "log-analysis",
+        title: "Log Analizi",
+        icon: "FileText",
+        tools: [
+          { id: "log-analysis", title: "Log Analizi", slug: "log-analysis" },
+        ],
+      },
+    ],
+  },
+  "purple-team": {
+    label: "Purple Team",
+    color: "purple",
+    description: "Senkronizasyon",
+    categories: [
+      {
+        id: "methodology",
+        title: "Metodoloji",
+        icon: "GitMerge",
+        tools: [
+          { id: "purple-methodology", title: "Purple Team Metodolojisi", slug: "purple-methodology" },
+        ],
+      },
+    ],
+  },
+  "linux-fundamentals": {
+    label: "Linux Eğitimi",
+    color: "orange",
+    description: "Temelden ileriye Linux",
+    categories: [
+      {
+        id: "basics",
+        title: "Terminal Temelleri",
+        icon: "Terminal",
+        tools: [
+          { id: "terminal-basics",      title: "Terminal & Shell Temelleri", slug: "terminal-basics" },
+          { id: "filesystem-navigation", title: "Dosya Sistemi Navigasyonu",  slug: "filesystem-navigation" },
+        ],
+      },
+      {
+        id: "file-ops",
+        title: "Dosya İşlemleri",
+        icon: "FolderOpen",
+        tools: [
+          { id: "file-operations", title: "Dosya & Dizin Yönetimi", slug: "file-operations" },
+          { id: "text-processing", title: "Metin İşleme & Pipe",    slug: "text-processing" },
+        ],
+      },
+      {
+        id: "system",
+        title: "Sistem Yönetimi",
+        icon: "Cpu",
+        tools: [
+          { id: "permissions",        title: "İzinler & Kullanıcılar", slug: "permissions" },
+          { id: "process-management", title: "Süreç Yönetimi",         slug: "process-management" },
+        ],
+      },
+      {
+        id: "network-linux",
+        title: "Ağ Komutları",
+        icon: "Network",
+        tools: [
+          { id: "networking-linux", title: "Ağ Komutları", slug: "networking-linux" },
+        ],
+      },
+      {
+        id: "packages",
+        title: "Paket Yönetimi",
+        icon: "Package",
+        tools: [
+          { id: "package-management", title: "APT, dpkg, pip", slug: "package-management" },
+        ],
+      },
+      {
+        id: "scripting",
+        title: "Bash Scripting",
+        icon: "Code",
+        tools: [
+          { id: "bash-scripting", title: "Bash Script Temelleri", slug: "bash-scripting" },
+        ],
+      },
+    ],
+  },
+  "windows-fundamentals": {
+    label: "Windows Eğitimi",
+    color: "sky",
+    description: "Temelden ileriye Windows",
+    categories: [
+      {
+        id: "cmd",
+        title: "CMD Temelleri",
+        icon: "Terminal",
+        tools: [
+          { id: "cmd-basics", title: "Komut İstemi (CMD)", slug: "cmd-basics" },
+        ],
+      },
+      {
+        id: "powershell",
+        title: "PowerShell",
+        icon: "Code",
+        tools: [
+          { id: "powershell-basics", title: "PowerShell Temelleri", slug: "powershell-basics" },
+        ],
+      },
+      {
+        id: "file-ops-win",
+        title: "Dosya İşlemleri",
+        icon: "FolderOpen",
+        tools: [
+          { id: "file-operations-win", title: "Dosya & Dizin Yönetimi", slug: "file-operations-win" },
+        ],
+      },
+      {
+        id: "system-win",
+        title: "Sistem Yönetimi",
+        icon: "Cpu",
+        tools: [
+          { id: "system-management", title: "Sistem & Servis Yönetimi", slug: "system-management" },
+        ],
+      },
+      {
+        id: "network-win",
+        title: "Ağ Komutları",
+        icon: "Network",
+        tools: [
+          { id: "networking-win", title: "Ağ Komutları (CMD/PS)", slug: "networking-win" },
+        ],
+      },
+    ],
+  },
+} as const;
+
+// Cheat Sheet port listesi (sidebar için)
+export const cheatsheetPorts = [
+  { port: 21,  service: "FTP",    slug: "ftp",    risk: "high" },
+  { port: 22,  service: "SSH",    slug: "ssh",    risk: "medium" },
+  { port: 23,  service: "Telnet", slug: "telnet", risk: "critical" },
+  { port: 25,  service: "SMTP",   slug: "smtp",   risk: "medium" },
+  { port: 80,  service: "HTTP",   slug: "http",   risk: "high" },
+  { port: 443, service: "HTTPS",  slug: "https",  risk: "medium" },
+  { port: 445, service: "SMB",    slug: "smb",    risk: "critical" },
+  { port: 3306,service: "MySQL",  slug: "mysql",  risk: "high" },
+  { port: 3389,service: "RDP",    slug: "rdp",    risk: "critical" },
+] as const;

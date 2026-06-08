@@ -1,0 +1,151 @@
+{
+  "id": "gobuster",
+  "slug": "gobuster",
+  "title": "Gobuster",
+  "subtitle": "Dizin, Dosya ve DNS Keşif Aracı",
+  "description": "Gobuster, wordlist tabanlı brute-force ile web sunucularında gizli dizin, dosya, sanal host ve DNS alt alan adı keşfi yapan Go diliyle yazılmış hızlı bir araçtır.",
+  "team": "red-team",
+  "category": "Web Uygulama Güvenliği",
+  "phase": "Enumeration",
+  "icon": "📂",
+  "color": "#f97316",
+  "tags": ["gobuster", "directory-busting", "fuzzing", "web", "DNS", "kali"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Temel Dizin ve Dosya Keşfi",
+      "description": "Gobuster'ın kurulumu, temel kullanımı ve en yaygın modu olan dir modunu öğren.",
+      "difficulty": "beginner",
+      "duration": "40 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Gobuster Nedir?",
+          "content": "Gobuster, web uygulamalarının gizlenmeye çalışılan dizin ve dosyalarını wordlist (kelime listesi) aracılığıyla brute-force yöntemiyle keşfeden bir araçtır.\n\nKullanım modları:\n- dir: Dizin ve dosya keşfi (en yaygın)\n- dns: Alt alan adı (subdomain) keşfi\n- vhost: Sanal host keşfi\n- fuzz: Genel fuzzing\n- s3: AWS S3 bucket keşfi\n\nWeb pentest zincirinde Gobuster, Nmap ile port tespitinden sonra, web uygulamasındaki gizli sayfaları bulmak için kullanılır. Admin panelleri, backup dosyaları (.bak, .old), yapılandırma dosyaları ve API endpoint'leri sıkça bulunan hedeflerdir."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "note": "Kali Linux'ta varsayılan olarak yüklüdür.",
+            "linux": [
+              "sudo apt install gobuster -y",
+              "gobuster version"
+            ],
+            "macos": [
+              "brew install gobuster"
+            ],
+            "windows": [
+              "# GitHub releases sayfasından Windows binary indirin:",
+              "# github.com/OJ/gobuster/releases"
+            ]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "dir Modu — Dizin ve Dosya Keşfi",
+          "commands": [
+            {
+              "command": "gobuster dir -u http://192.168.1.105 -w /usr/share/wordlists/dirb/common.txt",
+              "description": "Temel dizin keşfi — common.txt wordlist ile",
+              "output": "===============================================================\nGobuster v3.6\n===============================================================\n/admin                (Status: 301) [Size: 318]\n/images               (Status: 301) [Size: 320]\n/login                (Status: 200) [Size: 1524]\n/backup               (Status: 403) [Size: 291]\n/.htaccess            (Status: 403) [Size: 291]",
+              "flags": [
+                { "flag": "-u URL", "description": "Hedef URL" },
+                { "flag": "-w WORDLIST", "description": "Kullanılacak kelime listesi" }
+              ]
+            },
+            {
+              "command": "gobuster dir -u http://192.168.1.105 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt,bak,old",
+              "description": "Uzantı filtresiyle dosya keşfi",
+              "tip": "CTF makinelerinde .php, .txt, .bak uzantıları kritik dosyaları gizler.",
+              "flags": [
+                { "flag": "-x php,txt,bak", "description": "Bu uzantıları da dene" },
+                { "flag": "-t 50", "description": "50 thread ile paralel çalış (varsayılan: 10)" },
+                { "flag": "-o sonuc.txt", "description": "Sonuçları dosyaya yaz" }
+              ]
+            },
+            {
+              "command": "gobuster dir -u http://192.168.1.105 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -s 200,301,302 -b 403,404",
+              "description": "HTTP durum koduna göre filtrele",
+              "flags": [
+                { "flag": "-s 200,301", "description": "Sadece bu status kodlarını göster" },
+                { "flag": "-b 403,404", "description": "Bu status kodlarını gizle" }
+              ]
+            },
+            {
+              "command": "gobuster dir -u https://hedef.com -w /usr/share/wordlists/dirb/common.txt -k",
+              "description": "HTTPS — SSL sertifika doğrulamasını atla",
+              "flags": [
+                { "flag": "-k", "description": "SSL/TLS sertifika hatalarını yoksay" },
+                { "flag": "--timeout 10s", "description": "İstek zaman aşımı" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced",
+      "title": "DNS, VHost Keşfi ve İleri Teknikler",
+      "description": "Alt alan adı keşfi, sanal host enumeration ve büyük ölçekli tarama stratejileri.",
+      "difficulty": "intermediate",
+      "duration": "50 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "DNS ve VHost Modları",
+          "commands": [
+            {
+              "command": "gobuster dns -d hedef.com -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt",
+              "description": "Alt alan adı (subdomain) keşfi",
+              "output": "Found: admin.hedef.com\nFound: api.hedef.com\nFound: dev.hedef.com\nFound: staging.hedef.com",
+              "flags": [
+                { "flag": "-d DOMAIN", "description": "Hedef domain" },
+                { "flag": "-r 8.8.8.8", "description": "Özel DNS resolver kullan" },
+                { "flag": "--show-ips", "description": "IP adreslerini de göster" }
+              ]
+            },
+            {
+              "command": "gobuster vhost -u http://hedef.com -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt --append-domain",
+              "description": "Sanal host keşfi (VHost fuzzing)",
+              "tip": "/etc/hosts dosyasına bulunan vhost'ları ekleyerek erişin.",
+              "flags": [
+                { "flag": "--append-domain", "description": "Wordlist değerini domain'e ekle (admin -> admin.hedef.com)" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: Gizli Admin Paneli",
+          "scenario": {
+            "title": "Web Sunucusunda Gizli Dizin Keşfi",
+            "objective": "Verilen web sunucusunda gobuster ile gizli admin panelini, bir backup dosyasını ve flag içeren bir txt dosyasını bul.",
+            "environment": "TryHackMe — Web Fundamentals Room / 10.10.x.x:80",
+            "difficulty": "beginner",
+            "steps": [
+              "Önce common.txt ile hızlı tarama yap",
+              "Bulunan /admin dizinine gir ve içeriği incele",
+              ".php ve .txt uzantılarıyla tekrar tara",
+              "/backup dizini varsa içindeki dosyaları incele",
+              "credentials.txt veya config.php dosyalarına dikkat et"
+            ],
+            "hints": [
+              "SecLists wordlist koleksiyonu /usr/share/seclists/ altında — kurulum: sudo apt install seclists",
+              "Status 200 sayfalar aktif, 301 redirect, 403 var ama erişim yasak",
+              "-x php,txt,bak,zip uzantılarını mutlaka deneyin"
+            ],
+            "expectedOutput": "/admin                (Status: 301)\n/admin/login.php      (Status: 200)\n/backup               (Status: 301)\n/backup/credentials.txt (Status: 200)",
+            "flag": "THM{d1r_bust1ng_pr0}",
+            "defenseNote": "Savunma: Gereksiz dizinleri web root'undan kaldırın. .htaccess ile hassas dizinlere IP kısıtlaması uygulayın. Nginx'te location bloklarıyla dizin listesini kapatın (autoindex off). WAF kurallarıyla yüksek hızlı dizin keşfini engelleyin."
+          }
+        }
+      ]
+    }
+  ]
+}

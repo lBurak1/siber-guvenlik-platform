@@ -1,0 +1,99 @@
+{
+  "id": "google-dorking",
+  "slug": "google-dorking",
+  "title": "Google Dorking",
+  "subtitle": "İleri Seviye Arama Operatörleri ile Hassas Veri Keşfi",
+  "description": "Google Dorking (Google Hacking), arama motorlarının gelişmiş operatörlerini kullanarak internete yanlışlıkla açık bırakılmış hassas dosya, yapılandırma, login sayfası ve zafiyet içeren sistemleri tespit etme tekniğidir.",
+  "team": "red-team",
+  "category": "Bilgi Toplama",
+  "phase": "Passive Reconnaissance",
+  "icon": "🕵️",
+  "color": "#4285f4",
+  "tags": ["google-dorking", "GHDB", "search-engine", "passive", "reconnaissance", "osint"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Temel Arama Operatörleri",
+      "description": "Google'ın temel arama operatörlerini ve bunları güvenlik araştırmalarında nasıl kullanacağını öğren.",
+      "difficulty": "beginner",
+      "duration": "40 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Google Dorking Nedir?",
+          "content": "Google Dorking, standart Google aramasının ötesinde arama operatörleri (dork) kullanarak internete yanlışlıkla açık bırakılmış hassas içerikleri bulmak için kullanılan pasif keşif tekniğidir.\n\nGoogle Hacking Database (GHDB) — exploit-db.com/google-hacking-database — yüzlerce hazır dork içerir.\n\nArama operatörleri: site:, inurl:, intitle:, intext:, filetype:, ext:, cache:, link:, related:\n\nÖnemli Not: Google Dorking tamamen pasif bir tekniktir — yalnızca arama motoruna istek gönderirsiniz, hedefe değil. Ancak bulunan hassas bilgileri kullanmak hukuki sorumluluk doğurabilir. Bu tekniği kendi sistemlerinizi test etmek veya eğitim amacıyla kullanın."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel ve İleri Dork Örnekleri",
+          "commands": [
+            {
+              "command": "site:hedef.com filetype:pdf",
+              "description": "Hedef sitedeki tüm PDF dosyalarını bul",
+              "tip": "PDF'ler çoğu zaman iç belgeler, raporlar ve gizli fiyat listelerini içerir."
+            },
+            {
+              "command": "site:hedef.com inurl:admin OR inurl:login OR inurl:dashboard",
+              "description": "Hedef sitedeki admin paneli ve giriş sayfalarını bul",
+              "output": "https://hedef.com/admin/\nhttps://hedef.com/wp-admin/\nhttps://hedef.com/dashboard/login"
+            },
+            {
+              "command": "site:hedef.com filetype:env OR filetype:cfg OR filetype:conf OR filetype:ini",
+              "description": "Yapılandırma dosyalarını bul — API key ve parola içerebilir",
+              "warning": "Bu tür dosyalar bulunduğunda site sahibine responsible disclosure yapılmalıdır."
+            },
+            {
+              "command": "intitle:\"Index of\" site:hedef.com",
+              "description": "Açık dizin listeleme (directory listing) bul",
+              "output": "Index of /backup/\nIndex of /uploads/\nIndex of /config/"
+            },
+            {
+              "command": "site:hedef.com filetype:sql OR filetype:db",
+              "description": "Sızdırılmış veritabanı dosyalarını ara"
+            },
+            {
+              "command": "site:hedef.com intext:\"sql syntax\" OR intext:\"mysql_fetch\" OR intext:\"Warning: mysql\"",
+              "description": "SQL hata mesajlarını bul — SQL injection için ipucu"
+            },
+            {
+              "command": "\"hedef.com\" site:github.com OR site:gitlab.com OR site:pastebin.com",
+              "description": "GitHub, GitLab ve Pastebin'deki sızdırılmış kodları ara",
+              "tip": "Geliştiriciler genellikle API key ve şifrelerle birlikte kod push'lar — kritik bulgu kaynağı."
+            },
+            {
+              "command": "site:linkedin.com/in \"hedef şirketi\" (\"network engineer\" OR \"system administrator\" OR \"security\")",
+              "description": "Hedef şirketin teknik çalışanlarını bul — sosyal mühendislik için"
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: GHDB ile Zafiyet Keşfi",
+          "scenario": {
+            "title": "Google Dork ile Hassas Dosya Keşfi",
+            "objective": "Google Hacking Database (exploit-db.com/google-hacking-database) kullanarak hedef domain'e ait açık yapılandırma dosyaları ve gizli sayfaları tespit et.",
+            "environment": "GHDB + Hedef: Eğitim amaçlı kendi siteniz veya tryhackme.com platformu",
+            "difficulty": "beginner",
+            "steps": [
+              "exploit-db.com/google-hacking-database sayfasını aç",
+              "Kategori: 'Sensitive Directories' filtresi uygula",
+              "Bulunan dork'u kendi domaininizde test et",
+              "site:kendi-domain.com intitle:\"Index of\" komutunu çalıştır",
+              "Açık dizin varsa içeriği not al",
+              "site:kendi-domain.com filetype:env komutunu dene"
+            ],
+            "hints": [
+              "Google arama operatörleri büyük/küçük harfe duyarlı değildir",
+              "Bing ve DuckDuckGo da benzer operatörleri destekler",
+              "Cachedump: cache:url ile eski sayfa sürümlerini görün"
+            ],
+            "defenseNote": "Savunma: robots.txt ile hassas yolları search engine'den gizleyin. Google Search Console'dan hassas sayfaları kaldırma isteği gönderin. .env, .git, backup dosyalarını web root'undan çıkarın. Nginx'te location ~ /\\.env { deny all; } kuralı ekleyin. Düzenli GHDB dork taraması yapın."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,162 @@
+{
+  "id": "ffuf",
+  "slug": "ffuf",
+  "title": "ffuf",
+  "subtitle": "Hızlı Web Fuzzer — Dizin, Parametre ve Header Fuzzing",
+  "description": "ffuf (Fuzz Faster U Fool), Go ile yazılmış son derece hızlı bir web fuzzing aracıdır. FUZZ kelimesiyle herhangi bir HTTP bileşenini — URL yolu, GET/POST parametreleri, headerlar, body — test edebilirsiniz.",
+  "team": "red-team",
+  "category": "Web Uygulama Güvenliği",
+  "phase": "Enumeration / Fuzzing",
+  "icon": "⚡",
+  "color": "#f59e0b",
+  "tags": ["ffuf", "fuzzing", "web", "directory", "vhost", "parameter", "kali"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Temel Kullanım ve Dizin Fuzzing",
+      "description": "ffuf kurulumu, FUZZ anahtar kelimesinin çalışma mantığı ve URL path fuzzing.",
+      "difficulty": "beginner",
+      "duration": "35 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "ffuf Nasıl Çalışır?",
+          "content": "ffuf, HTTP isteklerinde FUZZ kelimesinin geçtiği her yere wordlist'ten değerleri yerleştirir. Bu sayede URL yolu, parametreler, header değerleri ve hatta HTTP metodu test edilebilir.\n\nGobuster'dan farkları: ffuf çok daha hızlıdır, birden fazla FUZZ noktası destekler (FUZZ1, FUZZ2), çıktı filtreleme seçenekleri daha zengindir ve header fuzzing yapabilir.\n\nWordlist kaynakları: SecLists (/usr/share/seclists/), dirb/common.txt, dirbuster listeleri ffuf ile kullanılan popüler listelerdir."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "linux": [
+              "sudo apt install ffuf -y",
+              "ffuf -V"
+            ],
+            "macos": [
+              "brew install ffuf"
+            ],
+            "windows": [
+              "# github.com/ffuf/ffuf/releases sayfasından binary indirin"
+            ]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel Fuzzing Komutları",
+          "commands": [
+            {
+              "command": "ffuf -u http://hedef.com/FUZZ -w /usr/share/wordlists/dirb/common.txt",
+              "description": "Temel dizin keşfi",
+              "output": "admin                   [Status: 301, Size: 312]\nlogin                   [Status: 200, Size: 1893]\nimages                  [Status: 301, Size: 315]\nbackup                  [Status: 403, Size: 289]",
+              "flags": [
+                { "flag": "-u URL", "description": "FUZZ anahtar kelimesini içeren hedef URL" },
+                { "flag": "-w WORDLIST", "description": "Kelime listesi" },
+                { "flag": "-t 50", "description": "Thread sayısı (varsayılan: 40)" }
+              ]
+            },
+            {
+              "command": "ffuf -u http://hedef.com/FUZZ -w /usr/share/seclists/Discovery/Web-Content/big.txt -e .php,.html,.txt,.bak",
+              "description": "Uzantı kombinasyonuyla dosya keşfi",
+              "flags": [
+                { "flag": "-e .php,.txt,.bak", "description": "Her kelimeye bu uzantıları ekle" }
+              ]
+            },
+            {
+              "command": "ffuf -u http://hedef.com/FUZZ -w wordlist.txt -fc 404 -mc 200,301,302,403",
+              "description": "Yanıt filtreleme — 404'leri gizle, 200/301 göster",
+              "flags": [
+                { "flag": "-fc KODLAR", "description": "Bu status kodlarını filtrele (gizle)" },
+                { "flag": "-mc KODLAR", "description": "Sadece bu status kodlarını göster" },
+                { "flag": "-fs BOYUT", "description": "Bu boyuttaki yanıtları filtrele" },
+                { "flag": "-fw KELIME", "description": "Bu kelime sayısındaki yanıtları filtrele" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced",
+      "title": "VHost, Parametre ve Header Fuzzing",
+      "description": "Alt alan adı keşfi, GET/POST parametre fuzzing ve özel header testleri.",
+      "difficulty": "intermediate",
+      "duration": "55 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "İleri Seviye Fuzzing Teknikleri",
+          "commands": [
+            {
+              "command": "ffuf -u http://hedef.com -H \"Host: FUZZ.hedef.com\" -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -fs 1234",
+              "description": "VHost (sanal host) keşfi — Host header'ı fuzzla",
+              "tip": "Standart yanıt boyutunu önce -fs olmadan öğrenin, sonra filtreleyin.",
+              "flags": [
+                { "flag": "-H \"Header: FUZZ\"", "description": "Özel header fuzzing" },
+                { "flag": "-fs 1234", "description": "1234 byte boyutundaki (varsayılan) yanıtları filtrele" }
+              ]
+            },
+            {
+              "command": "ffuf -u \"http://hedef.com/page.php?FUZZ=test\" -w /usr/share/seclists/Discovery/Web-Content/burp-parameter-names.txt -fc 404",
+              "description": "GET parametre adı keşfi",
+              "output": "id                      [Status: 200, Size: 3891]\ndebug                   [Status: 200, Size: 4102]\ntoken                   [Status: 200, Size: 3891]"
+            },
+            {
+              "command": "ffuf -u http://hedef.com/login -X POST -d \"username=FUZZ&password=test\" -w /usr/share/seclists/Usernames/top-usernames-shortlist.txt -H \"Content-Type: application/x-www-form-urlencoded\" -fc 401",
+              "description": "POST form fuzzing — kullanıcı adı keşfi",
+              "flags": [
+                { "flag": "-X POST", "description": "HTTP metodu" },
+                { "flag": "-d \"DATA\"", "description": "POST body verisi" },
+                { "flag": "-H \"Header\"", "description": "Ek header ekle" }
+              ]
+            },
+            {
+              "command": "ffuf -u http://hedef.com/FUZZ -w wordlist1.txt:W1 -w wordlist2.txt:W2 -request-proto http",
+              "description": "Çoklu wordlist — birden fazla FUZZ noktası",
+              "tip": "Birden fazla wordlist kullanırken FUZZ1, FUZZ2 yerine :W1, :W2 syntax'ını kullanın.",
+              "flags": [
+                { "flag": "-w dosya:ETIKET", "description": "Wordlist'e etiket ata" }
+              ]
+            },
+            {
+              "command": "ffuf -u http://hedef.com/FUZZ -w wordlist.txt -o sonuc.json -of json -rate 100",
+              "description": "JSON çıktı ve rate limiting",
+              "flags": [
+                { "flag": "-o dosya", "description": "Çıktıyı kaydet" },
+                { "flag": "-of json/csv/html", "description": "Çıktı formatı" },
+                { "flag": "-rate N", "description": "Saniyede maksimum N istek" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: Gizli API Endpoint Keşfi",
+          "scenario": {
+            "title": "API Endpoint ve Parametre Fuzzing",
+            "objective": "Web sunucusunda gizli bir API endpoint'i bul, doğru parametreyi keşfet ve flag içeren yanıtı elde et.",
+            "environment": "TryHackMe — Content Discovery Room / 10.10.x.x",
+            "difficulty": "intermediate",
+            "steps": [
+              "ffuf ile /api/FUZZ yolunda endpoint keşfi yap",
+              "Bulunan endpoint'e GET parametresi ekleyerek test et",
+              "Parametre adı keşfi: ?FUZZ=test",
+              "Doğru parametre bulununca değer fuzzing yap: ?param=FUZZ",
+              "Flag içeren yanıtı filtrele"
+            ],
+            "hints": [
+              "SecLists'teki burp-parameter-names.txt listesini kullanın",
+              "Yanıt boyutu farklı olan sonuçlara dikkat edin",
+              "Content-Type header'ını application/json olarak deneyin"
+            ],
+            "flag": "THM{fuzz1ng_4p1_3ndp01nts}",
+            "defenseNote": "Savunma: API endpoint'lerini authentication arkasına alın. Rate limiting uygulayın (nginx limit_req, AWS API Gateway throttling). İzin verilmeyen metodlara 405 döndürün. API dokümantasyonunu (Swagger) internete açmayın."
+          }
+        }
+      ]
+    }
+  ]
+}

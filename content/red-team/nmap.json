@@ -1,0 +1,251 @@
+{
+  "id": "nmap",
+  "slug": "nmap",
+  "title": "Nmap",
+  "subtitle": "Ağ Keşfi ve Port Tarama Aracı",
+  "description": "Nmap (Network Mapper), ağ keşfi ve güvenlik denetimi için kullanılan açık kaynaklı bir araçtır. Ping sweep'ten ileri NSE script motoruna kadar her seviyede ağ analizi yapmanızı sağlar.",
+  "team": "red-team",
+  "category": "Ağ Keşfi",
+  "phase": "Reconnaissance / Scanning",
+  "icon": "🗺️",
+  "color": "#ef4444",
+  "tags": ["nmap", "port-scan", "network", "reconnaissance", "NSE", "kali"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Temel Kavramlar ve İlk Taramalar",
+      "description": "Nmap'in çalışma mantığını, kurulumunu ve en temel tarama türlerini öğren.",
+      "difficulty": "beginner",
+      "duration": "45 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Nmap Nedir ve Nerede Kullanılır?",
+          "content": "Nmap, 1997'den bu yana aktif geliştirilen ve dünya genelinde penetration tester'lar, sistem yöneticileri ve güvenlik araştırmacıları tarafından kullanılan bir ağ tarama aracıdır.\n\nNmap'in kullanım alanları; canlı host keşfi (ping sweep), açık port tespiti, çalışan servis ve versiyon tespiti, işletim sistemi parmak izi alma ve NSE scriptleri aracılığıyla zafiyet taramasıdır.\n\nBir penetrasyon testinde Nmap genellikle 'Reconnaissance' (Keşif) ve 'Scanning' (Tarama) aşamalarında kullanılır. Bilgi toplama -> Port tarama -> Servis/Versiyon tespiti -> OS fingerprint -> Zafiyet tarama zinciri takip edilir.\n\nÖnemli Etik Not: Nmap taramalarını yalnızca sahip olduğunuz veya yazılı izin aldığınız sistemlere yönlendirin. Yetkisiz tarama pek çok ülkede yasadışıdır."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "note": "Kali Linux ve Parrot OS'ta Nmap önceden yüklü gelir. Diğer sistemler için aşağıdaki komutları kullanın.",
+            "linux": [
+              "sudo apt update && sudo apt install nmap -y",
+              "nmap --version"
+            ],
+            "windows": [
+              "# nmap.org/download.html adresinden Windows installer indirin",
+              "# Veya Chocolatey ile: choco install nmap"
+            ],
+            "macos": [
+              "brew install nmap"
+            ]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel Tarama Komutları",
+          "commands": [
+            {
+              "command": "nmap 192.168.1.1",
+              "description": "Tek IP adresine temel TCP SYN taraması (en sık kullanılan 1000 port)",
+              "output": "Starting Nmap 7.94 ( https://nmap.org )\nNmap scan report for 192.168.1.1\nHost is up (0.0012s latency).\nNot shown: 997 closed tcp ports\nPORT   STATE SERVICE\n22/tcp open  ssh\n80/tcp open  http\n443/tcp open  https",
+              "flags": [
+                { "flag": "hedef_ip", "description": "Tek IP adresi veya hostname" }
+              ]
+            },
+            {
+              "command": "nmap 192.168.1.0/24",
+              "description": "Tüm /24 ağını tara (256 host)",
+              "tip": "Büyük ağ aralıklarını tararken -T4 veya --min-rate kullanarak hızlandırabilirsiniz.",
+              "flags": [
+                { "flag": "CIDR notasyonu", "description": "/24 = 192.168.1.0 - 192.168.1.255" }
+              ]
+            },
+            {
+              "command": "nmap -sn 192.168.1.0/24",
+              "description": "Ping Sweep — sadece canlı hostları listele, port taraması yapma",
+              "output": "Host: 192.168.1.1 (router.local) Status: Up\nHost: 192.168.1.10 (desktop.local) Status: Up\nHost: 192.168.1.105 Status: Up\nNmap done: 256 IP addresses (3 hosts up) scanned",
+              "flags": [
+                { "flag": "-sn", "description": "Port scan yapma, sadece host keşfi (eski adı -sP)" }
+              ]
+            },
+            {
+              "command": "nmap -p 22,80,443,3306,8080 192.168.1.105",
+              "description": "Belirli portları tara",
+              "flags": [
+                { "flag": "-p PORT", "description": "Virgülle ayrılmış port listesi veya 1-1000 gibi aralık" }
+              ]
+            },
+            {
+              "command": "nmap -p- 192.168.1.105",
+              "description": "Tüm 65535 portu tara (yavaş ama kapsamlı)",
+              "warning": "Bu tarama çok zaman alabilir. Hızlandırmak için -T4 ve --min-rate 5000 ekleyin.",
+              "flags": [
+                { "flag": "-p-", "description": "1-65535 tüm portlar" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "intermediate",
+      "title": "Servis Tespiti, OS Fingerprint ve Çıktı Formatları",
+      "description": "Açık portlarda çalışan servisleri ve sürümlerini tespit et, işletim sistemini tanımla.",
+      "difficulty": "intermediate",
+      "duration": "60 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Servis Tespiti Neden Önemli?",
+          "content": "Port numarası bize servis hakkında bir ipucu verse de gerçek servis sürümünü bilmek kritiktir. Örneğin 80/tcp üzerinde Apache 2.2.3 çalışıyorsa bu sürüme ait onlarca CVE mevcut olabilir.\n\nNmap servis tespitinde probe paketleri göndererek banner bilgisi alır ve nmap-service-probes veritabanıyla karşılaştırır. İşletim sistemi tespitinde ise TCP/IP stack davranışlarını (TTL, window size, vb.) analiz eder."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Servis, Versiyon ve OS Tespiti",
+          "commands": [
+            {
+              "command": "nmap -sV 192.168.1.105",
+              "description": "Servis ve sürüm tespiti",
+              "output": "PORT     STATE SERVICE VERSION\n22/tcp   open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.1\n80/tcp   open  http    Apache httpd 2.4.52\n3306/tcp open  mysql   MySQL 8.0.32",
+              "flags": [
+                { "flag": "-sV", "description": "Servis ve versiyon tespiti" },
+                { "flag": "--version-intensity 0-9", "description": "Tespit yoğunluğu (0=hız, 9=doğruluk)" }
+              ]
+            },
+            {
+              "command": "nmap -O 192.168.1.105",
+              "description": "İşletim sistemi parmak izi (root/Administrator gerektirir)",
+              "output": "OS details: Linux 5.15 - 5.19\nNetwork Distance: 1 hop",
+              "warning": "OS tespiti için root yetkisi gerekir. sudo nmap -O kullanın.",
+              "flags": [
+                { "flag": "-O", "description": "OS fingerprinting aktif et" },
+                { "flag": "--osscan-guess", "description": "Belirsiz sonuçlarda tahmin et" }
+              ]
+            },
+            {
+              "command": "nmap -sC -sV -O -p- -T4 192.168.1.105 -oN sonuc.txt",
+              "description": "Tam keşif taraması — CTF makinelerinde en çok kullanılan kombinasyon",
+              "tip": "Bu komut CTF ve Boot2Root makinelerinde standart ilk tarama olarak kullanılır.",
+              "flags": [
+                { "flag": "-sC", "description": "Default NSE scriptlerini çalıştır" },
+                { "flag": "-sV", "description": "Versiyon tespiti" },
+                { "flag": "-O", "description": "OS tespiti" },
+                { "flag": "-p-", "description": "Tüm portlar" },
+                { "flag": "-T4", "description": "Hızlı tarama (0=paranoid, 5=insane)" },
+                { "flag": "-oN dosya", "description": "Normal formatta kaydet" },
+                { "flag": "-oX dosya.xml", "description": "XML formatında kaydet" },
+                { "flag": "-oG dosya", "description": "Grep-able formatta kaydet" }
+              ]
+            },
+            {
+              "command": "nmap -sU -p 53,67,68,69,123,161 192.168.1.105",
+              "description": "UDP port taraması (DNS, DHCP, TFTP, NTP, SNMP)",
+              "warning": "UDP taraması çok yavaştır. Kritik UDP portlarını hedefleyerek kullanın.",
+              "flags": [
+                { "flag": "-sU", "description": "UDP taraması" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced",
+      "title": "NSE Script Motoru ve İleri Teknikler",
+      "description": "Nmap Scripting Engine ile zafiyet taraması, brute force ve özel keşif işlemleri.",
+      "difficulty": "advanced",
+      "duration": "90 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "NSE (Nmap Scripting Engine) Nedir?",
+          "content": "NSE, Nmap'in Lua programlama dili üzerinde çalışan script motorudur. /usr/share/nmap/scripts/ dizininde 600'den fazla hazır script bulunur.\n\nScript kategorileri: auth (kimlik doğrulama), brute (brute force), default (standart), discovery (keşif), dos (hizmet dışı bırakma), exploit (sömürü), external (harici veri), fuzzer, intrusive (agresif), malware (zararlı yazılım tespiti), safe (güvenli), version (versiyon), vuln (zafiyet taraması).\n\nÖnemli: exploit ve dos kategorisindeki scriptleri yalnızca yetkili test ortamlarında çalıştırın."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "NSE Script Kullanımı",
+          "commands": [
+            {
+              "command": "nmap --script vuln 192.168.1.105",
+              "description": "Tüm zafiyet tarama scriptlerini çalıştır",
+              "warning": "Bu tarama hedefe agresif istekler gönderir. Sadece yetkili ortamlarda kullanın.",
+              "output": "| http-vuln-cve2017-5638: \n|   VULNERABLE:\n|   Apache Struts Remote Code Execution\n|     State: VULNERABLE\n|     IDs:  CVE:CVE-2017-5638"
+            },
+            {
+              "command": "nmap --script=http-enum 192.168.1.105 -p 80",
+              "description": "HTTP dizin ve dosya keşfi",
+              "output": "| http-enum:\n|   /admin/: Possible admin folder\n|   /login.php: Possible login page\n|_  /robots.txt: Robots file"
+            },
+            {
+              "command": "nmap --script=smb-vuln-ms17-010 192.168.1.105",
+              "description": "EternalBlue (MS17-010) zafiyet tespiti",
+              "output": "| smb-vuln-ms17-010: \n|   VULNERABLE:\n|   Remote Code Execution vulnerability in Microsoft SMBv1\n|     State: VULNERABLE",
+              "warning": "Bu tarama yalnızca eğitim laboratuvarlarında (HackTheBox, TryHackMe vb.) kullanılmalıdır."
+            },
+            {
+              "command": "nmap --script=ssh-brute -p 22 192.168.1.105",
+              "description": "SSH brute force (varsayılan kullanıcı adı/parola listesi)",
+              "warning": "Brute force saldırıları log oluşturur ve IDS/IPS tarafından tespit edilir. Sadece yetkili ortamlarda kullanın.",
+              "flags": [
+                { "flag": "--script-args userdb=users.txt,passdb=passwords.txt", "description": "Özel liste kullan" }
+              ]
+            },
+            {
+              "command": "nmap -sS -T4 --min-rate 5000 -p- 10.10.10.100",
+              "description": "Hızlı SYN taraması — HackTheBox/TryHackMe makineleri için ideal",
+              "tip": "HackTheBox makinelerinde bu komut standart ilk taramadır.",
+              "flags": [
+                { "flag": "-sS", "description": "TCP SYN (Stealth) taraması — 3-way handshake tamamlanmaz" },
+                { "flag": "--min-rate N", "description": "Saniyede minimum N paket gönder" }
+              ]
+            },
+            {
+              "command": "nmap -sS -D RND:10 192.168.1.105",
+              "description": "Decoy taraması — kaynak IP'yi gizleme (IDS atlatma denemesi)",
+              "warning": "Bu teknik IDS/IPS sistemleri tarafından yine de tespit edilebilir.",
+              "flags": [
+                { "flag": "-D RND:10", "description": "10 rastgele sahte IP ile tara" },
+                { "flag": "-D IP1,IP2,ME", "description": "Belirli sahte IP'ler + gerçek IP" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: TryHackMe — Basic Pentesting",
+          "scenario": {
+            "title": "Ağ Keşfi ve Servis Tespiti",
+            "objective": "Verilen hedef IP üzerinde tam port taraması yap, çalışan servisleri ve sürümlerini tespit et, açık bir FTP veya SSH servisinde zayıf kimlik bilgilerini bul.",
+            "environment": "TryHackMe / HackTheBox — Isolated Lab Network (10.10.x.x)",
+            "difficulty": "beginner",
+            "steps": [
+              "Önce ping sweep ile hedefin canlı olduğunu doğrula: nmap -sn 10.10.x.x",
+              "Tam port taraması başlat: nmap -sC -sV -p- -T4 10.10.x.x -oN ilk_tarama.txt",
+              "Sonuçları incele: hangi portlar açık, hangi servisler çalışıyor?",
+              "FTP (21) açıksa anonymous login dene: nmap --script=ftp-anon -p 21 10.10.x.x",
+              "SSH servisi varsa sürümü not al ve bilinen CVE'leri araştır",
+              "HTTP servisi varsa http-enum scripti çalıştır: nmap --script=http-enum -p 80 10.10.x.x"
+            ],
+            "hints": [
+              "nmap -sV çıktısında 'anonymous' kelimesine dikkat edin",
+              "Eski OpenSSH sürümleri (< 7.x) username enumeration zafiyetine sahip olabilir",
+              "robots.txt ve /admin dizini sıkça erişilebilir durumda bırakılır"
+            ],
+            "expectedOutput": "PORT   STATE SERVICE VERSION\n21/tcp open  ftp     vsftpd 3.0.3\n|_ftp-anon: Anonymous FTP login allowed\n22/tcp open  ssh     OpenSSH 7.2p2 Ubuntu\n80/tcp open  http    Apache httpd 2.4.18",
+            "flag": "THM{nmap_scan_master_2024}",
+            "defenseNote": "Savunma: FTP üzerinde anonymous login'i devre dışı bırakın (/etc/vsftpd.conf: anonymous_enable=NO). Eski servis sürümlerini güncelleyin. IDS/IPS kurallarıyla port taramalarını tespit edin (Snort: alert tcp any any -> $HOME_NET any (flags:S;threshold:type threshold,track by_src,count 20,seconds 1;))."
+          }
+        }
+      ]
+    }
+  ]
+}

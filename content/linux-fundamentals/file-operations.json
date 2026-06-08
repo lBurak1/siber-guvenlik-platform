@@ -1,0 +1,285 @@
+{
+  "id": "file-operations",
+  "slug": "file-operations",
+  "title": "Dosya & Dizin Yönetimi",
+  "subtitle": "mkdir, touch, nano, cp, mv, rm",
+  "description": "Dizin oluşturma, iç içe klasörler, dosya oluşturma ve yazma, kopyalama, taşıma, silme — temelden ileriye tam kapsam.",
+  "icon": "FolderOpen",
+  "order": 3,
+  "tags": ["mkdir", "touch", "nano", "cp", "mv", "rm", "dosya işlemleri"],
+  "modules": [
+    {
+      "id": "create-directories",
+      "title": "Dizin Oluşturma — mkdir",
+      "description": "Tek dizin, iç içe dizinler, toplu oluşturma",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "mkdir — Adım Adım",
+          "commands": [
+            {
+              "command": "mkdir projeler",
+              "description": "Mevcut dizinde 'projeler' adında bir klasör oluştur",
+              "tip": "ls ile kontrol et: ls -la → projeler klasörü görünmeli"
+            },
+            {
+              "command": "mkdir /home/burak/masaustu/yeni-klasor",
+              "description": "Tam yol belirterek istediğin yerde klasör oluştur"
+            },
+            {
+              "command": "mkdir -p projeler/sibergüvenlik/araçlar",
+              "description": "İÇ İÇE dizin oluştur — -p bayrağı ara dizinleri de yaratır",
+              "output": "# Tek komutla şu yapı oluşur:\n# projeler/\n# └── sibergüvenlik/\n#     └── araçlar/",
+              "tip": "-p olmadan 'projeler' yoksa hata verir! -p ile tüm ara dizinleri de oluşturur."
+            },
+            {
+              "command": "mkdir -p ctf/{web,network,forensics,crypto,misc}",
+              "description": "Tek komutla birden fazla klasör oluştur (brace expansion)",
+              "output": "# Oluşturulan yapı:\n# ctf/\n# ├── web/\n# ├── network/\n# ├── forensics/\n# ├── crypto/\n# └── misc/",
+              "tip": "CTF çalışmalarını organize etmek için harika!"
+            },
+            {
+              "command": "mkdir -m 700 gizli-dizin",
+              "description": "İzin belirterek dizin oluştur (700 = sadece sahip erişebilir)",
+              "tip": "İzinleri daha sonra chmod ile de değiştirebilirsin"
+            },
+            {
+              "command": "mkdir -pv projeler/pentest/raporlar",
+              "description": "-v (verbose) bayrağı ile ne oluşturulduğunu görüntüle",
+              "output": "mkdir: created directory 'projeler'\nmkdir: created directory 'projeler/pentest'\nmkdir: created directory 'projeler/pentest/raporlar'"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "create-files",
+      "title": "Dosya Oluşturma ve İçine Yazma",
+      "description": "touch, echo, nano ile dosya oluşturma ve içerik yazma",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Dosya Oluşturma Yöntemleri",
+          "commands": [
+            {
+              "command": "touch notlar.txt",
+              "description": "Boş bir dosya oluştur (içerik olmadan). Dosya zaten varsa sadece timestamp'ini günceller.",
+              "tip": "touch birden fazla dosya oluşturabilir: touch a.txt b.txt c.txt"
+            },
+            {
+              "command": "touch dosya{1..5}.txt",
+              "description": "Brace expansion ile 5 dosya oluştur: dosya1.txt, dosya2.txt ...",
+              "output": "# Oluşturulan dosyalar:\n# dosya1.txt dosya2.txt dosya3.txt dosya4.txt dosya5.txt"
+            },
+            {
+              "command": "echo 'Merhaba, bu benim notum' > notlar.txt",
+              "description": "Dosyaya metin yaz (> işareti dosyayı OLUŞTURUR veya ÜZERİNE YAZAR)",
+              "warning": "> işareti mevcut dosyanın tüm içeriğini siler! Eklemek için >> kullan"
+            },
+            {
+              "command": "echo 'Bu satır eklendi' >> notlar.txt",
+              "description": "Dosyanın sonuna satır EKLE (>> = append, üstüne yazmaz)",
+              "tip": ">> her zaman güvenli — mevcut içeriği koruyarak sona ekler"
+            },
+            {
+              "command": "cat notlar.txt",
+              "description": "Dosyanın içeriğini terminale yazdır",
+              "output": "Merhaba, bu benim notum\nBu satır eklendi"
+            },
+            {
+              "command": "nano notlar.txt",
+              "description": "Nano metin editörüyle dosyayı aç ve düzenle",
+              "tip": "Nano kısayolları: Ctrl+O = kaydet, Ctrl+X = çık, Ctrl+W = ara, Ctrl+K = satır kes"
+            },
+            {
+              "command": "# Nano'da çalışma akışı:\nnano yeni-dosya.txt\n# Editör açılır → istediğin metni yaz\n# Ctrl+O → kaydet (Enter ile onayla)\n# Ctrl+X → çık",
+              "description": "Nano ile yeni dosya oluşturma ve kaydetme adımları"
+            },
+            {
+              "command": "cat > coklu-satir.txt << 'EOF'\nBu birinci satır\nBu ikinci satır\nBu üçüncü satır\nEOF",
+              "description": "Here-document ile çok satırlı içerik yaz",
+              "tip": "EOF yerine istediğin kelimeyi kullanabilirsin"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "copy-move",
+      "title": "Kopyalama ve Taşıma — cp, mv",
+      "description": "Dosya ve dizinleri kopyala, taşı, yeniden adlandır",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "cp ve mv Komutları",
+          "commands": [
+            {
+              "command": "cp notlar.txt notlar-yedek.txt",
+              "description": "Dosyayı aynı dizinde farklı isimle kopyala"
+            },
+            {
+              "command": "cp notlar.txt /home/burak/Desktop/",
+              "description": "Dosyayı başka bir dizine kopyala"
+            },
+            {
+              "command": "cp -r projeler/ projeler-yedek/",
+              "description": "DİZİNİ recursive olarak kopyala (-r bayrağı şart!)",
+              "tip": "-r olmadan dizin kopyalanamaz, hata verir"
+            },
+            {
+              "command": "cp -rv kaynak/ hedef/",
+              "description": "Kopyalama işlemini adım adım göster (-v = verbose)",
+              "output": "'kaynak/dosya1.txt' -> 'hedef/dosya1.txt'\n'kaynak/klasor/dosya2.txt' -> 'hedef/klasor/dosya2.txt'"
+            },
+            {
+              "command": "cp -p dosya.txt yedek.txt",
+              "description": "İzinleri ve timestamp'i koruyarak kopyala (-p = preserve)"
+            },
+            {
+              "command": "mv eski-isim.txt yeni-isim.txt",
+              "description": "Dosyayı yeniden adlandır (aynı dizinde mv = rename)",
+              "tip": "mv orijinal dosyayı siler! cp gibi kopyalamaz."
+            },
+            {
+              "command": "mv notlar.txt /home/burak/Desktop/",
+              "description": "Dosyayı başka dizine taşı"
+            },
+            {
+              "command": "mv projeler/ /opt/",
+              "description": "Dizini başka bir konuma taşı"
+            },
+            {
+              "command": "mv -i dosya.txt hedef/",
+              "description": "Hedefte dosya varsa üstüne yazmadan önce onay sor (-i = interactive)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "delete-files",
+      "title": "Silme — rm, rmdir",
+      "description": "Dosya ve dizin silme, dikkatli kullanım",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Silme Komutları",
+          "commands": [
+            {
+              "command": "rm notlar.txt",
+              "description": "Dosyayı sil (GERİ ALINAMAZ — çöp kutusu yok!)",
+              "warning": "Linux'ta silme kalıcıdır! rm -rf / = tüm sistemi siler. DİKKATLİ OL!"
+            },
+            {
+              "command": "rm -i dosya.txt",
+              "description": "Silmeden önce onay sor (-i = interactive)",
+              "output": "rm: remove regular file 'dosya.txt'? y",
+              "tip": "Önemli silme işlemlerinde -i kullan!"
+            },
+            {
+              "command": "rm -v dosya.txt",
+              "description": "Silme işlemini göster (-v = verbose)",
+              "output": "removed 'dosya.txt'"
+            },
+            {
+              "command": "rm *.log",
+              "description": "Tüm .log uzantılı dosyaları sil (wildcard)",
+              "warning": "Wildcard kullanırken çok dikkatli ol!"
+            },
+            {
+              "command": "rmdir bos-dizin",
+              "description": "BOŞ dizini sil (içinde dosya varsa hata verir)",
+              "tip": "rmdir sadece boş dizinlerde çalışır"
+            },
+            {
+              "command": "rm -r dolu-dizin/",
+              "description": "İçi dolu dizini ve tüm içeriğini sil (recursive)",
+              "warning": "Geri dönüşü yok! Silmeden önce ls ile kontrol et"
+            },
+            {
+              "command": "rm -rf hedef-dizin/",
+              "description": "-r (recursive) + -f (force, onay sormaz) — hızlı ve geri dönüşsüz silme",
+              "warning": "⚠️ rm -rf ÇOK TEHLİKELİ! Yanlış kullanımda tüm sistemini silebilirsin. Asla rm -rf / veya rm -rf /* çalıştırma!"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "links",
+      "title": "Sembolik Linkler — ln",
+      "description": "Hard link ve symbolic link oluşturma",
+      "difficulty": "intermediate",
+      "duration": "5 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "ln Komutu",
+          "commands": [
+            {
+              "command": "ln -s /opt/tools/nmap /usr/local/bin/nmap",
+              "description": "Sembolik link (shortcut) oluştur — Windows'taki kısayol gibi",
+              "tip": "ls -la ile symlink'i görebilirsin: nmap -> /opt/tools/nmap"
+            },
+            {
+              "command": "ln -s $(pwd)/script.sh ~/Desktop/script",
+              "description": "Mevcut dizindeki script için Desktop'ta kısayol oluştur"
+            },
+            {
+              "command": "ls -la /usr/local/bin/nmap",
+              "description": "Symlink hedefini görüntüle",
+              "output": "lrwxrwxrwx 1 root root 14 Jun 8 nmap -> /opt/tools/nmap"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lab-scenario",
+      "title": "Pratik Senaryo — CTF Klasör Yapısı",
+      "description": "Öğrendiklerini kullanarak gerçek bir klasör yapısı oluştur",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Çalışma Ortamı Kurma",
+          "scenario": {
+            "title": "Kişisel CTF Cephaneliğini Oluştur",
+            "objective": "HackTheBox / TryHackMe çalışmaları için organize bir dizin yapısı oluştur ve notlar al",
+            "environment": "Herhangi bir Linux terminal (Kali, Ubuntu, WSL)",
+            "difficulty": "beginner",
+            "steps": [
+              "mkdir -p ~/ctf/{htb,tryhackme,portswigger}/{web,network,crypto,forensics,misc}",
+              "mkdir -p ~/ctf/tools && cd ~/ctf",
+              "tree -L 3 (yapıyı görüntüle)",
+              "nano ~/ctf/README.md (notlar dosyası oluştur)",
+              "echo '# CTF Notlarım' > ~/ctf/README.md",
+              "echo 'HackTheBox: https://app.hackthebox.com' >> ~/ctf/README.md",
+              "ls -la ~/ctf/ (son kontrol)"
+            ],
+            "hints": [
+              "mkdir -p ile tüm iç içe yapıyı tek komutla oluşturabilirsin",
+              "Brace expansion {a,b,c} ile çok sayıda dizin tek seferde yapılır",
+              "echo >> ile mevcut dosyaya üstüne yazmadan ekleyebilirsin"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

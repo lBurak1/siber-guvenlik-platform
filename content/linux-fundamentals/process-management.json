@@ -1,0 +1,263 @@
+{
+  "id": "process-management",
+  "slug": "process-management",
+  "title": "Süreç Yönetimi",
+  "subtitle": "ps, top, kill, systemctl, jobs",
+  "description": "Çalışan süreçleri izle, yönet ve sonlandır. Arka plan süreçleri, servis yönetimi, kaynak kullanımı.",
+  "icon": "Cpu",
+  "order": 6,
+  "tags": ["ps", "top", "kill", "systemctl", "süreç", "process"],
+  "modules": [
+    {
+      "id": "viewing-processes",
+      "title": "Süreçleri Görüntüleme — ps, top",
+      "description": "Sistemde hangi süreçlerin çalıştığını öğren",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Süreç Görüntüleme Komutları",
+          "commands": [
+            {
+              "command": "ps",
+              "description": "Mevcut terminal'deki süreçleri göster",
+              "output": "  PID TTY          TIME CMD\n 1234 pts/0    00:00:00 bash\n 1337 pts/0    00:00:00 ps"
+            },
+            {
+              "command": "ps aux",
+              "description": "Sistemdeki TÜM süreçleri detaylı göster",
+              "output": "USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND\nroot         1  0.0  0.1  33752  6512 ?        Ss   10:00   0:01 /sbin/init\nburak     1234  0.0  0.1  25000  3200 pts/0    Ss   10:15   0:00 bash\nburak     2341  2.1  3.5 356789 35000 ?        Sl   10:16   0:45 firefox",
+              "tip": "a=tüm kullanıcılar, u=kullanıcı formatı, x=terminal olmayan süreçler"
+            },
+            {
+              "command": "ps aux | grep 'nginx'",
+              "description": "Belirli bir süreci bul",
+              "tip": "grep -v grep ekleyerek grep'in kendisini hariç tut"
+            },
+            {
+              "command": "ps aux --sort=-%cpu | head -10",
+              "description": "CPU kullanımına göre sırala, ilk 10'u göster"
+            },
+            {
+              "command": "ps aux --sort=-%mem | head -10",
+              "description": "RAM kullanımına göre sırala, ilk 10'u göster"
+            },
+            {
+              "command": "top",
+              "description": "Canlı süreç izleyici (htop'a benzer, tüm sistemlerde var)",
+              "tip": "top içinde: q=çık, k=kill, M=belleğe göre sırala, P=CPU'ya göre, 1=CPU çekirdekleri"
+            },
+            {
+              "command": "htop",
+              "description": "Renkli ve etkileşimli süreç izleyici (top'tan daha güzel)",
+              "tip": "Yoksa kur: sudo apt install htop. F9=kill, F6=sırala, F5=ağaç görünümü"
+            },
+            {
+              "command": "pgrep nginx",
+              "description": "İsme göre süreç ID'sini bul",
+              "output": "1234\n1235"
+            },
+            {
+              "command": "pstree",
+              "description": "Süreçleri ağaç yapısında göster (parent-child ilişkisi)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "killing-processes",
+      "title": "Süreç Sonlandırma — kill, killall",
+      "description": "Süreçleri durdurma ve sinyal gönderme",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Linux Sinyalleri",
+          "content": "kill komutu aslında sinyal gönderir. Önemli sinyaller:\n\n| Sinyal | Numara | Açıklama |\n|--------|--------|-----------|\n| SIGTERM | 15 | Nazik sonlandırma (varsayılan) |\n| SIGKILL | 9  | Zorla sonlandır (durdurulmaz) |\n| SIGSTOP | 19 | Duraklat (pause) |\n| SIGCONT | 18 | Devam et |\n| SIGHUP  | 1  | Konfigürasyonu yeniden yükle |\n\n**Kural:** Önce SIGTERM (-15) dene, dinlemiyorsa SIGKILL (-9) kullan."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Kill Komutları",
+          "commands": [
+            {
+              "command": "kill 1234",
+              "description": "PID 1234'ü nazikçe sonlandır (SIGTERM = 15 varsayılan)"
+            },
+            {
+              "command": "kill -9 1234",
+              "description": "PID 1234'ü zorla sonlandır (SIGKILL — anında öldürür)",
+              "tip": "kill -9 = kill -SIGKILL. Donmuş veya dinlemeyen süreçler için."
+            },
+            {
+              "command": "kill -15 1234",
+              "description": "SIGTERM — nazik kapatma isteği gönder (kaynakları temizlemesine izin verir)"
+            },
+            {
+              "command": "killall firefox",
+              "description": "'firefox' adlı TÜM süreçleri sonlandır",
+              "warning": "Dikkatli! Aynı isimdeki tüm süreçleri kapatır"
+            },
+            {
+              "command": "pkill -f 'python3 script.py'",
+              "description": "Tam komut adıyla süreç öldür (-f = full command line)",
+              "tip": "pkill daha esnek — ismin bir kısmını da kabul eder"
+            },
+            {
+              "command": "# Ctrl+C → Önplanda çalışan süreci sonlandır (SIGINT)\n# Ctrl+Z → Süreci durdur ve arka plana al (SIGSTOP)",
+              "description": "Klavyeden sinyal gönderme"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "background-jobs",
+      "title": "Arka Plan Süreçleri — jobs, bg, fg, nohup",
+      "description": "Birden fazla görevi aynı anda yürüt",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Arka Plan Yönetimi",
+          "commands": [
+            {
+              "command": "nmap -sV 192.168.1.0/24 &",
+              "description": "Komutu ARKA PLANDA başlat (& = background)",
+              "output": "[1] 2345\n# PID numarası verir"
+            },
+            {
+              "command": "jobs",
+              "description": "Arka plandaki tüm işleri listele",
+              "output": "[1]+  Running    nmap -sV 192.168.1.0/24 &\n[2]-  Stopped    top"
+            },
+            {
+              "command": "fg %1",
+              "description": "Arka plandaki 1 numaralı işi ön plana getir",
+              "tip": "Sadece fg yazarsan son işi öne getirir"
+            },
+            {
+              "command": "bg %2",
+              "description": "Durmuş (Ctrl+Z ile) işi arka planda devam ettir"
+            },
+            {
+              "command": "nohup uzun-islem.sh &",
+              "description": "Terminal kapansa bile çalışmaya devam et (nohup = no hangup)",
+              "tip": "Çıktı nohup.out dosyasına yazılır. SSH bağlantısı kesilse de devam eder!"
+            },
+            {
+              "command": "nohup python3 server.py > server.log 2>&1 &",
+              "description": "Arka planda çalıştır, logları kaydet, terminal bağımsız"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "systemctl",
+      "title": "Servis Yönetimi — systemctl",
+      "description": "Sistem servislerini başlat, durdur, izle",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "systemctl Komutları",
+          "commands": [
+            {
+              "command": "systemctl status ssh",
+              "description": "SSH servisinin durumunu göster",
+              "output": "● ssh.service - OpenBSD Secure Shell server\n   Active: active (running) since Mon 2026-06-08 10:00:00 UTC\n  Process: Started\n Main PID: 1234 (sshd)"
+            },
+            {
+              "command": "sudo systemctl start nginx",
+              "description": "Nginx servisini başlat"
+            },
+            {
+              "command": "sudo systemctl stop nginx",
+              "description": "Nginx servisini durdur"
+            },
+            {
+              "command": "sudo systemctl restart nginx",
+              "description": "Nginx'i yeniden başlat (config değişikliğinden sonra)"
+            },
+            {
+              "command": "sudo systemctl reload nginx",
+              "description": "Konfigürasyonu yeniden yükle (servisi durdurmadan)"
+            },
+            {
+              "command": "sudo systemctl enable ssh",
+              "description": "Servisi başlangıçta otomatik başlatacak şekilde etkinleştir"
+            },
+            {
+              "command": "sudo systemctl disable ssh",
+              "description": "Otomatik başlatmayı kapat"
+            },
+            {
+              "command": "systemctl list-units --type=service --state=running",
+              "description": "Çalışan tüm servisleri listele"
+            },
+            {
+              "command": "journalctl -u ssh -f",
+              "description": "SSH servisinin loglarını canlı izle",
+              "tip": "-f = follow (canlı), -n 50 = son 50 satır, --since '1 hour ago'"
+            },
+            {
+              "command": "journalctl --since '2026-06-08' --until '2026-06-09'",
+              "description": "Belirli tarih aralığında sistem loglarını görüntüle"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "resource-monitor",
+      "title": "Sistem Kaynakları — df, du, free",
+      "description": "Disk ve bellek kullanımını izle",
+      "difficulty": "beginner",
+      "duration": "5 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Kaynak İzleme Komutları",
+          "commands": [
+            {
+              "command": "df -h",
+              "description": "Disk kullanımını okunabilir formatta göster",
+              "output": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/sda1        50G   20G   28G  42% /\n/dev/sdb1       500G  200G  280G  42% /data"
+            },
+            {
+              "command": "du -sh /home/burak",
+              "description": "Bir dizinin toplam boyutunu göster",
+              "output": "4.2G\t/home/burak"
+            },
+            {
+              "command": "du -sh /var/log/* | sort -rh | head -10",
+              "description": "En büyük log dosyalarını bul",
+              "tip": "Disk doluysa en büyük dosyaları bulmak için harika"
+            },
+            {
+              "command": "free -h",
+              "description": "RAM ve swap kullanımını göster",
+              "output": "              total        used        free      shared  buff/cache   available\nMem:           16Gi       4.2Gi       8.1Gi       300Mi       3.7Gi        11Gi\nSwap:           2Gi          0B        2Gi"
+            },
+            {
+              "command": "uptime",
+              "description": "Sistem açık kalma süresi ve yük ortalaması",
+              "output": "10:30:00 up 2 days, 3:15,  2 users,  load average: 0.15, 0.21, 0.18"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
