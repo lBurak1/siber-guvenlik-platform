@@ -1,0 +1,126 @@
+{
+  "id": "sandbox",
+  "slug": "sandbox",
+  "title": "Sandbox & Zararlı Yazılım Analizi",
+  "subtitle": "Şüpheli Dosyaları İzole Ortamda İncele",
+  "description": "Zararlı yazılımları sandbox'ta çalıştır, davranış raporla, IOC çıkar. Statik ve dinamik analiz teknikleri.",
+  "team": "blue-team",
+  "category": "Endpoint & Zararlı Yazılım",
+  "phase": "Detection & Analysis",
+  "icon": "🔬",
+  "color": "#3b82f6",
+  "tags": ["sandbox", "malware", "anyrun", "cuckoo", "statik analiz", "dinamik analiz", "IOC"],
+  "modules": [
+    {
+      "id": "sandbox-intro",
+      "title": "Sandbox Nedir? Statik vs Dinamik",
+      "description": "Zararlı yazılım analiz yöntemleri ve sandbox'ın rolü",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Zararlı Yazılım Analiz Yöntemleri",
+          "content": "**Statik Analiz:** Dosyayı çalıştırmadan incele\n- PE header bilgileri (mimari, compiler, zaman damgası)\n- String'ler (URL, IP, registry key, API calls)\n- Import tablosu (hangi Windows API'leri kullanıyor)\n- Hash değeri (MD5/SHA256 → VirusTotal sorgu)\n- Entropy (yüksek entropy → pack/şifreli → zararlı olabilir)\n\n**Dinamik Analiz (Sandbox):** Dosyayı izole ortamda çalıştır\n- Hangi dosyaları oluşturdu/sildi\n- Hangi registry key'lerini değiştirdi\n- Hangi ağ bağlantılarını açtı (C2 tespiti)\n- Hangi süreçleri başlattı veya enjekte etti\n- Hangi API'leri çağırdı\n\n**Sandbox Platformları:**\n| Platform | Tür | URL |\n|----------|-----|-----|\n| Any.run | Online, interaktif | app.any.run |\n| VirusTotal | Online, otomatik | virustotal.com |\n| Joe Sandbox | Kurumsal | joesandbox.com |\n| Cuckoo | Self-hosted, açık kaynak | — |\n| Hybrid Analysis | Online, ücretsiz | hybrid-analysis.com |\n| Triage | Online | tria.ge |\n\n**⚠️ Uyarı:** Gerçek zararlı yazılımları SADECE izole sanal makine veya çevrimiçi sandbox'ta çalıştır. Asla kendi sisteminde!"
+        }
+      ]
+    },
+    {
+      "id": "static-analysis",
+      "title": "Statik Analiz Araçları",
+      "description": "PE analizi, string çıkarma, YARA kuralları",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Statik Analiz Komutları",
+          "commands": [
+            {
+              "command": "# Dosya türü tespiti:\nfile supheli.exe\nexiftool supheli.exe\n\n# Hash hesapla:\nmd5sum supheli.exe\nsha256sum supheli.exe\n\n# VirusTotal'da ara:\ncurl 'https://www.virustotal.com/api/v3/files/HASH' -H 'x-apikey: API_KEY'",
+              "description": "Temel dosya bilgisi ve hash kontrolü"
+            },
+            {
+              "command": "# String çıkarma (şüpheli URL, IP, komut ara):\nstrings supheli.exe | grep -E '(http|ftp|cmd|powershell|reg|HKEY)'\nstrings -n 6 supheli.exe | head -100\n\n# Daha gelişmiş: FLOSS (obfuscated string'leri de çözer):\nfloss supheli.exe",
+              "description": "Zararlıdaki metin string'lerini çıkar — URL/IP/komut ara",
+              "tip": "FLOSS, XOR ile obfuscate edilmiş string'leri de çözebilir"
+            },
+            {
+              "command": "# PE başlık analizi (Windows binary):\npefile supheli.exe  # Python pefile kütüphanesi\n\n# veya pecheck.py ile:\npython3 pecheck.py supheli.exe\n\n# Import tablosu — hangi API'ler kullanılıyor:\nobjdump -p supheli.exe | grep 'DLL Name'",
+              "description": "PE başlık ve import tablosu analizi"
+            },
+            {
+              "command": "# YARA kuralı ile zararlı tespit:\nyara kural.yar supheli.exe\n\n# Örnek YARA kuralı:\nrule mimikatz_strings {\n  strings:\n    $s1 = \"sekurlsa\" nocase\n    $s2 = \"lsadump\" nocase\n    $s3 = \"mimikatz\" nocase\n  condition:\n    any of them\n}\n\n# Tüm dizini tara:\nyara -r kural.yar /klasor/",
+              "description": "YARA kuralı ile zararlı yazılım imzası arama"
+            },
+            {
+              "command": "# Entropy hesapla (yüksek = pack/şifreli = şüpheli):\npython3 -c \"\nimport math\nwith open('supheli.exe','rb') as f:\n    data = f.read()\nbyte_counts = [data.count(bytes([i])) for i in range(256)]\ntotal = len(data)\nentropy = -sum((c/total)*math.log2(c/total) for c in byte_counts if c > 0)\nprint(f'Entropy: {entropy:.2f}/8.0 — {\"ŞÜPHELİ\" if entropy > 7.0 else \"Normal\"}')\n\"",
+              "description": "Dosya entropy'si hesapla — 7.0+ şüpheli (pack/şifreli)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dynamic-analysis",
+      "title": "Dinamik Analiz — Sandbox",
+      "description": "Any.run ve Cuckoo ile davranış analizi",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Sandbox Analiz Raporu Okuma",
+          "content": "**Sandbox Raporunda Dikkat Edilecekler:**\n\n**1. Ağ Aktivitesi:**\n- DNS sorguları → C2 domain tespiti\n- HTTP/HTTPS bağlantıları → payload indirme, veri sızdırma\n- IRC/TCP bağlantıları → eski botnet protokolü\n\n**2. Dosya Sistemi:**\n- `%TEMP%`, `%APPDATA%`, `%STARTUP%` konumlarına yazma\n- Kendi kendini kopyalama (persistence)\n- Shadow copy silme → ransomware\n\n**3. Registry:**\n- `HKCU\\Run` veya `HKLM\\Run` → persistence\n- SAM database erişimi → credential dump\n\n**4. Süreç:**\n- Process injection (hollowing, DLL injection)\n- cmd.exe veya powershell.exe spawn\n- Anti-analysis: sleep loop, VM tespiti\n\n**5. IOC Çıkarma:**\n- C2 IP/domain\n- Drop edilen dosya hash'leri\n- Mutex adları (zararlı örneği tanımlayan)\n- Registry key'leri"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Cuckoo Sandbox Kurulumu ve Kullanımı",
+          "commands": [
+            {
+              "command": "# Cuckoo Sandbox kurulumu (Ubuntu):\npip install cuckoo\ncuckoo init\ncuckoo community  # kuralları indir\n\n# Analiz için sanal makine ekle (VirtualBox):\ncuckoo machine add windows7 192.168.56.101 --platform windows --snapshot cuckoo_snapshot",
+              "description": "Cuckoo Sandbox kurulumu"
+            },
+            {
+              "command": "# Dosya gönder ve analiz et:\ncuckoo submit supheli.exe\n\n# URL analizi:\ncuckoo submit --url http://supheli.site/malware\n\n# Raporu görüntüle:\ncuckoo web runserver  # localhost:8000",
+              "description": "Cuckoo'ya dosya/URL gönderme",
+              "tip": "Sandbox her zaman izole bir ağda (host-only) çalıştırılmalı"
+            },
+            {
+              "command": "# Any.run API ile analiz:\ncurl -X POST 'https://api.any.run/v1/analysis' \\\n  -H 'Authorization: API-Key API_KEY_BURAYA' \\\n  -F 'file=@supheli.exe' \\\n  -F 'env_os=windows' \\\n  -F 'env_version=10' \\\n  -F 'opt_network_geo=fastest'",
+              "description": "Any.run API ile dosya analizi"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ioc-extraction",
+      "title": "IOC Çıkarma ve Raporlama",
+      "description": "Sandbox raporundan IOC toplayarak tehdit istihbaratına aktarma",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "IOC Toplama ve Paylaşım",
+          "commands": [
+            {
+              "command": "# Ağ trafiğinden C2 IP/domain çıkarma:\ntcpdump -r sandbox_capture.pcap -n | grep -oE '[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}' | sort -u\n\n# DNS sorgularını çıkar:\ntshark -r sandbox_capture.pcap -Y dns -T fields -e dns.qry.name | sort -u",
+              "description": "Sandbox ağ yakalasından C2 IP/domain çıkar"
+            },
+            {
+              "command": "# IOC'leri MISP formatında kaydet (Python misp kütüphanesi):\nfrom pymisp import PyMISP, MISPEvent, MISPAttribute\n\nmisp = PyMISP('https://misp.sirket.local', 'API_KEY', False)\nevent = MISPEvent()\nevent.info = 'Malware Analizi — supheli.exe'\nevent.add_attribute('md5', 'DOSYA_HASHI')\nevent.add_attribute('domain', 'c2-domain.ru')\nevent.add_attribute('ip-dst', '185.220.101.1')\nmisp.add_event(event)",
+              "description": "IOC'leri MISP tehdit istihbaratı platformuna aktar"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Shield, Terminal, Eye, GitMerge,
-  Network, BookOpen, Menu, X, Zap, MonitorCog, Cpu
+  Network, BookOpen, Menu, X, Zap, Monitor, Cpu
 } from "lucide-react";
 import { useState } from "react";
 import { cn, teamConfig } from "@/lib/utils";
@@ -11,7 +11,7 @@ import { cn, teamConfig } from "@/lib/utils";
 const navLinks = [
   { href: "/network-fundamentals",  icon: Network,    label: "Ağ Temelleri", color: "emerald" },
   { href: "/linux-fundamentals",    icon: Terminal,   label: "Linux",        color: "orange" },
-  { href: "/windows-fundamentals",  icon: MonitorCog, label: "Windows",      color: "sky" },
+  { href: "/windows-fundamentals",  icon: Monitor,    label: "Windows",      color: "sky" },
   { href: "/red-team",              icon: Shield,     label: "Red Team",     color: "red" },
   { href: "/blue-team",             icon: Eye,        label: "Blue Team",    color: "blue" },
   { href: "/purple-team",           icon: GitMerge,   label: "Purple Team",  color: "purple" },

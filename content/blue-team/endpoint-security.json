@@ -1,0 +1,123 @@
+{
+  "id": "endpoint-security",
+  "slug": "endpoint-security",
+  "title": "Endpoint Güvenliği (EDR/XDR)",
+  "subtitle": "Uç Nokta Tespiti ve Müdahale",
+  "description": "EDR ve XDR platformlarıyla endpoint tehdit tespiti, davranış analizi, IOC arama ve incident response.",
+  "team": "blue-team",
+  "category": "Endpoint & Tehdit",
+  "phase": "Detection & Response",
+  "icon": "🛡️",
+  "color": "#3b82f6",
+  "tags": ["edr", "xdr", "endpoint", "davranış analizi", "incident response", "crowdstrike", "defender"],
+  "modules": [
+    {
+      "id": "edr-xdr-basics",
+      "title": "AV → EDR → XDR Evrimi",
+      "description": "Geleneksel antivirüsten modern XDR'a geçiş ve temel kavramlar",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Endpoint Güvenlik Nesilleri",
+          "content": "**Antivirüs (AV) — 1. Nesil:**\n- İmza tabanlı tespit (bilinen zararlıları bulur)\n- Sınırlı: Zero-day, fileless malware'e karşı kör\n- Örnekler: Norton, Kaspersky, Windows Defender (temel)\n\n**EDR (Endpoint Detection & Response) — 2. Nesil:**\n- Davranış tabanlı tespit (anormal aktiviteyi yakala)\n- Gerçek zamanlı izleme ve müdahale\n- Telemetri: Süreç ağacı, ağ bağlantısı, dosya değişiklikleri\n- Örnekler: CrowdStrike Falcon, SentinelOne, Carbon Black\n\n**XDR (Extended Detection & Response) — 3. Nesil:**\n- EDR + Ağ + E-posta + Cloud + Identity entegrasyonu\n- Tüm katmanları korelasyon ile analiz eder\n- Örnekler: Microsoft Defender XDR, Palo Alto Cortex XDR\n\n**EDR'ın Tespit Ettiği Tehditler:**\n- Living-off-the-Land (LotL) saldırıları\n- Fileless malware (RAM'de çalışan)\n- Lateral movement (iç ağda yayılma)\n- Credential dumping (Mimikatz gibi)\n- Persistence mekanizmaları (registry, scheduled task)\n- C2 (Command & Control) iletişimi"
+        }
+      ]
+    },
+    {
+      "id": "windows-defender-atp",
+      "title": "Microsoft Defender for Endpoint",
+      "description": "Defender ATP ile tehdit avcılığı (threat hunting) ve IOC arama",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Defender ATP — KQL Sorguları",
+          "commands": [
+            {
+              "command": "// Microsoft 365 Defender — Advanced Hunting (KQL)\n// PowerShell ile şüpheli network bağlantısı:\nDeviceNetworkEvents\n| where InitiatingProcessFileName == \"powershell.exe\"\n| where RemotePort in (4444, 1234, 8888, 9999)  // yaygın reverse shell portları\n| where Timestamp > ago(24h)\n| project Timestamp, DeviceName, RemoteIP, RemotePort, InitiatingProcessCommandLine\n| sort by Timestamp desc",
+              "description": "PowerShell'in şüpheli portlara bağlantısını tespit et",
+              "tip": "4444 = Metasploit varsayılan portu — bu sorgu reverse shell bağlantılarını yakalar"
+            },
+            {
+              "command": "// Mimikatz tespiti — LSASS process erişimi:\nDeviceEvents\n| where ActionType == \"CreateRemoteThreadApiCall\"\n| where FileName == \"lsass.exe\"\n| where Timestamp > ago(1h)\n| project Timestamp, DeviceName, InitiatingProcessFileName, InitiatingProcessCommandLine",
+              "description": "LSASS'a erişimi izle (credential dumping tespiti)"
+            },
+            {
+              "command": "// Encoded PowerShell komut tespiti (obfuscation):\nDeviceProcessEvents\n| where FileName == \"powershell.exe\"\n| where ProcessCommandLine has_any (\"-enc\", \"-encodedcommand\", \"-e \")\n| where Timestamp > ago(24h)\n| project Timestamp, DeviceName, AccountName, ProcessCommandLine\n| sort by Timestamp desc",
+              "description": "Base64 encoded PowerShell tespiti (zararlı yazılım obfuscation tekniği)"
+            },
+            {
+              "command": "// Yeni zamanlanmış görev (persistence tespiti):\nDeviceEvents\n| where ActionType == \"ScheduledTaskCreated\"\n| where Timestamp > ago(7d)\n| project Timestamp, DeviceName, AccountName, AdditionalFields\n| sort by Timestamp desc",
+              "description": "Persistence için zamanlanmış görev oluşturulmasını tespit et"
+            },
+            {
+              "command": "// Lateral movement — SMB ile dosya kopyalama:\nDeviceNetworkEvents\n| where RemotePort == 445\n| where InitiatingProcessFileName !in (\"System\", \"svchost.exe\")\n| summarize count() by InitiatingProcessFileName, RemoteIP\n| where count_ > 10\n| sort by count_ desc",
+              "description": "Anormal SMB bağlantılarını tespit et (lateral movement)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crowdstrike-basics",
+      "title": "CrowdStrike Falcon",
+      "description": "CrowdStrike ile tehdit avcılığı ve event query",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "CrowdStrike Falcon — Event Search",
+          "commands": [
+            {
+              "command": "# CrowdStrike Falcon Query Language (FQL)\n# Threat Hunt — şüpheli süreç tespiti:\nevent_simpleName=ProcessRollup2\n| search ImageFileName=\"*\\\\cmd.exe\" ParentImageFileName=\"*\\\\winword.exe\"\n| table _time, ComputerName, UserName, ImageFileName, CommandLine",
+              "description": "Word belgesi açan cmd.exe tespiti (macro saldırısı indikatörü)"
+            },
+            {
+              "command": "# DNS over HTTPS bypass tespiti:\nevent_simpleName=DnsRequest\n| search DomainName IN (\"dns.google\", \"cloudflare-dns.com\", \"1.1.1.1\")\n| stats count by ComputerName, DomainName\n| sort -count",
+              "description": "DoH (DNS over HTTPS) kullanan uygulamaları bul"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ioc-hunting",
+      "title": "IOC Arama — Indicator of Compromise",
+      "description": "Hash, IP, domain bazlı tehdit göstergelerini arama",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "IOC Tabanlı Tehdit Avcılığı",
+          "commands": [
+            {
+              "command": "# Dosya hash kontrolü (Windows PowerShell):\nGet-FileHash C:\\Users\\kullanici\\Downloads\\dosya.exe -Algorithm SHA256\n\n# Hash'i VirusTotal'da kontrol et:\n# https://www.virustotal.com/gui/file/HASH_BURAYA\n# Veya API ile:\ncurl -X POST 'https://www.virustotal.com/api/v3/files/HASH' -H 'x-apikey: API_KEY'",
+              "description": "Dosyanın SHA256 hash'ini al ve VirusTotal'da sorgula"
+            },
+            {
+              "command": "# Şüpheli IP adresini sorgula:\n# AbuseIPDB:\ncurl -G https://api.abuseipdb.com/api/v2/check \\\n  --data-urlencode 'ipAddress=185.220.101.1' \\\n  -d maxAgeInDays=90 \\\n  -H 'Accept: application/json' \\\n  -H 'Key: API_KEY'\n\n# Shodan:\ncurl 'https://api.shodan.io/shodan/host/185.220.101.1?key=API_KEY'",
+              "description": "Şüpheli IP'yi tehdit istihbaratı servisiyle sorgula"
+            },
+            {
+              "command": "# Windows'ta IOC tarama (PowerShell):\n# Bilinen zararlı hash ile tüm dosyaları tara:\n$zararlı_hash = '44d88612fea8a8f36de82e1278abb02f'\nGet-ChildItem -Recurse C:\\Users -ErrorAction SilentlyContinue | ForEach-Object {\n  $hash = (Get-FileHash $_.FullName -Algorithm MD5 -ErrorAction SilentlyContinue).Hash\n  if ($hash -eq $zararlı_hash) {\n    Write-Host \"[BULUNDU] $($_.FullName)\" -ForegroundColor Red\n  }\n}",
+              "description": "Bilinen zararlı hash'e sahip dosyaları sistemde tara"
+            },
+            {
+              "command": "# Linux'ta şüpheli dosya arama:\n# Son 24 saatte değiştirilen çalıştırılabilir dosyalar:\nfind / -type f -executable -newer /var/log/auth.log -not -path '/proc/*' 2>/dev/null\n\n# SUID biti olan ve beklenmedik dosyalar:\nfind / -perm -4000 -not -path '/usr/bin/*' -not -path '/bin/*' 2>/dev/null",
+              "description": "Linux'ta şüpheli dosya değişikliklerini tespit et"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

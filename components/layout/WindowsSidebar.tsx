@@ -1,12 +1,12 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Terminal, FolderOpen, Cpu, Network, Code, MonitorCog, ChevronDown, ChevronRight } from "lucide-react";
+import { Terminal, FolderOpen, Cpu, Network, Code, Monitor, ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const iconMap: Record<string, React.ElementType> = {
-  Terminal, FolderOpen, Cpu, Network, Code, MonitorCog,
+  Terminal, FolderOpen, Cpu, Network, Code, Monitor,
 };
 
 const categories = [
@@ -62,7 +62,7 @@ export default function WindowsSidebar() {
       <div className="px-4 py-4 border-b border-surface-3">
         <Link href="/windows-fundamentals" className="flex items-center gap-2 group">
           <div className="p-1.5 rounded-lg bg-sky-500/10 border border-sky-500/20">
-            <MonitorCog className="w-4 h-4 text-sky-400" />
+            <Monitor className="w-4 h-4 text-sky-400" />
           </div>
           <div>
             <div className="text-xs font-mono text-sky-400">WINDOWS</div>

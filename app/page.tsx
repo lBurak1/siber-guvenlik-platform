@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, MonitorCog } from "lucide-react";
+import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor } from "lucide-react";
 
 const sections = [
   {
@@ -36,7 +36,7 @@ const sections = [
   {
     id: "windows-fundamentals",
     href: "/windows-fundamentals",
-    icon: MonitorCog,
+    icon: Monitor,
     label: "Windows Eğitimi",
     subtitle: "Temelden İleriye Windows",
     description: "CMD, PowerShell, dosya yönetimi, servis kontrolü, kullanıcı yönetimi, ağ tanılama — Windows komut satırı.",
@@ -181,7 +181,7 @@ export default function HomePage() {
             return (
               <Link key={s.id} href={s.href} className="group block">
                 <div className={`rounded-xl border bg-surface-1 p-6 transition-all duration-300 h-full flex flex-col relative overflow-hidden ${s.border} ${s.glow}`}>
-                  {s.recommended && (
+                  {'recommended' in s && s.recommended && (
                     <div className="absolute top-3 right-3 text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">
                       Önce Başla
                     </div>

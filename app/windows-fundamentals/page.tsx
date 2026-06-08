@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MonitorCog, ArrowRight } from "lucide-react";
+import { Monitor, ArrowRight } from "lucide-react";
 
 const topics = [
   { slug: "cmd-basics",          icon: "⌨️",  title: "Komut İstemi (CMD) Temelleri", desc: "dir, cd, mkdir, copy, move, del, ipconfig, netstat — CMD'yi sıfırdan öğren", level: "Başlangıç" },
@@ -13,7 +13,7 @@ export default function WindowsFundamentalsPage() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-3 mb-2">
-        <MonitorCog className="w-7 h-7 text-sky-400" />
+        <Monitor className="w-7 h-7 text-sky-400" />
         <h1 className="text-2xl font-bold text-terminal-white">Windows Eğitimi</h1>
       </div>
       <p className="text-terminal-comment mb-2 ml-10">

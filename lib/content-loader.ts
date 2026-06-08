@@ -17,8 +17,14 @@ const redTeamMap: Record<string, () => Promise<any>> = {
 
 // ─── Blue Team Tools ─────────────────────────────────────────────────
 const blueTeamMap: Record<string, () => Promise<any>> = {
-  "wireshark":    () => import("@/content/blue-team/wireshark.json"),
-  "log-analysis": () => import("@/content/blue-team/log-analysis.json"),
+  "wireshark":         () => import("@/content/blue-team/wireshark.json"),
+  "log-analysis":      () => import("@/content/blue-team/log-analysis.json"),
+  "siem":              () => import("@/content/blue-team/siem.json"),
+  "endpoint-security": () => import("@/content/blue-team/endpoint-security.json"),
+  "sandbox":           () => import("@/content/blue-team/sandbox.json"),
+  "cti":               () => import("@/content/blue-team/cti.json"),
+  "pam":               () => import("@/content/blue-team/pam.json"),
+  "email-security":    () => import("@/content/blue-team/email-security.json"),
 };
 
 // ─── Purple Team Tools ───────────────────────────────────────────────

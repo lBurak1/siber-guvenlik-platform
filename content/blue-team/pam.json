@@ -1,0 +1,127 @@
+{
+  "id": "pam",
+  "slug": "pam",
+  "title": "PAM — Yetkili Hesap Yönetimi",
+  "subtitle": "Privileged Access Management",
+  "description": "Admin ve servis hesaplarının güvenli yönetimi. En az yetki prensibi, parola kasası, oturum kaydı ve CyberArk/HashiCorp Vault.",
+  "team": "blue-team",
+  "category": "Kimlik & Erişim Güvenliği",
+  "phase": "Prevention & Governance",
+  "icon": "🔐",
+  "color": "#3b82f6",
+  "tags": ["pam", "cyberark", "hashicorp vault", "least privilege", "mfa", "session recording", "parola yönetimi"],
+  "modules": [
+    {
+      "id": "pam-fundamentals",
+      "title": "PAM Nedir? Neden Gerekli?",
+      "description": "Yetkili hesap riskler, PAM bileşenleri ve faydaları",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "PAM Temelleri",
+          "content": "**PAM (Privileged Access Management):** Yönetici, servis, uygulama gibi yüksek yetkili hesapların güvenli bir şekilde yönetilmesi.\n\n**Neden PAM?**\n- Saldırıların %80'i çalınan/kötüye kullanılan kimlik bilgileriyle gerçekleşiyor\n- Admin hesapları hedef #1 — ele geçirilince tam kontrol\n- Paylaşılan admin şifreler → kim ne yaptı bilinmiyor\n- Compliance: PCI-DSS, SOC2, ISO 27001 PAM gerektirir\n\n**PAM Bileşenleri:**\n| Bileşen | İşlev |\n|---------|-------|\n| Parola Kasası (Vault) | Şifreleri güvenli sakla, otomatik döndür |\n| Session Manager | Oturumları kaydet, izle |\n| Just-In-Time (JIT) Access | Gerektiğinde, sınırlı süre yetki ver |\n| Multi-Factor Auth | MFA ile kimlik doğrula |\n| Privilege Elevation | Görev bazlı yetki yükseltme |\n\n**En Az Yetki Prensibi (Least Privilege):**\n- Her kullanıcı/uygulama sadece ihtiyacı olan yetkiye sahip olsun\n- Admin hesabını günlük işlerde kullanma\n- Servis hesaplarına sadece gerekli izinleri ver\n\n**PAM Araçları:**\n- **CyberArk** — Kurumsal lider\n- **HashiCorp Vault** — Açık kaynak, cloud-native\n- **BeyondTrust** — Kurumsal\n- **Delinea (Thycotic)** — Orta ölçek\n- **Linux PAM** — /etc/pam.d/ modüler auth"
+        }
+      ]
+    },
+    {
+      "id": "linux-pam",
+      "title": "Linux PAM Yapılandırması",
+      "description": "/etc/pam.d/ ile kimlik doğrulama politikaları",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Linux PAM Güvenlik Ayarları",
+          "commands": [
+            {
+              "command": "# Parola politikası — PAM pwquality modülü:\n# /etc/pam.d/common-password dosyasına ekle:\napt install libpam-pwquality -y\n\n# /etc/security/pwquality.conf:\nminlen = 12         # minimum 12 karakter\nminclass = 3        # büyük/küçük/rakam/özel karakter — 3 sınıf zorunlu\nmaxrepeat = 2       # aynı karakter max 2 kez\nreject_username = 1  # kullanıcı adı içeremesin",
+              "description": "Linux parola karmaşıklık politikası yapılandırma"
+            },
+            {
+              "command": "# Brute force koruma — pam_tally2 / faillock:\n# /etc/pam.d/common-auth dosyasına ekle:\n# 5 başarısız denemede 15 dakika kilitle:\nauth required pam_faillock.so preauth silent deny=5 unlock_time=900\nauth required pam_faillock.so authfail deny=5 unlock_time=900\n\n# Kilitlenen hesabı serbest bırak:\nfaillock --user kullanici --reset",
+              "description": "Brute force koruma — başarısız giriş sonrası hesap kilitleme"
+            },
+            {
+              "command": "# Sudo - en az yetki prensibi:\n# /etc/sudoers veya /etc/sudoers.d/custom\nvisudo\n\n# Sadece belirli komutlara izin ver:\nkullanici ALL=(ALL) /usr/bin/systemctl restart nginx, /usr/bin/tail -f /var/log/nginx/error.log\n\n# Tüm sudo komutlarını logla:\nDefaults logfile='/var/log/sudo.log'\nDefaults log_input, log_output  # giriş ve çıkışı da kaydet",
+              "description": "Sudo ile granüler yetki yönetimi — sadece gerekli komutlara izin ver"
+            },
+            {
+              "command": "# SSH anahtar bazlı erişim ve root erişimini kapat:\n# /etc/ssh/sshd_config:\nPermitRootLogin no\nPasswordAuthentication no\nPubkeyAuthentication yes\nAllowUsers kullanici1 kullanici2  # sadece bu kullanıcılar\nAllowGroups sysadmin              # veya grup bazlı\nClientAliveInterval 300            # 5 dakika idle → bağlantıyı kes\nMaxAuthTries 3\n\nsystemctl restart sshd",
+              "description": "SSH güvenlik sertleştirmesi — root erişim kapatma, anahtar auth"
+            },
+            {
+              "command": "# Servis hesabı en az yetki — systemd:\n# /etc/systemd/system/myapp.service:\n[Service]\nUser=myapp\nGroup=myapp\nNoNewPrivileges=yes\nPrivateTmp=yes\nReadOnlyPaths=/etc/myapp\nReadWritePaths=/var/lib/myapp\nCapabilityBoundingSet=CAP_NET_BIND_SERVICE\n\n# systemd ile servis hesabı oluştur:\nadduser --system --no-create-home --group myapp",
+              "description": "Systemd servis hesabı ile en az yetki prensibi uygulama"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hashicorp-vault",
+      "title": "HashiCorp Vault — Parola Kasası",
+      "description": "Sırları (secrets) güvenle saklama ve dinamik kimlik bilgisi üretme",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "HashiCorp Vault Kullanımı",
+          "commands": [
+            {
+              "command": "# Vault kurulumu (Linux):\nwget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg\necho \"deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main\" | tee /etc/apt/sources.list.d/hashicorp.list\napt update && apt install vault\n\n# Geliştirme modunda başlat (production için farklı):\nvault server -dev",
+              "description": "HashiCorp Vault kurulumu"
+            },
+            {
+              "command": "# Vault'a secret yaz ve oku:\nexport VAULT_ADDR='http://127.0.0.1:8200'\nexport VAULT_TOKEN='root_token'\n\n# Secret yaz (KV store):\nvault kv put secret/myapp \\\n  db_password='güvenli_şifre123' \\\n  api_key='abc123xyz'\n\n# Secret oku:\nvault kv get secret/myapp\nvault kv get -field=db_password secret/myapp",
+              "description": "Vault'a secret kaydetme ve okuma"
+            },
+            {
+              "command": "# Dinamik veritabanı kimlik bilgileri:\n# PostgreSQL için dinamik şifre:\nvault secrets enable database\nvault write database/config/mydb \\\n  plugin_name=postgresql-database-plugin \\\n  connection_url='postgresql://{{username}}:{{password}}@localhost/mydb' \\\n  allowed_roles='readonly' \\\n  username='vault_admin' password='şifre'\n\n# Role tanımla:\nvault write database/roles/readonly \\\n  db_name=mydb \\\n  creation_statements=\"CREATE ROLE \\\"{{name}}\\\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; GRANT SELECT ON ALL TABLES IN SCHEMA public TO \\\"{{name}}\\\";\" \\\n  default_ttl='1h' max_ttl='24h'\n\n# Dinamik kimlik bilgisi al (sadece 1 saat geçerli):\nvault read database/creds/readonly",
+              "description": "Vault ile dinamik veritabanı kimlik bilgisi — otomatik süreli",
+              "tip": "Statik şifre yerine dinamik kimlik bilgisi: her istek farklı şifre, 1 saat sonra otomatik sil"
+            },
+            {
+              "command": "# Vault audit log aktif et:\nvault audit enable file file_path=/var/log/vault/audit.log\n\n# Kim neye erişti görüntüle:\ntail -f /var/log/vault/audit.log | jq '.request | {time: .time, operation: .operation, path: .path, client_token: .client_token}'",
+              "description": "Vault audit log — kim ne zaman hangi secret'e erişti"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "windows-pam",
+      "title": "Windows Privileged Access",
+      "description": "Windows'ta yetkili erişim kontrolü ve LAPS",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Windows PAM Uygulamaları",
+          "commands": [
+            {
+              "command": "# LAPS (Local Admin Password Solution) kurulumu:\n# LAPS her bilgisayar için otomatik farklı local admin şifresi oluşturur\n# Indirme: https://www.microsoft.com/en-us/download/details.aspx?id=46899\n\n# PowerShell ile LAPS şifresini oku:\nGet-AdmPwdPassword -ComputerName BILGISAYAR_ADI | Select-Object ComputerName, Password, ExpirationTimestamp",
+              "description": "LAPS — her bilgisayara otomatik farklı yerel admin şifresi"
+            },
+            {
+              "command": "# Windows'ta admin hesabı kısıtla:\n# Varsayılan Admin hesabını devre dışı bırak:\nnet user administrator /active:no\n\n# Lokal admin grubunu denetle:\nnet localgroup administrators\n\n# UAC en yüksek seviyeye al (registry):\nreg add 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' /v ConsentPromptBehaviorAdmin /t REG_DWORD /d 2 /f",
+              "description": "Windows yerel admin hesabı kısıtlama"
+            },
+            {
+              "command": "# JIT (Just-In-Time) erişim — PowerShell:\n# Geçici admin üyeliği ekle (2 saat sonra otomatik sil):\n$kullanici = 'DOMAIN\\kullanici'\n$sure = 2  # saat\n\nAdd-LocalGroupMember -Group 'Administrators' -Member $kullanici\nWrite-Host \"$kullanici için $sure saatlik admin erişimi verildi\"\n\n# 2 saat sonra kaldır (Task Scheduler ile):\n$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddHours($sure)\n$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument \"-Command Remove-LocalGroupMember -Group 'Administrators' -Member '$kullanici'\"\nRegister-ScheduledTask -TaskName 'JIT_Remove_$kullanici' -Trigger $trigger -Action $action -RunLevel Highest",
+              "description": "JIT erişim — geçici yönetici yetkisi, belirli süre sonra otomatik kaldır"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

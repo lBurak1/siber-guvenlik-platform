@@ -1,0 +1,156 @@
+{
+  "id": "siem",
+  "slug": "siem",
+  "title": "SIEM",
+  "subtitle": "Merkezi Log Toplama & Olay Korelasyonu",
+  "description": "Security Information and Event Management — logları merkezi olarak topla, korelasyon kuralları yaz, tehditleri gerçek zamanlı tespit et.",
+  "team": "blue-team",
+  "category": "Log & SIEM",
+  "phase": "Detection & Response",
+  "icon": "🗄️",
+  "color": "#3b82f6",
+  "tags": ["siem", "splunk", "elk", "wazuh", "log", "korelasyon", "alert"],
+  "modules": [
+    {
+      "id": "siem-intro",
+      "title": "SIEM Nedir?",
+      "description": "SIEM mimarisi, neden gerekli, hangi platformlar kullanılır",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "SIEM Mimarisi ve Kavramlar",
+          "content": "**SIEM (Security Information and Event Management):** Organizasyondaki tüm sistemlerin loglarını merkezi olarak toplayan, saklayan, korelasyon kurallarıyla analiz eden ve alarm üreten platform.\n\n**Neden SIEM?**\n- Tek bir noktadan tüm sistemleri izle\n- Farklı kaynaklardan gelen olayları ilişkilendir (korelasyon)\n- Anomali tespiti ve otomatik alarm\n- Compliance (PCI-DSS, ISO 27001, KVKK) gereksinimi\n- Forensic soruşturma için log arşivi\n\n**SIEM Bileşenleri:**\n| Bileşen | Görevi |\n|---------|--------|\n| Log Collector | Kaynaklardan log toplar (agent/agentless) |\n| Log Aggregator | Logları normalize eder |\n| Correlation Engine | Kurallarla olayları ilişkilendirir |\n| Alert Manager | Alarm üretir, ticket açar |\n| Dashboard | Görsel izleme |\n| SOAR (opsiyonel) | Otomatik müdahale |\n\n**Popüler SIEM Platformları:**\n- **Splunk** — En yaygın kurumsal SIEM\n- **ELK Stack** — Elasticsearch + Logstash + Kibana (açık kaynak)\n- **Wazuh** — Ücretsiz, OSSEC tabanlı\n- **Microsoft Sentinel** — Cloud-native Azure SIEM\n- **QRadar** — IBM'in SIEM çözümü\n- **Graylog** — Açık kaynak, performanslı"
+        }
+      ]
+    },
+    {
+      "id": "log-sources",
+      "title": "Log Kaynakları ve Toplama",
+      "description": "Hangi kaynaklardan log toplanır, agent vs agentless",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Log Kaynakları",
+          "content": "**Kritik Log Kaynakları:**\n\n| Kaynak | Log Türü | Önem |\n|--------|----------|------|\n| Windows Event Log | Kimlik doğrulama, süreç, ağ | ⭐⭐⭐ |\n| Linux Syslog/Auth | SSH, sudo, servis | ⭐⭐⭐ |\n| Firewall | Allow/deny, NAT | ⭐⭐⭐ |\n| IDS/IPS | Saldırı tespiti | ⭐⭐⭐ |\n| Web Sunucu | HTTP erişim, hata | ⭐⭐ |\n| DNS | Sorgu logları | ⭐⭐⭐ |\n| Active Directory | Hesap işlemleri | ⭐⭐⭐ |\n| VPN | Bağlantı logları | ⭐⭐ |\n| EDR | Endpoint olayları | ⭐⭐⭐ |\n\n**Windows Event ID'leri (Kritik):**\n- **4624** → Başarılı giriş\n- **4625** → Başarısız giriş (brute force!)\n- **4648** → Farklı kimlik bilgisiyle giriş\n- **4672** → Admin yetkileriyle giriş\n- **4688** → Yeni süreç oluşturuldu\n- **4698** → Zamanlanmış görev oluşturuldu (persistence!)\n- **4720** → Yeni kullanıcı oluşturuldu\n- **4732** → Gruba üye eklendi\n- **7045** → Yeni servis kuruldu"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Log Toplama Yapılandırması",
+          "commands": [
+            {
+              "command": "# Wazuh Agent kurulumu (Linux):\ncurl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | gpg --no-default-keyring --keyring gnupg-ring:/usr/share/keyrings/wazuh.gpg --import\necho \"deb [signed-by=/usr/share/keyrings/wazuh.gpg] https://packages.wazuh.com/4.x/apt/ stable main\" | tee /etc/apt/sources.list.d/wazuh.list\napt-get update && apt-get install wazuh-agent",
+              "description": "Wazuh agent kurulumu — log kaynağına ajan yükle"
+            },
+            {
+              "command": "# /var/ossec/etc/ossec.conf içine log kaynağı ekle:\n<localfile>\n  <log_format>syslog</log_format>\n  <location>/var/log/auth.log</location>\n</localfile>\n\n<localfile>\n  <log_format>apache</log_format>\n  <location>/var/log/apache2/access.log</location>\n</localfile>",
+              "description": "Wazuh'a log kaynağı tanımlama"
+            },
+            {
+              "command": "# ELK Stack — Filebeat yapılandırması:\n# /etc/filebeat/filebeat.yml\nfilebeat.inputs:\n- type: log\n  enabled: true\n  paths:\n    - /var/log/*.log\n    - /var/log/nginx/access.log\n  tags: [\"nginx\", \"production\"]\n\noutput.elasticsearch:\n  hosts: [\"localhost:9200\"]\n  index: \"logs-%{+yyyy.MM.dd}\"",
+              "description": "Filebeat ile ELK Stack'e log gönderme",
+              "tip": "Filebeat lightweight — kaynak tüketimi minimumdur"
+            },
+            {
+              "command": "# Syslog ile merkezi log sunucusuna yönlendir (rsyslog):\n# /etc/rsyslog.conf\n*.* @192.168.1.200:514    # UDP\n*.* @@192.168.1.200:514   # TCP (güvenilir)\n\n# Merkezi sunucuda al:\nmodload imudp\nUDPServerRun 514",
+              "description": "rsyslog ile merkezi log sunucusuna yönlendirme"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "correlation-rules",
+      "title": "Korelasyon Kuralları",
+      "description": "SIEM'de anlamlı alarm üretmek için korelasyon kuralı yazma",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Korelasyon Mantığı",
+          "content": "**Korelasyon:** Birden fazla olayı zaman ve içerik bağlamıyla ilişkilendirerek anlamlı tehdit tespiti yapmak.\n\n**Örnek Korelasyon Senaryoları:**\n\n1. **Brute Force Tespiti:**\n   - Kural: Aynı IP'den 5 dakikada 10+ başarısız giriş (4625) → Alarm\n\n2. **Lateral Movement:**\n   - Kural: İç ağda 1 saat içinde 5+ farklı hosta SMB bağlantısı → Alarm\n\n3. **Privilege Escalation:**\n   - Kural: Normal kullanıcı → Admin grubu üyeliği eklendi (4732) → Alarm\n\n4. **Data Exfiltration:**\n   - Kural: Gece 02:00-05:00 arası 1 GB+ dışarı çıkan trafik → Alarm\n\n5. **Impossible Travel:**\n   - Kural: Aynı kullanıcı 1 saatte 2 farklı ülkeden giriş → Alarm"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Splunk & ELK Sorgu Örnekleri",
+          "commands": [
+            {
+              "command": "# Splunk SPL — Brute force tespiti:\nindex=windows EventCode=4625\n| stats count by src_ip, user\n| where count > 10\n| sort -count\n| table src_ip, user, count",
+              "description": "Splunk: 10'dan fazla başarısız giriş denemesi yapan IP'leri bul",
+              "tip": "Bu sorguyu zamanlanmış alarm olarak kaydet — her 5 dakikada çalışsın"
+            },
+            {
+              "command": "# Splunk — Başarısız sonra başarılı giriş (credential stuffing):\nindex=windows EventCode=4625 OR EventCode=4624\n| sort _time\n| streamstats window=20 count(eval(EventCode=4625)) as failed_count by src_ip\n| where EventCode=4624 AND failed_count > 5\n| table _time, src_ip, user, failed_count",
+              "description": "Başarısız girişlerin ardından gelen başarılı giriş tespiti"
+            },
+            {
+              "command": "# ELK (Kibana KQL) — SSH brute force:\nkibana.saved_objects.query: event.dataset:\"system.auth\" AND system.auth.ssh.event:\"Failed\" AND @timestamp:[now-5m TO now]\n\n# Aggregation: group by source.ip, count > 5",
+              "description": "Kibana'da SSH brute force sorgusu"
+            },
+            {
+              "command": "# Wazuh — Özel korelasyon kuralı (rules/local_rules.xml):\n<group name=\"custom_brute_force\">\n  <rule id=\"100001\" level=\"10\" frequency=\"10\" timeframe=\"300\">\n    <if_matched_sid>5503</if_matched_sid>\n    <same_source_ip />\n    <description>Brute force: 5 dakikada 10+ başarısız SSH girişi</description>\n    <mitre>\n      <id>T1110</id>\n    </mitre>\n  </rule>\n</group>",
+              "description": "Wazuh'ta özel brute force korelasyon kuralı"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "siem-dashboard",
+      "title": "Dashboard ve Alarm Yönetimi",
+      "description": "SOC dashboard kurulumu, alarm önceliklendirme, false positive azaltma",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "SOC Dashboard ve Alarm Yönetimi",
+          "content": "**Alarm Seviyeleri (Triage):**\n- **P1 / Kritik:** Aktif saldırı, veri ihlali → Anında müdahale\n- **P2 / Yüksek:** Şüpheli aktivite → 1 saat içinde\n- **P3 / Orta:** Anomali, policy ihlali → 4 saat içinde\n- **P4 / Düşük:** Bilgilendirme → İş günü içinde\n\n**False Positive Azaltma:**\n1. Whitelist: Bilinen güvenli IP/kullanıcılar\n2. Threshold ayarı: Kural tetikleme eşiğini artır\n3. Context: İş saatleri dışındaki aktiviteye farklı ağırlık ver\n4. Tuning: Her alarm için suppress listesi oluştur\n\n**Kritik SOC Dashboard Panelleri:**\n- Son 24 saat alarm sayısı (severity'ye göre)\n- Top 10 kaynak IP\n- Başarısız giriş haritası (geo)\n- Aktif incident listesi\n- MITRE ATT&CK coverage görselleştirmesi"
+        }
+      ]
+    },
+    {
+      "id": "lab-siem",
+      "title": "Lab — Wazuh SIEM Kurulumu",
+      "description": "Wazuh SIEM kurulumu ve ilk alarm üretme",
+      "difficulty": "intermediate",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "Wazuh ile SIEM Lab",
+          "scenario": {
+            "title": "Wazuh SIEM Kur ve Brute Force Tespiti Yap",
+            "objective": "Wazuh SIEM kur, bir Linux sunucusuna agent bağla, SSH brute force simüle et ve alarmı gör.",
+            "environment": "2 VM: 1 Wazuh Manager (Ubuntu 22.04), 1 Agent (Kali veya Ubuntu)",
+            "difficulty": "intermediate",
+            "steps": [
+              "Wazuh Manager VM'e kur: curl -sO https://packages.wazuh.com/4.7/wazuh-install.sh && bash wazuh-install.sh -a",
+              "Wazuh Dashboard'a giriş: https://MANAGER_IP (admin/şifre)",
+              "Agent VM'e Wazuh agent kur ve Manager IP'sine bağla",
+              "Kali'den SSH brute force simüle et: hydra -l root -P /usr/share/wordlists/rockyou.txt ssh://AGENT_IP -t 4",
+              "Wazuh Dashboard → Security Events → SSH brute force alarmını gör",
+              "MITRE ATT&CK T1110 etiketini kontrol et"
+            ],
+            "hints": [
+              "Wazuh kurulumu 10-15 dakika sürebilir, bekle",
+              "Dashboard varsayılan port 443, tarayıcıda HTTPS ile aç",
+              "Alarm gelmediyse: /var/ossec/logs/alerts/alerts.json dosyasını kontrol et"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

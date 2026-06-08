@@ -1,0 +1,123 @@
+{
+  "id": "email-security",
+  "slug": "email-security",
+  "title": "E-posta Güvenliği",
+  "subtitle": "SPF, DKIM, DMARC ve Phishing Analizi",
+  "description": "E-posta spoofing önleme protokolleri, phishing tespiti, e-posta başlık analizi ve oltalama saldırılarına karşı savunma.",
+  "team": "blue-team",
+  "category": "Kimlik & Erişim Güvenliği",
+  "phase": "Prevention & Detection",
+  "icon": "📧",
+  "color": "#3b82f6",
+  "tags": ["spf", "dkim", "dmarc", "phishing", "email header", "spoofing", "bec"],
+  "modules": [
+    {
+      "id": "email-threats",
+      "title": "E-posta Tehditleri",
+      "description": "Phishing, spear phishing, BEC, spoofing ve e-posta tabanlı saldırılar",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "E-posta Saldırı Türleri",
+          "content": "**E-posta Saldırı Türleri:**\n\n| Tür | Açıklama | Hedef |\n|-----|----------|-------|\n| Phishing | Toplu sahte e-posta | Geniş kitle |\n| Spear Phishing | Kişiye özel hazırlanmış | Belirli kişi/kurumlar |\n| Whaling | Üst düzey yöneticilere | CEO, CFO |\n| BEC (Business Email Compromise) | Kurumsal e-posta ele geçirme/taklidi | Finans departmanı |\n| Vishing | Telefon üzerinden phishing | Çalışanlar |\n| Smishing | SMS ile phishing | Mobil kullanıcılar |\n| Email Spoofing | Sahte gönderici adresi | Güven kazanma |\n\n**BEC Saldırısı Nasıl İşler:**\n1. CEO'nun e-posta stili araştırılır (OSINT)\n2. CEO e-postası taklit edilir (spoofing veya typosquat)\n3. CFO'ya acil havale emri gönderilir\n4. Fatura sahte IBAN'a ödenir\n\n**Red Flags (Şüpheli İşaretler):**\n- Aciliyet hissi yaratan dil (\"Hemen şimdi!\", \"Son dakika\")\n- Alışılmadık gönderici adresi\n- Gramer hataları, Türkçe karaktersizlik\n- Kötü formatlı logo\n- İstek: şifre, banka bilgisi, tıklama\n- Hover → URL gerçek domain değil"
+        }
+      ]
+    },
+    {
+      "id": "spf-dkim-dmarc",
+      "title": "SPF, DKIM, DMARC",
+      "description": "E-posta spoofing önleme protokollerini anlama ve yapılandırma",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "SPF, DKIM, DMARC Nasıl Çalışır?",
+          "content": "**SPF (Sender Policy Framework):**\n- DNS TXT kaydı ile hangi sunucuların e-posta gönderebileceğini tanımlar\n- Alıcı sunucu, gönderici IP'yi SPF kaydıyla kontrol eder\n- Örnek: `v=spf1 include:_spf.google.com ip4:192.168.1.1 -all`\n- `-all` = Listede olmayanlar reddedilsin\n\n**DKIM (DomainKeys Identified Mail):**\n- Gönderici sunucu, e-postayı özel anahtarla imzalar\n- Alıcı sunucu, DNS'teki açık anahtarla imzayı doğrular\n- E-postanın değiştirilmediğini kanıtlar\n- Örnek DNS TXT: `v=DKIM1; k=rsa; p=MIGfMA0...`\n\n**DMARC (Domain-based Message Authentication, Reporting & Conformance):**\n- SPF veya DKIM başarısız olduğunda ne yapılacağını tanımlar\n- Policy: `none` (sadece raporla), `quarantine` (spam klasörü), `reject` (reddet)\n- Raporlama: domain sahiplerine başarısız e-postalar hakkında rapor gönder\n- Örnek: `v=DMARC1; p=reject; rua=mailto:dmarc@sirket.com`\n\n**Katmanlı Koruma:**\n```\nGönderici → [SPF: IP izinli mi?] → [DKIM: İmza geçerli mi?] → [DMARC: Policy uygula]\n```"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "SPF/DKIM/DMARC Yapılandırma ve Test",
+          "commands": [
+            {
+              "command": "# Mevcut SPF kaydını kontrol et:\ndig TXT sirket.com | grep spf\nnslookup -type=TXT sirket.com\n\n# Online test:\n# https://mxtoolbox.com/spf.aspx\n# https://www.kitterman.com/spf/validate.html",
+              "description": "Alan adının SPF kaydını sorgula"
+            },
+            {
+              "command": "# SPF kaydı oluştur (DNS TXT kaydı olarak ekle):\n# Gmail kullanan bir şirket için:\nv=spf1 include:_spf.google.com ~all\n\n# Kendi mail sunucusu + Office 365:\nv=spf1 ip4:203.0.113.1 include:spf.protection.outlook.com -all\n\n# Açıklamalar:\n# v=spf1          : SPF versiyonu\n# ip4:X.X.X.X     : Bu IP'den gönderime izin ver\n# include:domain  : Domain'in SPF kaydını dahil et\n# -all            : Diğerleri FAIL (en katı)\n# ~all            : Diğerleri SOFTFAIL (spam olarak işaretle)\n# ?all            : Diğerleri nötr (test için)",
+              "description": "SPF kaydı oluşturma ve syntax açıklaması"
+            },
+            {
+              "command": "# DMARC kaydını kontrol et:\ndig TXT _dmarc.sirket.com\nnslookup -type=TXT _dmarc.sirket.com\n\n# DMARC kaydı oluştur (_dmarc.sirket.com TXT olarak ekle):\n# Sadece izleme modu (başlangıç):\nv=DMARC1; p=none; rua=mailto:dmarc-reports@sirket.com\n\n# Spam klasörüne at:\nv=DMARC1; p=quarantine; pct=50; rua=mailto:dmarc-reports@sirket.com\n\n# Tam reject — en güvenli:\nv=DMARC1; p=reject; rua=mailto:dmarc-reports@sirket.com; ruf=mailto:dmarc-failures@sirket.com",
+              "description": "DMARC kaydı oluşturma — none → quarantine → reject sıralaması",
+              "tip": "Önce p=none ile raporları izle, 2-4 hafta sonra quarantine, ardından reject'e geç. Acele edersen meşru e-postalar da silinebilir!"
+            },
+            {
+              "command": "# DKIM kaydını doğrula:\n# selector._domainkey.sirket.com DNS TXT kaydını sorgula:\ndig TXT default._domainkey.sirket.com\n\n# Online doğrulama:\n# https://mxtoolbox.com/dkim.aspx\n\n# Postfix/OpenDKIM ile DKIM imzalama:\napt install opendkim opendkim-tools\nopendkim-genkey -t -s mail -d sirket.com\n# Oluşturulan mail.txt içeriğini DNS'e TXT kaydı olarak ekle",
+              "description": "DKIM kaydı doğrulama ve OpenDKIM kurulumu"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "email-header-analysis",
+      "title": "E-posta Başlık Analizi",
+      "description": "Phishing e-postasının başlığını analiz et, gerçek kaynağı bul",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "E-posta Başlıklarını Okuma",
+          "content": "**Kritik E-posta Başlıkları:**\n\n| Başlık | Açıklama |\n|--------|----------|\n| `From:` | Görünen gönderici (sahte olabilir!) |\n| `Reply-To:` | Cevap adresi (phishing'de farklı domain) |\n| `Return-Path:` | Gerçek gönderici adresi |\n| `Received:` | E-postanın geçtiği sunucular (alttan üste sırala) |\n| `X-Originating-IP:` | Gerçek gönderici IP |\n| `Authentication-Results:` | SPF/DKIM/DMARC sonuçları |\n| `Message-ID:` | Benzersiz mesaj kimliği |\n| `X-Mailer:` | E-posta client'ı (zararlı araç ismi!) |\n\n**Başlık Okuma Sırası:**\n1. `Authentication-Results` → SPF/DKIM fail mi?\n2. En alttaki `Received:` satırı → İlk geçen sunucu (gerçek kaynak)\n3. `From:` vs `Return-Path:` uyuşuyor mu?\n4. `Reply-To:` farklı domain → phishing\n5. `X-Originating-IP:` → IP'yi threat intel'de sorgula"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Phishing E-posta Analizi",
+          "commands": [
+            {
+              "command": "# E-posta başlığını analiz et (online araçlar):\n# https://mxtoolbox.com/EmailHeaders.aspx\n# https://mailheader.org/\n# https://gchq.github.io/CyberChef/ (decode için)\n\n# Terminal ile Received zincirini çıkar:\ngrep -i 'received:' email.eml | head -20\n\n# Gönderici IP'yi çıkar:\ngrep -i 'x-originating-ip\\|x-sender-ip' email.eml",
+              "description": "E-posta başlığından gönderici IP'sini çıkar"
+            },
+            {
+              "command": "# Phishing URL analizi:\n# URL'yi doğrudan tıklamadan incele:\n\n# URL Sandbox:\n# https://urlscan.io\n# https://www.virustotal.com/gui/url\n# https://any.run (URL analizi)\n\n# cURL ile başlıkları al (redirect izle):\ncurl -sI 'http://phishing-url.com/hesap-dogrula' --location | grep -E '(Location:|HTTP/)'\n\n# URL'deki gerçek domain'i bul:\npython3 -c \"from urllib.parse import urlparse; print(urlparse('http://sirket.com.evil-domain.ru/login').netloc)\"",
+              "description": "Phishing URL'yi tıklamadan sandbox'ta analiz et"
+            },
+            {
+              "command": "# E-posta ekini analiz et:\n# EML dosyasından ekleri çıkar:\npython3 -c \"\nimport email\nwith open('supheli.eml', 'r') as f:\n    msg = email.message_from_file(f)\nfor part in msg.walk():\n    if part.get_content_disposition() == 'attachment':\n        filename = part.get_filename()\n        with open(f'ek_{filename}', 'wb') as f:\n            f.write(part.get_payload(decode=True))\n        print(f'Ek çıkarıldı: {filename}')\n\"\n\n# Hash'i VirusTotal'da sorgula:\nsha256sum ek_dosyasi.exe",
+              "description": "E-posta ekini çıkar ve VirusTotal'da sorgula"
+            },
+            {
+              "command": "# Phishing alan adı tespiti — typosquatting:\n# dnstwist ile benzer domainleri listele:\npip install dnstwist\ndnstwist --registered sirket.com\n\n# Çıktı: sirket-com.net, siirket.com, sirket.com.phishing.ru gibi domainleri gösterir\n# Bunları izlemeye al → yeni kayıt varsa alarm üret",
+              "description": "Typosquatting — şirkete benzeyen phishing domainleri tespit et",
+              "tip": "dnstwist ile ayda 1 kez kendi domain'inizi tarayın, şüpheli sonuçları DMARC raporlarıyla çapraz kontrol edin"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "email-security-hardening",
+      "title": "E-posta Güvenlik Sertleştirmesi",
+      "description": "Kurumsal e-posta güvenliği için yapılandırma önerileri",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "E-posta Güvenlik Kontrol Listesi",
+          "content": "**E-posta Güvenlik Kontrol Listesi:**\n\n✅ **Zorunlu:**\n- SPF kaydı yapılandırıldı ve `-all` ile bitiyor\n- DKIM imzalama aktif\n- DMARC `p=reject` veya `p=quarantine` politikası\n- MFA tüm e-posta hesaplarında aktif\n- Şüpheli e-posta URL'leri sandbox'ta analiz ediliyor (URL detonation)\n\n✅ **Önerilen:**\n- Exchange/Google Workspace'te anti-phishing politikası\n- Harici göndericiler için uyarı banner'ı (\"Bu e-posta organizasyon dışından geldi\")\n- E-posta içeriği DLP (veri kaybı önleme) ile taranıyor\n- DMARC rapor analizi otomatikleştirildi\n- Çalışanlara düzenli phishing simülasyonu\n\n✅ **İleri Seviye:**\n- BIMI (Brand Indicators for Message Identification) — logoyu e-postada göster\n- S/MIME veya PGP ile e-posta şifreleme ve imzalama\n- Zero Trust e-posta gateway\n- AI tabanlı phishing tespiti (Proofpoint, Mimecast)"
+        }
+      ]
+    }
+  ]
+}

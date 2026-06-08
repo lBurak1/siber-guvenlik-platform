@@ -105,11 +105,38 @@ export const navigation = {
         ],
       },
       {
-        id: "log-analysis",
-        title: "Log Analizi",
+        id: "log-siem",
+        title: "Log & SIEM",
         icon: "FileText",
         tools: [
-          { id: "log-analysis", title: "Log Analizi", slug: "log-analysis" },
+          { id: "log-analysis",      title: "Log Analizi",  slug: "log-analysis" },
+          { id: "siem",              title: "SIEM",         slug: "siem" },
+        ],
+      },
+      {
+        id: "endpoint",
+        title: "Endpoint & Tehdit",
+        icon: "Shield",
+        tools: [
+          { id: "endpoint-security", title: "Endpoint Güvenliği (EDR/XDR)", slug: "endpoint-security" },
+          { id: "sandbox",           title: "Sandbox & Zararlı Analiz",     slug: "sandbox" },
+        ],
+      },
+      {
+        id: "threat-intel",
+        title: "Tehdit İstihbaratı",
+        icon: "Search",
+        tools: [
+          { id: "cti", title: "CTI — Siber Tehdit İstihbaratı", slug: "cti" },
+        ],
+      },
+      {
+        id: "identity",
+        title: "Kimlik & Erişim",
+        icon: "Lock",
+        tools: [
+          { id: "pam",            title: "PAM — Yetkili Hesap Yönetimi", slug: "pam" },
+          { id: "email-security", title: "E-posta Güvenliği",            slug: "email-security" },
         ],
       },
     ],

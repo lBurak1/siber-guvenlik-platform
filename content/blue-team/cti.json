@@ -1,0 +1,116 @@
+{
+  "id": "cti",
+  "slug": "cti",
+  "title": "CTI — Siber Tehdit İstihbaratı",
+  "subtitle": "Tehdit Aktörleri, IOC/IOA ve TTP Analizi",
+  "description": "Tehdit istihbaratı toplama, analiz etme ve paylaşma. MITRE ATT&CK, MISP, VirusTotal, OSINT ve TTP temelli savunma.",
+  "team": "blue-team",
+  "category": "Tehdit İstihbaratı",
+  "phase": "Intelligence & Hunting",
+  "icon": "🔍",
+  "color": "#3b82f6",
+  "tags": ["cti", "mitre", "misp", "ioc", "ioa", "ttp", "threat hunting", "stix", "taxii"],
+  "modules": [
+    {
+      "id": "cti-fundamentals",
+      "title": "CTI Temelleri",
+      "description": "Siber tehdit istihbaratı nedir, türleri ve kullanım alanları",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Tehdit İstihbaratı Türleri",
+          "content": "**CTI (Cyber Threat Intelligence):** Gerçek dünya saldırılarına dair toplandı, analiz edilmiş, eyleme dönüştürülebilir bilgi.\n\n**CTI Türleri:**\n| Tür | Hedef Kitle | İçerik |\n|-----|-------------|--------|\n| Stratejik | C-Level, CISO | Genel tehdit trendi, sektör riski |\n| Operasyonel | SOC Manager | Aktif kampanyalar, saldırgan motivasyonu |\n| Taktik | Analist, SOC | TTP (Taktik, Teknik, Prosedür) |\n| Teknik | Mühendis, Analist | IOC: hash, IP, domain, imza |\n\n**Temel Kavramlar:**\n- **IOC (Indicator of Compromise):** Geçmişte saldırı olduğuna dair kanıt (hash, IP, domain)\n- **IOA (Indicator of Attack):** Aktif saldırı davranışı (şüpheli süreç, anormal API çağrısı)\n- **TTP:** Saldırganın kullandığı taktik, teknik ve prosedürler\n- **TTPs > IOCs:** IOC'ler değişir, TTP'ler değişmez — TTP bazlı savunma daha güçlü\n\n**Tehdit Aktörü Kategorileri:**\n- **APT (Advanced Persistent Threat):** Devlet destekli, uzun süreli, hedefli\n- **Cybercrime:** Finansal amaçlı (ransomware, BEC)\n- **Hacktivist:** İdeolojik amaçlı\n- **Insider Threat:** İçeriden tehdit\n- **Script Kiddie:** Araç kullanan, düşük beceri"
+        }
+      ]
+    },
+    {
+      "id": "mitre-attack",
+      "title": "MITRE ATT&CK Framework",
+      "description": "Saldırgan TTP'lerini MITRE ATT&CK ile haritalama",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "MITRE ATT&CK Matrix",
+          "content": "**MITRE ATT&CK:** Gerçek saldırılardan derlenen TTP veritabanı. 14 taktik, 200+ teknik.\n\n**14 Taktik (Atak Zinciri):**\n1. Reconnaissance — Keşif\n2. Resource Development — Kaynak hazırlığı\n3. Initial Access — İlk erişim\n4. Execution — Çalıştırma\n5. Persistence — Kalıcılık\n6. Privilege Escalation — Yetki yükseltme\n7. Defense Evasion — Savunmadan kaçınma\n8. Credential Access — Kimlik bilgisi çalma\n9. Discovery — Keşif (iç ağ)\n10. Lateral Movement — Yanal hareket\n11. Collection — Veri toplama\n12. Command and Control — C2 iletişimi\n13. Exfiltration — Veri sızdırma\n14. Impact — Etki (ransomware, silme)\n\n**Örnek Teknikler:**\n- T1566 — Phishing (Initial Access)\n- T1059.001 — PowerShell (Execution)\n- T1547.001 — Registry Run Keys (Persistence)\n- T1003.001 — LSASS Memory (Credential Access)\n- T1021.002 — SMB/Windows Admin Shares (Lateral Movement)\n- T1486 — Data Encrypted for Impact (ransomware)"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "MITRE ATT&CK API Kullanımı",
+          "commands": [
+            {
+              "command": "# MITRE ATT&CK verilerini Python ile sorgula:\npip install mitreattack-python\n\nfrom mitreattack.stix20 import MitreAttackData\nmitre = MitreAttackData(\"enterprise-attack.json\")\n\n# Bir grubu ara (örn: APT29, Lazarus):\ngroups = mitre.get_groups()\nfor group in groups:\n    if 'APT29' in group['name']:\n        print(group['description'][:500])",
+              "description": "MITRE ATT&CK Python kütüphanesiyle grup arama"
+            },
+            {
+              "command": "# Belirli bir tekniğin detaylarını al:\ntechnique = mitre.get_object_by_attack_id('T1566.001', 'technique')\nprint(f\"Teknik: {technique['name']}\")\nprint(f\"Açıklama: {technique['description'][:300]}\")\n\n# Bu tekniği kullanan gruplar:\ngroups = mitre.get_groups_using_technique(technique['id'])\nfor g in groups:\n    print(f\"Grup: {g['name']}\")",
+              "description": "MITRE teknik detayları ve kullanan tehdit aktörleri"
+            },
+            {
+              "command": "# ATT&CK Navigator ile savunma coverage haritası oluştur:\n# https://mitre-attack.github.io/attack-navigator/\n# JSON formatında layer yükle:\n\n# Örnek layer (SOC'un izlediği teknikler):\n{\n  \"name\": \"SOC Coverage\",\n  \"versions\": {\"attack\": \"14\", \"navigator\": \"4.9\"},\n  \"techniques\": [\n    {\"techniqueID\": \"T1566\", \"color\": \"#00ff00\", \"comment\": \"Email gateway ile kapsanıyor\"},\n    {\"techniqueID\": \"T1059.001\", \"color\": \"#ff0000\", \"comment\": \"Kör nokta — kapsanmıyor\"}\n  ]\n}",
+              "description": "MITRE ATT&CK Navigator ile görsel coverage haritası",
+              "tip": "Kırmızı = kapsanmıyor, Yeşil = kapsanıyor. Kırmızı alanlar savunma yatırım önceliğini gösterir"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "osint-cti",
+      "title": "OSINT — Açık Kaynak İstihbaratı",
+      "description": "Tehdit aktörleri ve IOC'ler için açık kaynak araçları",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "CTI OSINT Araçları",
+          "commands": [
+            {
+              "command": "# VirusTotal — Hash/IP/Domain sorgu:\n# IP sorgu:\ncurl 'https://www.virustotal.com/api/v3/ip_addresses/185.220.101.1' \\\n  -H 'x-apikey: API_KEY'\n\n# Domain sorgu:\ncurl 'https://www.virustotal.com/api/v3/domains/supheli-domain.ru' \\\n  -H 'x-apikey: API_KEY'\n\n# Dosya hash sorgu:\ncurl 'https://www.virustotal.com/api/v3/files/HASH' \\\n  -H 'x-apikey: API_KEY'",
+              "description": "VirusTotal API ile IP/domain/hash sorgulama"
+            },
+            {
+              "command": "# Shodan — İnternete açık cihaz keşfi:\npip install shodan\n\nshodan init API_KEY\n\n# IP hakkında bilgi al:\nshodan host 185.220.101.1\n\n# Sektöre göre arama:\nshodan search 'org:\"Hedef Şirket\" product:\"Apache httpd\"'\n\n# Ülkeye göre açık RDP:\nshodan search 'port:3389 country:TR'",
+              "description": "Shodan ile internet üzerindeki altyapı keşfi"
+            },
+            {
+              "command": "# TheHive + MISP entegrasyonu — Olay yönetimi:\n# MISP'ten IOC al ve TheHive'a gönder:\nfrom pymisp import PyMISP\nfrom thehive4py.api import TheHiveApi\nfrom thehive4py.models import Case, CaseObservable\n\nmisp = PyMISP('https://misp.sirket.local', 'MISP_KEY', False)\nthehive = TheHiveApi('https://thehive.sirket.local', 'THEHIVE_KEY')\n\n# MISP'ten son IOC'leri al:\nevents = misp.search_events(last='1d')\nfor event in events:\n    case = Case(title=event['Event']['info'], description='MISP IOC')\n    thehive.create_case(case)",
+              "description": "MISP IOC'lerini TheHive olay yönetim platformuna aktar"
+            },
+            {
+              "command": "# AbuseIPDB — Kötü niyetli IP veritabanı:\ncurl -G 'https://api.abuseipdb.com/api/v2/check' \\\n  --data-urlencode 'ipAddress=185.220.101.1' \\\n  -d 'maxAgeInDays=90' \\\n  -H 'Key: API_KEY' \\\n  -H 'Accept: application/json' | jq '.data | {ip: .ipAddress, score: .abuseConfidenceScore, reports: .totalReports}'",
+              "description": "AbuseIPDB ile IP güvenilirlik skoru sorgula"
+            },
+            {
+              "command": "# AlienVault OTX — Tehdit istihbaratı beslemesi:\npip install OTXv2\n\nfrom OTXv2 import OTXv2, IndicatorTypes\notx = OTXv2('API_KEY')\n\n# Domain hakkında pulse'lar:\nresult = otx.get_indicator_details_full(IndicatorTypes.DOMAIN, 'supheli.ru')\nfor pulse in result['general']['pulse_info']['pulses']:\n    print(f\"{pulse['name']} — {pulse['created']}\")",
+              "description": "AlienVault OTX ile domain tehdit istihbaratı"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stix-taxii",
+      "title": "STIX/TAXII — Standart Paylaşım",
+      "description": "Tehdit istihbaratını standart formatlarda paylaşma",
+      "difficulty": "advanced",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "STIX ve TAXII Nedir?",
+          "content": "**STIX (Structured Threat Information eXpression):**\n- Tehdit istihbaratını standart JSON formatında ifade etme\n- Nesneler: Threat Actor, Malware, Attack Pattern, Indicator, Campaign...\n- Bağlantılar: \"uses\", \"attributed-to\", \"indicates\"...\n\n**TAXII (Trusted Automated eXchange of Indicator Information):**\n- STIX verilerini HTTP üzerinden paylaşma protokolü\n- Collection tabanlı: her koleksiyon belirli bir konu\n- İki endpoint: Discovery ve Collection\n\n**Örnek STIX IOC:**\n```json\n{\n  \"type\": \"indicator\",\n  \"id\": \"indicator--...\",\n  \"name\": \"Malicious IP\",\n  \"pattern\": \"[ipv4-addr:value = '185.220.101.1']\",\n  \"valid_from\": \"2024-01-01T00:00:00Z\",\n  \"labels\": [\"malicious-activity\"]\n}\n```\n\n**Ücretsiz TAXII Kaynakları:**\n- MITRE ATT&CK TAXII: https://cti-taxii.mitre.org\n- AlienVault OTX: otx.alienvault.com\n- CIRCL.lu MISP: https://www.circl.lu/doc/misp/"
+        }
+      ]
+    }
+  ]
+}
