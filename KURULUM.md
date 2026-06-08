@@ -7,7 +7,8 @@
 ## 1. Bağımlılıkları Yükle
 
 ```bash
-cd "C:\Users\burak\Desktop\eğitimsitesi"
+git clone https://github.com/lBurak1/siber-guvenlik-platform.git
+cd siber-guvenlik-platform
 npm install
 ```
 
