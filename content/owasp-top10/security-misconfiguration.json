@@ -1,0 +1,104 @@
+{
+  "id": "security-misconfiguration",
+  "slug": "security-misconfiguration",
+  "title": "A05 — Security Misconfiguration",
+  "subtitle": "Güvenlik Yapılandırma Hataları",
+  "description": "Varsayılan şifreler, açık directory listing, debug modu, gereksiz servisler, bulut depolama hataları, hata mesajları.",
+  "icon": "⚙️",
+  "order": 5,
+  "tags": ["default credentials", "directory listing", "debug mode", "CORS", "S3 bucket", "exposed admin", "headers"],
+  "modules": [
+    {
+      "id": "misconfig-intro",
+      "title": "Güvenlik Yanlış Yapılandırma",
+      "description": "En yaygın yanlış yapılandırma türleri ve gerçek ihlal örnekleri",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Security Misconfiguration Türleri",
+          "content": "**Test edilen uygulamaların %90'ında en az bir misconfiguration bulunuyor.**\n\n**En Yaygın Hatalar:**\n| Hata | Sonuç |\n|------|-------|\n| Varsayılan şifre (admin/admin) | Kolayca ele geçirilir |\n| Directory listing açık | Tüm dosyalar görünür |\n| Debug/stack trace açık | Kaynak kodu, DB bilgisi sızdı |\n| Güvenlik header eksik | XSS, clickjacking mümkün |\n| XML External Entity aktif | XXE ile iç dosya okuma |\n| Cloud bucket public | Milyonlarca dosya açık |\n| Gereksiz port açık | Saldırı yüzeyi genişler |\n| CORS * izni | Herhangi bir site API'yi kullanabilir |\n\n**Gerçek Örnekler:**\n- **2020 Twitter:** Admin panel yetersiz yetki kontrolü → 130 hesap ele geçirildi\n- **2019 Capital One:** AWS S3 bucket misconfiguration → 106M müşteri verisi\n- **Her gün:** Shodan ile binlerce açık Elasticsearch, MongoDB, Redis bulunuyor"
+        }
+      ]
+    },
+    {
+      "id": "default-creds",
+      "title": "Varsayılan Kimlik Bilgileri",
+      "description": "Router, admin panel, framework'lerin varsayılan şifreleri",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Varsayılan Kimlik Bilgileri Tespiti",
+          "commands": [
+            {
+              "command": "# Yaygın varsayılan şifreler:\n# admin:admin, admin:password, root:root\n# admin:1234, administrator:admin\n\n# Cihaz/uygulama bazlı:\n# phpMyAdmin: root: (boş şifre)\n# Tomcat: tomcat:tomcat, admin:admin\n# Jenkins: admin:admin (eski)\n# Kibana/Elasticsearch: elastic:changeme\n# MongoDB: kimlik doğrulama yok (eski)\n# Redis: kimlik doğrulama yok\n\n# Default Credentials veritabanı:\n# https://www.cirt.net/passwords\n# https://github.com/ihebski/DefaultCreds-cheat-sheet\n\n# defaultcreds-cheat-sheet arama:\ncurl -s 'https://raw.githubusercontent.com/ihebski/DefaultCreds-cheat-sheet/main/DefaultCreds-Cheat-Sheet.csv' | grep -i 'tomcat'",
+              "description": "Cihaz ve uygulama bazlı varsayılan şifre kaynakları"
+            },
+            {
+              "command": "# Admin panellerini bul ve varsayılan şifre dene:\ngobuster dir -u https://hedef.com \\\n  -w /usr/share/seclists/Discovery/Web-Content/admin-panels.txt\n\n# Bulunanlar:\n# /admin, /wp-admin, /administrator, /phpmyadmin\n# /tomcat/manager, /jmx-console, /jenkins\n\n# Tomcat manager brute force:\nmsf> use auxiliary/scanner/http/tomcat_mgr_login\n# veya:\ncurl -u tomcat:tomcat http://hedef.com:8080/manager/html",
+              "description": "Admin panel keşfi ve varsayılan şifre denemesi"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "info-disclosure",
+      "title": "Bilgi İfşası — Debug, Headers, Hata Mesajları",
+      "description": "Stack trace, server bilgisi, kaynak kodu sızdıran hatalar",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Bilgi İfşası Tespiti",
+          "commands": [
+            {
+              "command": "# HTTP response header analizi:\ncurl -I https://hedef.com\n# Tehlikeli headerlar:\n# Server: Apache/2.4.49   → versiyon bilgisi → CVE arama!\n# X-Powered-By: PHP/7.2.1 → eski versiyon → zafiyetli!\n# X-AspNet-Version: 4.0   → .NET versiyonu\n\n# Güvenlik headerları eksik mi?\ncurl -I https://hedef.com | grep -iE '(x-frame|x-xss|content-security|hsts|x-content)'\n# Bunlar yoksa:\n# X-Frame-Options → clickjacking mümkün\n# Content-Security-Policy → XSS daha kolay\n# X-Content-Type-Options → MIME sniffing\n# Strict-Transport-Security → SSL stripping mümkün",
+              "description": "HTTP headerlardan versiyon bilgisi ve güvenlik header eksikliği tespiti"
+            },
+            {
+              "command": "# Debug endpoint tespiti:\n# .git klasörü açık mı? Kaynak kodu dump:\ngit-dumper https://hedef.com/.git ./dumped_repo\n# veya:\ncurl https://hedef.com/.git/config\n\n# Açık dosyalar:\ncurl https://hedef.com/.env         # API key, DB şifresi!\ncurl https://hedef.com/config.php\ncurl https://hedef.com/backup.zip\ncurl https://hedef.com/db.sql\ncurl https://hedef.com/phpinfo.php   # tüm PHP yapılandırması!\n\n# ffuf ile hassas dosya tarama:\nffuf -u https://hedef.com/FUZZ \\\n  -w /usr/share/seclists/Discovery/Web-Content/raft-medium-files.txt \\\n  -mc 200 -fs 0",
+              "description": ".git, .env, backup dosyaları ve phpinfo tespiti",
+              "tip": ".env dosyası açıksa genelde DB şifresi, API key, secret key hepsi ifşa olmuş"
+            },
+            {
+              "command": "# CORS misconfiguration testi:\n# Herhangi bir origin erişebiliyor mu?\ncurl -H 'Origin: https://evil.com' \\\n  -I 'https://hedef.com/api/user'\n# Yanıtta:\n# Access-Control-Allow-Origin: https://evil.com → ZAYIF\n# Access-Control-Allow-Credentials: true → ÇOK TEHLİKELİ\n# (cookie'li isteğe izin veriliyor + herhangi origin kabul)\n\n# Corsy ile otomatik CORS tarama:\ncorsy -i url_list.txt -t 10",
+              "description": "CORS misconfiguration tespiti"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud-misconfig",
+      "title": "Bulut Yapılandırma Hataları",
+      "description": "AWS S3, Azure Blob, GCP bucket açık erişim tespiti",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Bulut Depolama Güvenlik Testi",
+          "commands": [
+            {
+              "command": "# AWS S3 bucket açık mı?\n# URL tahmin et:\ncurl https://SIRKET_ADI.s3.amazonaws.com/\ncurl https://s3.amazonaws.com/SIRKET_ADI/\n\n# aws cli ile (ücretsiz hesap yeter):\naws s3 ls s3://hedef-bucket --no-sign-request\naws s3 cp s3://hedef-bucket/gizli.txt . --no-sign-request\n\n# S3Scanner ile:\ns3scanner scan --bucket-file buckets.txt\n\n# Bucket adı tahmin etme:\n# sirket.com → sirket, sirket-backup, sirket-prod, sirket-dev\n# sirket-assets, sirket-images, sirket-static",
+              "description": "AWS S3 bucket açık erişim tespiti"
+            },
+            {
+              "command": "# Shodan ile açık servisleri tara:\n# site:shodan.io ücretsiz kullanılabilir\n\n# Açık Elasticsearch:\ncurl http://HEDEF_IP:9200/_cat/indices\ncurl http://HEDEF_IP:9200/INDEX_NAME/_search?size=10\n\n# Açık MongoDB:\nmongo HEDEF_IP:27017\nshow dbs;\nuse mydb;\ndb.users.find().limit(10);\n\n# Açık Redis:\nredis-cli -h HEDEF_IP\nKEYS *\nGET sensitive_key",
+              "description": "Kimlik doğrulamasız açık veritabanları — Elasticsearch, MongoDB, Redis"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

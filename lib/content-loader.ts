@@ -62,6 +62,20 @@ const windowsMap: Record<string, () => Promise<any>> = {
   "networking-win":      () => import("@/content/windows-fundamentals/networking-win.json"),
 };
 
+// ─── OWASP Top 10 ────────────────────────────────────────────────────
+const owaspMap: Record<string, () => Promise<any>> = {
+  "broken-access-control":    () => import("@/content/owasp-top10/broken-access-control.json"),
+  "cryptographic-failures":   () => import("@/content/owasp-top10/cryptographic-failures.json"),
+  "injection":                () => import("@/content/owasp-top10/injection.json"),
+  "insecure-design":          () => import("@/content/owasp-top10/insecure-design.json"),
+  "security-misconfiguration":() => import("@/content/owasp-top10/security-misconfiguration.json"),
+  "vulnerable-components":    () => import("@/content/owasp-top10/vulnerable-components.json"),
+  "auth-failures":            () => import("@/content/owasp-top10/auth-failures.json"),
+  "integrity-failures":       () => import("@/content/owasp-top10/integrity-failures.json"),
+  "logging-failures":         () => import("@/content/owasp-top10/logging-failures.json"),
+  "ssrf":                     () => import("@/content/owasp-top10/ssrf.json"),
+};
+
 // ─── Cheat Sheet ─────────────────────────────────────────────────────
 const cheatsheetMap: Record<string, () => Promise<any>> = {
   "ssh":    () => import("@/content/cheatsheet/port-22-ssh.json"),
@@ -106,6 +120,10 @@ export async function getLinuxTopic(slug: string): Promise<NetworkTopic | null> 
 
 export async function getWindowsTopic(slug: string): Promise<NetworkTopic | null> {
   return load<NetworkTopic>(windowsMap, slug);
+}
+
+export async function getOwaspTopic(slug: string): Promise<NetworkTopic | null> {
+  return load<NetworkTopic>(owaspMap, slug);
 }
 
 export async function getCheatSheet(slug: string): Promise<PortCheatSheet | null> {

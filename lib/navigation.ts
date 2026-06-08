@@ -261,6 +261,51 @@ export const navigation = {
       },
     ],
   },
+  "owasp-top10": {
+    label: "OWASP Top 10",
+    color: "amber",
+    description: "Web uygulama güvenliğinin 10 kritik riski",
+    categories: [
+      {
+        id: "critical",
+        title: "En Kritik Riskler",
+        icon: "AlertTriangle",
+        tools: [
+          { id: "broken-access-control",   title: "A01 — Broken Access Control",   slug: "broken-access-control" },
+          { id: "cryptographic-failures",  title: "A02 — Cryptographic Failures",  slug: "cryptographic-failures" },
+          { id: "injection",               title: "A03 — Injection",               slug: "injection" },
+        ],
+      },
+      {
+        id: "design",
+        title: "Tasarım & Yapılandırma",
+        icon: "Settings",
+        tools: [
+          { id: "insecure-design",          title: "A04 — Insecure Design",          slug: "insecure-design" },
+          { id: "security-misconfiguration",title: "A05 — Security Misconfiguration",slug: "security-misconfiguration" },
+          { id: "vulnerable-components",    title: "A06 — Vulnerable Components",    slug: "vulnerable-components" },
+        ],
+      },
+      {
+        id: "auth-integrity",
+        title: "Auth & Bütünlük",
+        icon: "Lock",
+        tools: [
+          { id: "auth-failures",     title: "A07 — Auth Failures",     slug: "auth-failures" },
+          { id: "integrity-failures",title: "A08 — Integrity Failures", slug: "integrity-failures" },
+        ],
+      },
+      {
+        id: "monitoring-ssrf",
+        title: "İzleme & SSRF",
+        icon: "Radio",
+        tools: [
+          { id: "logging-failures", title: "A09 — Logging Failures", slug: "logging-failures" },
+          { id: "ssrf",             title: "A10 — SSRF",             slug: "ssrf" },
+        ],
+      },
+    ],
+  },
 } as const;
 
 // Cheat Sheet port listesi (sidebar için)

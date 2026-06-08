@@ -1,0 +1,75 @@
+{
+  "id": "logging-failures",
+  "slug": "logging-failures",
+  "title": "A09 — Security Logging & Monitoring Failures",
+  "subtitle": "Güvenlik Günlüğü ve İzleme Eksiklikleri",
+  "description": "Yetersiz log kaydı, alarm yokluğu, saldırının fark edilmemesi, log injection ve log forging teknikleri.",
+  "icon": "📋",
+  "order": 9,
+  "tags": ["log injection", "log forging", "SIEM", "monitoring", "incident detection", "audit trail"],
+  "modules": [
+    {
+      "id": "logging-intro",
+      "title": "Neden Log ve İzleme Kritik?",
+      "description": "Saldırıları fark etmek için ne kaydedilmeli?",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Log Zafiyetlerinin Sonuçları",
+          "content": "**Ortalama saldırı tespit süresi: 197 gün** (IBM Cost of Data Breach 2023)\n\n**Yeterli log olmadığında:**\n- Saldırı başladığında fark edilmiyor\n- Hangi verinin çalındığı bilinmiyor\n- Forensic analiz yapılamıyor\n- Yasal yükümlülükler (KVKK, GDPR) ihlal ediliyor\n\n**Ne Log Edilmeli:**\n✅ Tüm başarısız ve başarılı kimlik doğrulama\n✅ Yetki yükseltme girişimleri\n✅ Input validation başarısızlıkları (potansiyel saldırı)\n✅ Önemli iş işlemleri (para transferi, şifre değişikliği)\n✅ Güvenlik olayları (brute force, SQLI girişimi)\n\n**Ne Log Edilmemeli (!):**\n❌ Şifreler, token'lar, kart numaraları (log'da hassas veri)\n❌ PII (kişisel kimlik bilgisi) — KVKK/GDPR\n\n**Tespit Edilmesi Zor Saldırılar (Log yoksa):**\n- Yavaş brute force (saatte 1 deneme)\n- IDOR — kullanıcı başkasının verisini okursa\n- Insider threat"
+        }
+      ]
+    },
+    {
+      "id": "log-injection",
+      "title": "Log Injection & Forging",
+      "description": "Log dosyalarını manipüle etme ve sahte log oluşturma",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Log Injection Saldırıları",
+          "commands": [
+            {
+              "command": "# Log injection — yeni log satırı enjekte et:\n# Uygulama: logger.info(\"User login: \" + username)\n# Saldırı:\nkullanıcı adı: admin\\n[2024-01-01 00:00:00] INFO: Admin password changed successfully\n\n# URL encoded:\n# ?username=admin%0a%5b2024-01-01+00%3a00%3a00%5d+INFO%3a+Admin+password+changed\n\n# Sonuç log dosyası:\n# [2024-01-01 12:00:00] INFO: User login: admin\n# [2024-01-01 00:00:00] INFO: Admin password changed successfully  ← SAHTE!\n\n# Bu şekilde:\n# - Saldırı izleri silinebilir\n# - Sahte admin aktivitesi oluşturulabilir\n# - Forensic analizi yanıltılabilir",
+              "description": "Log injection — yeni satır karakteriyle sahte log satırı enjekte etme"
+            },
+            {
+              "command": "# Log'dan hassas veri çalma (log forging):\n# Güvensiz log: JWT token log'a yazılıyor\n# logger.debug(f\"Request headers: {request.headers}\")\n\n# Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...\n# Log'a yazıldı → log erişimi olan herkes token'ı görebilir!\n\n# Test: Uygulamanın neyi log'a yazdığını kontrol et:\n# 1. Burp ile özel başlık gönder:\n# X-Log-Test: UNIQUE_STRING_12345\n# 2. Log dosyasında ara:\ngrep 'UNIQUE_STRING_12345' /var/log/app/*.log\n# Görünüyorsa → hassas header'lar da log'da!",
+              "description": "Log dosyasında hassas veri tespiti"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "proper-logging",
+      "title": "Doğru Log Stratejisi",
+      "description": "Güvenli ve etkili log yapılandırması",
+      "difficulty": "intermediate",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Güvenli Log Yapılandırması",
+          "commands": [
+            {
+              "command": "# Python — Güvenli log (hassas veri maskeleme):\nimport logging\nimport re\n\nclass SensitiveDataFilter(logging.Filter):\n    def filter(self, record):\n        # Şifre ve token maskeleme:\n        record.msg = re.sub(\n            r'(password|token|secret|key)=[^&\\s]+',\n            r'\\1=***MASKED***',\n            str(record.msg), flags=re.IGNORECASE\n        )\n        return True\n\nlogger = logging.getLogger(__name__)\nlogger.addFilter(SensitiveDataFilter())\n\n# Güvenlik olayı loglama:\nlogger.warning(f'AUTH_FAILURE: user={username} ip={request.remote_addr} ua={request.headers.get(\"User-Agent\")}')",
+              "description": "Hassas veri maskeleme ve güvenlik olayı loglama"
+            },
+            {
+              "command": "# Log bütünlüğü — değiştirilmeyi tespit et:\n# Log dosyasına immutable flag:\nchattr +a /var/log/app/security.log  # Append-only\n\n# Log'ları merkezi sunucuya gönder (SIEM):\n# rsyslog + TLS:\n*.* @@SIEM_IP:514  # TCP\n\n# Logrotate — logları sıkıştır, arşivle:\n/var/log/app/*.log {\n    daily\n    rotate 90     # 90 gün sakla\n    compress\n    missingok\n    notifempty\n    postrotate\n        systemctl reload rsyslog\n    endscript\n}",
+              "description": "Log bütünlüğü koruma ve merkezi log yönetimi"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

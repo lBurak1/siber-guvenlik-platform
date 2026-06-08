@@ -78,6 +78,18 @@ export const teamConfig = {
     gradient: "from-sky-900/20 to-transparent",
     description: "Windows Temelden İleriye — CMD, PowerShell, Sistem Yönetimi",
   },
+  "owasp-top10": {
+    label: "OWASP Top 10",
+    shortLabel: "OWASP",
+    color: "#f59e0b",
+    bgClass: "bg-amber-500/10",
+    borderClass: "border-amber-500/30",
+    textClass: "text-amber-400",
+    glowClass: "shadow-[0_0_20px_rgba(245,158,11,0.3)]",
+    badgeClass: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+    gradient: "from-amber-900/20 to-transparent",
+    description: "OWASP Top 10 — Web Uygulama Güvenliğinin En Kritik Zafiyetleri",
+  },
 } as const;
 
 export const riskConfig = {

