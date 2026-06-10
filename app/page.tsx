@@ -192,6 +192,22 @@ const accentMap: Record<string, { bar: string; text: string }> = {
   yellow:  { bar: "from-yellow-500/0 via-yellow-400 to-yellow-500/0",   text: "text-yellow-300" },
 };
 
+// Akan şerit içerikleri (telifsiz — komut/araç/kavram isimleri)
+const marqueeA = [
+  "nmap -sV", "git commit", "docker run", "chmod +x", "Wireshark", "MITRE ATT&CK",
+  "Zero Trust", "OSCP", "Burp Suite", "SIEM", "Kerberoasting", "SQL Injection",
+  "ip addr", "grep -r", "Metasploit", "EDR / XDR",
+];
+const marqueeB = [
+  "ss -tuln", "Hashcat", "BloodHound", "Splunk", "Defense in Depth", "NIST CSF",
+  "ISO 27001", "KVKK", "Phishing", "Active Directory", "PAM", "CTI",
+  "Cyber Kill Chain", "sudo -l", "tcpdump", "Zero Day",
+];
+const marqueeDot = [
+  "bg-emerald-400", "bg-red-400", "bg-blue-400", "bg-amber-400",
+  "bg-teal-400", "bg-purple-400", "bg-pink-400", "bg-sky-400",
+];
+
 export default function HomePage() {
   return (
     <div className="min-h-screen">
@@ -245,6 +261,30 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Akan şerit (marquee) */}
+      <section className="border-b border-surface-3 py-5 overflow-hidden relative bg-surface-1/30">
+        <style>{`
+          @keyframes marqueeLeft { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+          @keyframes marqueeRight { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+          .mq-track { display: flex; gap: 0.75rem; width: max-content; will-change: transform; }
+          .mq-left  { animation: marqueeLeft 45s linear infinite; }
+          .mq-right { animation: marqueeRight 50s linear infinite; }
+          .mq-wrap:hover .mq-track { animation-play-state: paused; }
+        `}</style>
+        <div className="mq-wrap flex flex-col gap-3" style={{ maskImage: "linear-gradient(to right, transparent, black 8%, black 92%, transparent)", WebkitMaskImage: "linear-gradient(to right, transparent, black 8%, black 92%, transparent)" }}>
+          {[marqueeA, marqueeB].map((row, ri) => (
+            <div key={ri} className={`mq-track ${ri === 0 ? "mq-left" : "mq-right"}`}>
+              {[...row, ...row].map((item, i) => (
+                <span key={i} className="flex items-center gap-2 shrink-0 text-xs font-mono text-terminal-comment bg-surface-2/60 border border-surface-3 rounded-full px-3 py-1.5">
+                  <span className={`w-1.5 h-1.5 rounded-full ${marqueeDot[i % marqueeDot.length]}`} />
+                  {item}
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Section cards */}
       <section className="max-w-7xl mx-auto px-4 py-16">
         <div className="text-center mb-10">
@@ -253,33 +293,76 @@ export default function HomePage() {
           </h2>
           <p className="text-2xl font-bold text-terminal-white">Temelden İleri Seviyeye, Adım Adım</p>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr gap-5">
           {sections.map((s, idx) => {
             const Icon = s.icon;
             const ac = accentMap[s.color] ?? accentMap.emerald;
+            const featured = idx === 0;
+
+            if (featured) {
+              return (
+                <Link key={s.id} href={s.href} className="group block sm:col-span-2 lg:col-span-2">
+                  <div className={`relative rounded-2xl border bg-surface-1 h-full overflow-hidden transition-all duration-300 hover:-translate-y-1 ${s.border} ${s.glow}`}>
+                    <div className={`h-1 w-full bg-gradient-to-r ${ac.bar}`} />
+                    <Icon className={`absolute -right-8 -bottom-8 w-44 h-44 ${ac.text} opacity-[0.05] group-hover:opacity-[0.09] transition-opacity pointer-events-none`} />
+
+                    <div className="p-7 flex flex-col sm:flex-row gap-6 relative h-full">
+                      {/* Sol */}
+                      <div className="sm:w-1/2 flex flex-col">
+                        <div className="flex items-center justify-between mb-4">
+                          <span className={`text-[11px] font-mono ${ac.text} opacity-50`}>01</span>
+                          {'recommended' in s && s.recommended && (
+                            <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full animate-pulse">
+                              ÖNCE BAŞLA
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className={`p-3.5 rounded-xl border ${s.badge} group-hover:scale-110 transition-transform`}>
+                            <Icon className="w-7 h-7" />
+                          </div>
+                          <div>
+                            <div className="text-[11px] font-mono text-terminal-comment uppercase tracking-wide">{s.subtitle}</div>
+                            <h3 className="text-2xl font-bold text-terminal-white leading-tight">{s.label}</h3>
+                          </div>
+                        </div>
+                        <div className="mt-auto flex items-center justify-between pt-4">
+                          <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full border ${s.badge}`}>{s.modules}</span>
+                          <div className={`flex items-center gap-1.5 text-sm font-semibold ${ac.text}`}>
+                            Başla <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                          </div>
+                        </div>
+                      </div>
+                      {/* Sağ */}
+                      <div className="sm:w-1/2 sm:border-l sm:border-surface-3/60 sm:pl-6 flex flex-col justify-center">
+                        <p className="text-sm text-terminal-white/70 leading-relaxed mb-4">{s.description}</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {s.tools.map((t) => (
+                            <span key={t} className="text-[11px] px-2 py-0.5 rounded font-mono bg-surface-2 border border-surface-3 text-terminal-comment">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            }
+
             return (
               <Link key={s.id} href={s.href} className="group block">
                 <div className={`relative rounded-2xl border bg-surface-1 h-full flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 ${s.border} ${s.glow}`}>
-                  {/* Üst renkli aksan çizgisi */}
                   <div className={`h-1 w-full bg-gradient-to-r ${ac.bar}`} />
-
-                  {/* Arka plan soluk dev ikon */}
                   <Icon className={`absolute -right-5 -top-3 w-28 h-28 ${ac.text} opacity-[0.04] group-hover:opacity-[0.08] transition-opacity pointer-events-none`} />
 
                   <div className="p-6 flex flex-col flex-1 relative">
-                    {/* Numara + öneri rozeti */}
                     <div className="flex items-center justify-between mb-4">
                       <span className={`text-[11px] font-mono ${ac.text} opacity-50`}>
                         {String(idx + 1).padStart(2, "0")}
                       </span>
-                      {'recommended' in s && s.recommended && (
-                        <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full animate-pulse">
-                          ÖNCE BAŞLA
-                        </span>
-                      )}
                     </div>
 
-                    {/* İkon + başlık */}
                     <div className="flex items-center gap-3 mb-4">
                       <div className={`p-3 rounded-xl border ${s.badge} group-hover:scale-110 transition-transform`}>
                         <Icon className="w-6 h-6" />
