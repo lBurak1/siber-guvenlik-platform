@@ -30,6 +30,20 @@ const topics = [
     desc: "ARP, DNS, DHCP, HTTP/S, FTP, SMB — güvenlik açısından nasıl çalışırlar?",
     level: "Orta",
   },
+  {
+    slug: "routing-switching",
+    icon: "🔀",
+    title: "Routing & Switching",
+    desc: "Yönlendirme tabloları, statik/dinamik routing, switch, VLAN ve trunk mantığı",
+    level: "Orta–İleri",
+  },
+  {
+    slug: "network-security",
+    icon: "🛡️",
+    title: "Ağ Güvenlik Cihazları",
+    desc: "Firewall, NAT, VPN, IDS/IPS, proxy, DMZ ve ağ segmentasyonu",
+    level: "Orta–İleri",
+  },
 ];
 
 export default function NetworkFundamentalsPage() {
@@ -43,7 +57,7 @@ export default function NetworkFundamentalsPage() {
         Siber güvenliğin omurgası. Pentest yapabilmek için ağları içselleştirmen gerekir.
       </p>
       <div className="ml-10 mb-8 text-xs font-mono text-terminal-comment bg-surface-1 border border-emerald-500/20 rounded-lg px-3 py-2 inline-block">
-        <span className="text-emerald-400">önerilen sıra →</span> OSI/TCP-IP → TCP Handshake → IP/Subnetting → Protokoller
+        <span className="text-emerald-400">önerilen sıra →</span> OSI/TCP-IP → TCP Handshake → IP/Subnetting → Protokoller → Routing & Switching → Ağ Güvenliği
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">

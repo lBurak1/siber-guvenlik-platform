@@ -29,6 +29,15 @@ export const navigation = {
           { id: "protocols-deep", title: "ARP, DNS, DHCP, HTTP/S, SMB", slug: "protocols-deep" },
         ],
       },
+      {
+        id: "advanced-net",
+        title: "İleri Seviye",
+        icon: "Router",
+        tools: [
+          { id: "routing-switching", title: "Routing & Switching", slug: "routing-switching" },
+          { id: "network-security",  title: "Ağ Güvenlik Cihazları", slug: "network-security" },
+        ],
+      },
     ],
   },
   "red-team": {

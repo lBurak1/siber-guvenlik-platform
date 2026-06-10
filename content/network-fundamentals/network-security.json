@@ -1,0 +1,76 @@
+{
+  "id": "network-security",
+  "slug": "network-security",
+  "title": "Ağ Güvenlik Cihazları",
+  "subtitle": "Firewall, NAT, VPN, IDS/IPS",
+  "description": "Ağı koruyan cihaz ve teknolojiler: güvenlik duvarı, NAT, VPN, IDS/IPS, proxy ve ağ segmentasyonu — savunmanın ilk hattı.",
+  "icon": "🛡️",
+  "order": 6,
+  "tags": ["firewall", "nat", "vpn", "ids", "ips", "proxy", "dmz", "segmentasyon"],
+  "modules": [
+    {
+      "id": "firewall-nat",
+      "title": "Firewall ve NAT",
+      "description": "Güvenlik duvarı türleri ve adres çevirimi",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Firewall ve NAT Mantığı",
+          "content": "**Firewall (Güvenlik Duvarı):** Ağ trafiğini kurallara göre denetleyen, izin veren veya engelleyen sistem. Savunmanın ilk hattı.\n\n**Firewall Nesilleri:**\n| Tür | Yetenek |\n|-----|--------|\n| Packet Filter | IP/port bazlı temel filtreleme |\n| Stateful | Bağlantı durumunu takip eder |\n| **NGFW** (Next-Gen) | Uygulama tanıma, IPS, kullanıcı bazlı, derin paket inceleme |\n| WAF | Web uygulamasına özel (Katman 7) |\n\n**NAT (Network Address Translation):** Özel IP adreslerini (192.168.x.x) tek bir genel IP'ye çevirir.\n- **Neden:** IPv4 adresleri kısıtlı; bir genel IP arkasında yüzlerce cihaz\n- **Güvenlik yan etkisi:** İç ağ dışarıdan doğrudan görünmez (gizlenme)\n- **Port Forwarding:** Dışarıdan içerideki bir servise erişim açma\n\n**Temel Kural Mantığı:**\n```\n1. Varsayılan: her şeyi reddet (default deny)\n2. Sadece gerekli trafiğe izin ver (allowlist)\n3. Kuralları yukarıdan aşağı değerlendir\n4. Logla\n```\n\n> 'Default deny' prensibi, **en az yetki** ilkesinin ağ katmanındaki karşılığıdır."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Linux Firewall Komutları",
+          "commands": [
+            {
+              "command": "sudo ufw status verbose",
+              "description": "UFW (basit firewall) durumunu ve kurallarını gösterir",
+              "output": "Status: active\nDefault: deny (incoming), allow (outgoing)\n22/tcp   ALLOW   Anywhere",
+              "tip": "UFW yeni başlayanlar için iptables'ın kolay arayüzüdür."
+            },
+            {
+              "command": "sudo ufw allow 22/tcp",
+              "description": "SSH (port 22) için gelen bağlantılara izin verir",
+              "tip": "Sonraki adım: sudo ufw enable ile firewall'ı aktif et. Önce SSH'a izin ver, yoksa uzak bağlantın kopar!"
+            },
+            {
+              "command": "sudo iptables -L -n -v",
+              "description": "Tüm iptables kurallarını detaylı listeler",
+              "tip": "iptables daha güçlü ama karmaşıktır. Modern sistemlerde nftables'a geçiş var."
+            },
+            {
+              "command": "sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT",
+              "description": "80 portuna (HTTP) gelen TCP trafiğine izin kuralı ekler",
+              "warning": "Kural sırası önemli. Yanlış kural seni sistemden kilitleyebilir."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vpn-ids",
+      "title": "VPN, IDS/IPS ve Proxy",
+      "description": "Şifreli tünel, saldırı tespiti ve ara sunucular",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "VPN, IDS/IPS, Proxy",
+          "content": "**VPN (Virtual Private Network):** İki nokta arasında şifreli tünel kurar. Güvenli olmayan ağ (internet) üzerinden güvenli iletişim.\n| Tür | Kullanım |\n|-----|----------|\n| **IPsec VPN** | Site-to-site (ofisler arası) |\n| **SSL/TLS VPN** | Uzaktan erişim (çalışan → ofis) |\n| **WireGuard** | Modern, hızlı, basit |\n\n**IDS vs IPS:**\n| | IDS | IPS |\n|--|-----|-----|\n| Görev | Tespit eder, **alarm** verir | Tespit eder, **engeller** |\n| Konum | Pasif (trafiği izler) | Aktif (trafik içinde) |\n| Örnek | Snort (IDS modu), Zeek | Snort/Suricata (IPS modu) |\n\n**Proxy:** İstemci ile sunucu arasındaki aracı.\n- **Forward Proxy:** İç kullanıcıların çıkışını kontrol eder (içerik filtreleme, log)\n- **Reverse Proxy:** Sunucuların önünde (yük dengeleme, WAF, gizleme) — örn. Nginx, HAProxy\n\n**DMZ (Demilitarized Zone):** İnternete açık servislerin (web, mail) konduğu, iç ağdan izole edilmiş ara bölge. İhlal olursa iç ağ korunur.\n\n**Ağ Segmentasyonu:** Ağı bölümlere ayırarak yanal hareketi (lateral movement) zorlaştırmak — modern savunmanın temeli."
+        },
+        {
+          "id": "defense",
+          "type": "defense",
+          "title": "Ağ Savunması Kontrol Listesi",
+          "content": "**Katmanlı ağ savunması (Defense in Depth):**\n\n- ✅ **Default deny** firewall politikası\n- ✅ İç ağı **VLAN/segment** ile böl (muhasebe ≠ sunucu ≠ misafir)\n- ✅ İnternete açık servisleri **DMZ**'ye koy\n- ✅ Uzaktan erişimi **VPN + MFA** ile koru\n- ✅ **IDS/IPS** ile trafiği izle (Suricata/Snort)\n- ✅ Kullanılmayan port ve servisleri **kapat**\n- ✅ Yönetim arayüzlerini (router/switch) ayrı yönetim VLAN'ında tut\n- ✅ Ağ cihazlarının **firmware**'ini güncel tut\n- ✅ Tüm ağ loglarını **SIEM**'e gönder\n\n> Hatırla: Tek bir firewall yeterli değil. Katman katman savun — bir katman düşse bile diğeri korur."
+        }
+      ]
+    }
+  ]
+}

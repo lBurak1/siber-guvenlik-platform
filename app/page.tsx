@@ -9,13 +9,13 @@ const sections = [
     label: "Ağ Temelleri",
     subtitle: "Önce Temeli Kur",
     description: "OSI & TCP/IP modelleri, TCP el sıkışması, IP adresleme/CIDR ve ARP, DNS, DHCP, HTTP/S, SMB protokollerinin güvenlik perspektifinden incelenmesi.",
-    tools: ["OSI Model", "TCP Handshake", "CIDR/Subnetting", "ARP", "DNS", "SMB"],
+    tools: ["OSI Model", "TCP Handshake", "CIDR/Subnetting", "Routing", "VLAN", "Firewall/VPN"],
     color: "emerald",
     border: "border-emerald-500/20 hover:border-emerald-500/60",
     glow: "hover:shadow-[0_0_40px_rgba(16,185,129,0.15)]",
     badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
     cta: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20",
-    modules: "4 Konu · 8 Modül",
+    modules: "6 Konu · 12 Modül",
     recommended: true,
   },
   {
@@ -192,6 +192,16 @@ const accentMap: Record<string, { bar: string; text: string }> = {
   yellow:  { bar: "from-yellow-500/0 via-yellow-400 to-yellow-500/0",   text: "text-yellow-300" },
 };
 
+// Ana sayfa kategorileri (kartları gruplar)
+const groups = [
+  { id: "foundation", title: "Temeller", subtitle: "Önce sağlam bir zemin kur — sistem, ağ ve araç hakimiyeti", accent: "emerald",
+    ids: ["network-fundamentals", "linux-fundamentals", "windows-fundamentals", "devops-fundamentals"] },
+  { id: "security", title: "Saldırı & Savunma", subtitle: "Kırmızı, mavi ve mor takım disiplinleri + web güvenliği", accent: "red",
+    ids: ["red-team", "blue-team", "purple-team", "owasp-top10"] },
+  { id: "career", title: "Kariyer & Referans", subtitle: "Sertifika yolu, sektör farkındalığı ve hızlı başvuru", accent: "indigo",
+    ids: ["certifications", "ecosystem", "cheatsheet"] },
+];
+
 // Akan şerit içerikleri (telifsiz — komut/araç/kavram isimleri)
 const marqueeA = [
   "nmap -sV", "git commit", "docker run", "chmod +x", "Wireshark", "MITRE ATT&CK",
@@ -285,115 +295,91 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Section cards */}
+      {/* Section cards — kategorilere ayrılmış */}
       <section className="max-w-7xl mx-auto px-4 py-16">
-        <div className="text-center mb-10">
+        <div className="text-center mb-12">
           <h2 className="text-xs font-mono text-terminal-comment uppercase tracking-widest mb-2">
             Öğrenme Yolu
           </h2>
           <p className="text-2xl font-bold text-terminal-white">Temelden İleri Seviyeye, Adım Adım</p>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr gap-5">
-          {sections.map((s, idx) => {
-            const Icon = s.icon;
-            const ac = accentMap[s.color] ?? accentMap.emerald;
-            const featured = idx === 0;
 
-            if (featured) {
-              return (
-                <Link key={s.id} href={s.href} className="group block sm:col-span-2 lg:col-span-2">
-                  <div className={`relative rounded-2xl border bg-surface-1 h-full overflow-hidden transition-all duration-300 hover:-translate-y-1 ${s.border} ${s.glow}`}>
-                    <div className={`h-1 w-full bg-gradient-to-r ${ac.bar}`} />
-                    <Icon className={`absolute -right-8 -bottom-8 w-44 h-44 ${ac.text} opacity-[0.05] group-hover:opacity-[0.09] transition-opacity pointer-events-none`} />
-
-                    <div className="p-7 flex flex-col sm:flex-row gap-6 relative h-full">
-                      {/* Sol */}
-                      <div className="sm:w-1/2 flex flex-col">
-                        <div className="flex items-center justify-between mb-4">
-                          <span className={`text-[11px] font-mono ${ac.text} opacity-50`}>01</span>
-                          {'recommended' in s && s.recommended && (
-                            <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full animate-pulse">
-                              ÖNCE BAŞLA
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className={`p-3.5 rounded-xl border ${s.badge} group-hover:scale-110 transition-transform`}>
-                            <Icon className="w-7 h-7" />
-                          </div>
-                          <div>
-                            <div className="text-[11px] font-mono text-terminal-comment uppercase tracking-wide">{s.subtitle}</div>
-                            <h3 className="text-2xl font-bold text-terminal-white leading-tight">{s.label}</h3>
-                          </div>
-                        </div>
-                        <div className="mt-auto flex items-center justify-between pt-4">
-                          <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full border ${s.badge}`}>{s.modules}</span>
-                          <div className={`flex items-center gap-1.5 text-sm font-semibold ${ac.text}`}>
-                            Başla <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                          </div>
-                        </div>
-                      </div>
-                      {/* Sağ */}
-                      <div className="sm:w-1/2 sm:border-l sm:border-surface-3/60 sm:pl-6 flex flex-col justify-center">
-                        <p className="text-sm text-terminal-white/70 leading-relaxed mb-4">{s.description}</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {s.tools.map((t) => (
-                            <span key={t} className="text-[11px] px-2 py-0.5 rounded font-mono bg-surface-2 border border-surface-3 text-terminal-comment">
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              );
-            }
+        <div className="space-y-14">
+          {groups.map((group) => {
+            const gac = accentMap[group.accent] ?? accentMap.emerald;
+            const groupSections = group.ids
+              .map((id) => sections.find((s) => s.id === id))
+              .filter((s): s is typeof sections[number] => Boolean(s));
 
             return (
-              <Link key={s.id} href={s.href} className="group block">
-                <div className={`relative rounded-2xl border bg-surface-1 h-full flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 ${s.border} ${s.glow}`}>
-                  <div className={`h-1 w-full bg-gradient-to-r ${ac.bar}`} />
-                  <Icon className={`absolute -right-5 -top-3 w-28 h-28 ${ac.text} opacity-[0.04] group-hover:opacity-[0.08] transition-opacity pointer-events-none`} />
-
-                  <div className="p-6 flex flex-col flex-1 relative">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className={`text-[11px] font-mono ${ac.text} opacity-50`}>
-                        {String(idx + 1).padStart(2, "0")}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className={`p-3 rounded-xl border ${s.badge} group-hover:scale-110 transition-transform`}>
-                        <Icon className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <div className="text-[11px] font-mono text-terminal-comment uppercase tracking-wide">{s.subtitle}</div>
-                        <h3 className="text-lg font-bold text-terminal-white leading-tight">{s.label}</h3>
-                      </div>
-                    </div>
-
-                    <p className="text-sm text-terminal-white/65 leading-relaxed flex-1 mb-4">
-                      {s.description}
-                    </p>
-
-                    <div className="flex flex-wrap gap-1.5 mb-5">
-                      {s.tools.slice(0, 5).map((t) => (
-                        <span key={t} className="text-[11px] px-2 py-0.5 rounded font-mono bg-surface-2 border border-surface-3 text-terminal-comment">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center justify-between pt-3 border-t border-surface-3/60">
-                      <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full border ${s.badge}`}>{s.modules}</span>
-                      <div className={`flex items-center gap-1.5 text-sm font-semibold ${ac.text}`}>
-                        Başla <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </div>
+              <div key={group.id}>
+                {/* Grup başlığı */}
+                <div className="flex items-center gap-3 mb-6">
+                  <div className={`h-9 w-1.5 rounded-full bg-gradient-to-b ${gac.bar.replace("to-r", "to-b")}`} />
+                  <div>
+                    <h3 className="text-xl font-bold text-terminal-white">{group.title}</h3>
+                    <p className="text-xs text-terminal-comment mt-0.5">{group.subtitle}</p>
                   </div>
                 </div>
-              </Link>
+
+                {/* Grup kartları */}
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr gap-5">
+                  {groupSections.map((s, i) => {
+                    const Icon = s.icon;
+                    const ac = accentMap[s.color] ?? accentMap.emerald;
+                    return (
+                      <Link key={s.id} href={s.href} className="group block">
+                        <div className={`relative rounded-2xl border bg-surface-1 h-full flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 ${s.border} ${s.glow}`}>
+                          <div className={`h-1 w-full bg-gradient-to-r ${ac.bar}`} />
+                          <Icon className={`absolute -right-5 -top-3 w-28 h-28 ${ac.text} opacity-[0.04] group-hover:opacity-[0.08] transition-opacity pointer-events-none`} />
+
+                          <div className="p-6 flex flex-col flex-1 relative">
+                            <div className="flex items-center justify-between mb-4">
+                              <span className={`text-[11px] font-mono ${ac.text} opacity-50`}>
+                                {String(i + 1).padStart(2, "0")}
+                              </span>
+                              {'recommended' in s && s.recommended && (
+                                <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full animate-pulse">
+                                  ÖNCE BAŞLA
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-3 mb-4">
+                              <div className={`p-3 rounded-xl border ${s.badge} group-hover:scale-110 transition-transform`}>
+                                <Icon className="w-6 h-6" />
+                              </div>
+                              <div>
+                                <div className="text-[11px] font-mono text-terminal-comment uppercase tracking-wide">{s.subtitle}</div>
+                                <h3 className="text-lg font-bold text-terminal-white leading-tight">{s.label}</h3>
+                              </div>
+                            </div>
+
+                            <p className="text-sm text-terminal-white/65 leading-relaxed flex-1 mb-4">
+                              {s.description}
+                            </p>
+
+                            <div className="flex flex-wrap gap-1.5 mb-5">
+                              {s.tools.slice(0, 5).map((t) => (
+                                <span key={t} className="text-[11px] px-2 py-0.5 rounded font-mono bg-surface-2 border border-surface-3 text-terminal-comment">
+                                  {t}
+                                </span>
+                              ))}
+                            </div>
+
+                            <div className="flex items-center justify-between pt-3 border-t border-surface-3/60">
+                              <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full border ${s.badge}`}>{s.modules}</span>
+                              <div className={`flex items-center gap-1.5 text-sm font-semibold ${ac.text}`}>
+                                Başla <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
         </div>

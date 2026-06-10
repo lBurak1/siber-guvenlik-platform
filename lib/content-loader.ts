@@ -38,6 +38,8 @@ const networkMap: Record<string, () => Promise<any>> = {
   "tcp-handshake":  () => import("@/content/network-fundamentals/tcp-handshake.json"),
   "ip-subnetting":  () => import("@/content/network-fundamentals/ip-subnetting.json"),
   "protocols-deep": () => import("@/content/network-fundamentals/protocols-deep.json"),
+  "routing-switching": () => import("@/content/network-fundamentals/routing-switching.json"),
+  "network-security":  () => import("@/content/network-fundamentals/network-security.json"),
 };
 
 // ─── Linux Fundamentals ───────────────────────────────────────────────

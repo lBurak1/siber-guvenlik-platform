@@ -1,0 +1,89 @@
+{
+  "id": "routing-switching",
+  "slug": "routing-switching",
+  "title": "Routing & Switching",
+  "subtitle": "Yönlendirme ve Anahtarlama",
+  "description": "Paketler ağda nasıl yol bulur? Yönlendirme (routing), anahtarlama (switching), VLAN ve yönlendirme tabloları — ağın çalışma mantığı.",
+  "icon": "🔀",
+  "order": 5,
+  "tags": ["routing", "switching", "vlan", "router", "switch", "gateway", " network"],
+  "modules": [
+    {
+      "id": "routing-basics",
+      "title": "Yönlendirme (Routing) Temelleri",
+      "description": "Router nedir, yönlendirme tablosu, statik vs dinamik routing",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Yönlendirme Mantığı",
+          "content": "**Router (Yönlendirici):** Farklı ağlar arasında paketleri ileten cihaz. Switch aynı ağ içinde, router ağlar arasında çalışır.\n\n**Yönlendirme Tablosu (Routing Table):** Router'ın 'hangi ağ için hangi yöne gideyim' kararını verdiği harita.\n\n**Statik vs Dinamik Routing:**\n| Tür | Açıklama | Kullanım |\n|-----|----------|----------|\n| **Statik** | Elle tanımlanır | Küçük, sabit ağlar |\n| **Dinamik** | Protokoller otomatik öğrenir | Büyük, değişken ağlar |\n\n**Dinamik Routing Protokolleri:**\n- **OSPF** — kurum içi (link-state)\n- **EIGRP** — Cisco (hibrit)\n- **BGP** — internetin omurgası (otonom sistemler arası)\n- **RIP** — eski, basit (distance-vector)\n\n**Temel Kavramlar:**\n- **Default Gateway:** Bilmediğin ağlara giderken kullanılan çıkış kapısı\n- **Hop:** Paketin geçtiği her router bir 'sıçrama'\n- **TTL:** Paketin yaşam süresi — her hop'ta 1 azalır, 0 olunca paket düşer\n- **Metric:** En iyi yolu seçmek için kullanılan maliyet değeri\n\n> Güvenlik açısından: `traceroute` ile hedefe giden yoldaki router'ları görebilir, ağ topolojisini haritalayabilirsin (recon)."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Yönlendirme Komutları",
+          "commands": [
+            {
+              "command": "ip route",
+              "description": "Linux'ta yönlendirme tablosunu gösterir",
+              "output": "default via 192.168.1.1 dev eth0\n192.168.1.0/24 dev eth0 proto kernel scope link src 192.168.1.50",
+              "tip": "'default via' satırı senin default gateway'in. Sonraki adım: gateway'e ping atarak erişimi test et."
+            },
+            {
+              "command": "route print",
+              "description": "Windows'ta yönlendirme tablosunu gösterir (CMD)",
+              "tip": "Linux karşılığı: ip route veya netstat -rn"
+            },
+            {
+              "command": "ip route add 10.0.0.0/24 via 192.168.1.254",
+              "description": "Statik rota ekler — 10.0.0.0/24 ağına 192.168.1.254 üzerinden git",
+              "warning": "Yönlendirme değişiklikleri ağ erişimini kesebilir. Üretim sistemlerinde dikkatli ol."
+            },
+            {
+              "command": "traceroute google.com",
+              "description": "Hedefe giden yoldaki tüm router'ları (hop) listeler",
+              "output": "1  192.168.1.1   1.2 ms\n2  10.0.0.1      8.5 ms\n3  ...",
+              "tip": "Windows'ta: tracert google.com. Ağ topolojisi keşfi ve sorun gidermede kritik."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "switching-vlan",
+      "title": "Anahtarlama (Switching) ve VLAN",
+      "description": "Switch nasıl çalışır, MAC tablosu, VLAN ve trunk",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Switching ve VLAN",
+          "content": "**Switch (Anahtar):** Aynı yerel ağdaki (LAN) cihazları birbirine bağlar. MAC adreslerine göre çalışır (Katman 2).\n\n**MAC Adres Tablosu:** Switch, hangi portta hangi cihazın (MAC) olduğunu öğrenir ve trafiği sadece doğru porta gönderir.\n\n**VLAN (Virtual LAN):** Tek bir fiziksel switch'i mantıksal olarak ayrı ağlara böler.\n- Örnek: Muhasebe VLAN'ı, IT VLAN'ı, Misafir VLAN'ı — aynı switch'te ama izole\n- **Güvenlik:** VLAN segmentasyonu, bir bölüm ele geçirilse bile diğerlerine yayılmayı zorlaştırır\n\n**Trunk Port:** Birden fazla VLAN'ın trafiğini taşıyan port (switch'ler arası bağlantı). 802.1Q etiketleme kullanır.\n\n**Access Port:** Tek bir VLAN'a ait uç cihaz portu.\n\n**Saldırı farkındalığı (savunma için):**\n| Saldırı | Savunma |\n|---------|---------|\n| VLAN Hopping | Kullanılmayan portları kapat, native VLAN değiştir |\n| MAC Flooding (CAM overflow) | Port Security (port başına MAC limiti) |\n| ARP Spoofing | Dynamic ARP Inspection (DAI) |\n\n> VLAN segmentasyonu, **Zero Trust** ağ mimarisinin temel taşlarındandır."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Switching İnceleme Komutları",
+          "commands": [
+            {
+              "command": "ip neigh",
+              "description": "ARP/komşu tablosunu gösterir (yerel ağdaki MAC ↔ IP eşleşmeleri)",
+              "output": "192.168.1.1 dev eth0 lladdr aa:bb:cc:dd:ee:ff REACHABLE",
+              "tip": "Windows: arp -a. Aynı IP'nin farklı MAC'lerde görünmesi ARP spoofing belirtisi olabilir."
+            },
+            {
+              "command": "arp -a",
+              "description": "Windows'ta ARP tablosunu listeler",
+              "tip": "Yerel ağdaki cihazları keşfetmenin hızlı yolu."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
