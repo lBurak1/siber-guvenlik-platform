@@ -92,6 +92,15 @@ const certMap: Record<string, () => Promise<any>> = {
   "management-cloud": () => import("@/content/certifications/management-cloud.json"),
 };
 
+// ─── Sektör & Ekosistem ──────────────────────────────────────────────
+const ecosystemMap: Record<string, () => Promise<any>> = {
+  "products":          () => import("@/content/ecosystem/products.json"),
+  "companies-global":  () => import("@/content/ecosystem/companies-global.json"),
+  "companies-national":() => import("@/content/ecosystem/companies-national.json"),
+  "people":            () => import("@/content/ecosystem/people.json"),
+  "concepts":          () => import("@/content/ecosystem/concepts.json"),
+};
+
 // ─── Cheat Sheet ─────────────────────────────────────────────────────
 const cheatsheetMap: Record<string, () => Promise<any>> = {
   "ssh":    () => import("@/content/cheatsheet/port-22-ssh.json"),
@@ -148,6 +157,10 @@ export async function getDevopsTopic(slug: string): Promise<NetworkTopic | null>
 
 export async function getCertTopic(slug: string): Promise<NetworkTopic | null> {
   return load<NetworkTopic>(certMap, slug);
+}
+
+export async function getEcosystemTopic(slug: string): Promise<NetworkTopic | null> {
+  return load<NetworkTopic>(ecosystemMap, slug);
 }
 
 export async function getCheatSheet(slug: string): Promise<PortCheatSheet | null> {

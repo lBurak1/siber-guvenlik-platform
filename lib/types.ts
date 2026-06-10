@@ -1,4 +1,4 @@
-export type TeamType = "red-team" | "blue-team" | "purple-team" | "network-fundamentals" | "linux-fundamentals" | "windows-fundamentals" | "owasp-top10" | "devops-fundamentals" | "certifications";
+export type TeamType = "red-team" | "blue-team" | "purple-team" | "network-fundamentals" | "linux-fundamentals" | "windows-fundamentals" | "owasp-top10" | "devops-fundamentals" | "certifications" | "ecosystem";
 export type Difficulty = "beginner" | "intermediate" | "advanced";
 
 export interface CommandFlag {

@@ -114,6 +114,18 @@ export const teamConfig = {
     gradient: "from-indigo-900/20 to-transparent",
     description: "Sertifikalar — Security+, OSCP, CISSP ve kariyer yol haritası",
   },
+  "ecosystem": {
+    label: "Sektör & Ekosistem",
+    shortLabel: "SEKTÖR",
+    color: "#ec4899",
+    bgClass: "bg-pink-500/10",
+    borderClass: "border-pink-500/30",
+    textClass: "text-pink-400",
+    glowClass: "shadow-[0_0_20px_rgba(236,72,153,0.3)]",
+    badgeClass: "bg-pink-500/20 text-pink-300 border-pink-500/30",
+    gradient: "from-pink-900/20 to-transparent",
+    description: "Sektör & Ekosistem — Ürünler, şirketler, önemli kişiler ve kavramlar",
+  },
 } as const;
 
 export const riskConfig = {

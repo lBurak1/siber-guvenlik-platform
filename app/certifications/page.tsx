@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GraduationCap, ArrowRight } from "lucide-react";
+import { GraduationCap, ArrowRight, Sparkles } from "lucide-react";
 
 const topics = [
   { slug: "roadmap",          icon: "🗺️", title: "Yol Haritası & Seçim Rehberi", desc: "Sertifikalar neden önemli, kariyer yollarına göre hangisini seç, nasıl hazırlan", level: "Başlangıç", count: "3 modül" },
@@ -19,9 +19,27 @@ export default function CertificationsPage() {
       <p className="text-terminal-comment mb-2 ml-10">
         Siber güvenlik sertifika rehberi. Her sertifika için: kime uygun, sınav formatı, maliyet, neler bilinmeli ve kariyer değeri.
       </p>
-      <div className="ml-10 mb-8 text-xs font-mono text-terminal-comment bg-surface-1 border border-indigo-500/20 rounded-lg px-3 py-2 inline-block">
+      <div className="ml-10 mb-6 text-xs font-mono text-terminal-comment bg-surface-1 border border-indigo-500/20 rounded-lg px-3 py-2 inline-block">
         <span className="text-indigo-400">öneri →</span> Önce Yol Haritası'nı oku, sonra hedef kariyerine göre seviyeyi seç
       </div>
+
+      {/* Kariyer Testi CTA */}
+      <Link href="/certifications/test" className="group block mb-8">
+        <div className="rounded-xl border border-indigo-500/30 bg-gradient-to-br from-indigo-900/20 to-transparent p-5 hover:border-indigo-500/60 hover:shadow-[0_0_30px_rgba(99,102,241,0.12)] transition-all">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+                <Sparkles className="w-6 h-6 text-indigo-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-terminal-white group-hover:text-indigo-300 transition-colors">Hangi sertifika sana uygun? 🎯</h3>
+                <p className="text-xs text-terminal-comment mt-1">4 soruluk testi çöz, sana özel yol haritası ve tahmini hazırlık süresini öğren.</p>
+              </div>
+            </div>
+            <ArrowRight className="w-5 h-5 text-indigo-400 group-hover:translate-x-1 transition-all shrink-0" />
+          </div>
+        </div>
+      </Link>
 
       <div className="grid sm:grid-cols-2 gap-4">
         {topics.map((t, i) => (

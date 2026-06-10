@@ -20,6 +20,7 @@ const CATEGORIES = {
   "owasp-top10":          { label: "OWASP",        color: "amber",   kind: "modules" },
   "devops-fundamentals":  { label: "DevOps",       color: "teal",    kind: "modules" },
   "certifications":       { label: "Sertifikalar", color: "indigo",  kind: "modules" },
+  "ecosystem":            { label: "Sektör",       color: "pink",    kind: "modules" },
   "cheatsheet":           { label: "Cheat Sheet",  color: "yellow",  kind: "cheatsheet" },
 };
 

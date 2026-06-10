@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap } from "lucide-react";
+import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap, Globe } from "lucide-react";
 
 const sections = [
   {
@@ -124,6 +124,21 @@ const sections = [
     modules: "5 Kategori · 15+ Sertifika",
   },
   {
+    id: "ecosystem",
+    href: "/ecosystem",
+    icon: Globe,
+    label: "Sektör & Ekosistem",
+    subtitle: "Ürünler, Şirketler, Kişiler",
+    description: "Bir siber güvenlikçinin tanıması gereken ürünler (SIEM, EDR, firewall), uluslararası ve ulusal şirketler, önemli kişiler ve temel kavramlar/standartlar — teknik bilginin ötesinde sektör farkındalığı.",
+    tools: ["CrowdStrike", "Palo Alto", "Picus", "SOCRadar", "Schneier", "Zero Trust", "NIST"],
+    color: "pink",
+    border: "border-pink-500/20 hover:border-pink-500/60",
+    glow: "hover:shadow-[0_0_40px_rgba(236,72,153,0.15)]",
+    badge: "bg-pink-500/10 text-pink-400 border-pink-500/20",
+    cta: "bg-pink-500/10 text-pink-300 border-pink-500/30 hover:bg-pink-500/20",
+    modules: "5 Konu · Ulusal + Küresel",
+  },
+  {
     id: "cheatsheet",
     href: "/cheatsheet",
     icon: Zap,
@@ -156,8 +171,8 @@ const sections = [
 ] as const;
 
 const stats = [
-  { label: "Araç & Konu", value: "52+", icon: Terminal },
-  { label: "Modül",       value: "150+", icon: Cpu },
+  { label: "Araç & Konu", value: "57+", icon: Terminal },
+  { label: "Modül",       value: "165+", icon: Cpu },
   { label: "Sertifika",   value: "15+", icon: GraduationCap },
   { label: "Etik",        value: "100%", icon: Lock },
 ];

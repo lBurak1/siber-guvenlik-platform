@@ -1,0 +1,72 @@
+{
+  "id": "concepts",
+  "slug": "concepts",
+  "title": "Kavramlar & Standartlar",
+  "subtitle": "Bilinmesi Gereken Fikirler ve Çerçeveler",
+  "description": "Her siber güvenlikçinin bilmesi gereken temel prensipler, saldırı modelleri, standartlar ve yasal düzenlemeler.",
+  "icon": "💡",
+  "order": 5,
+  "tags": ["zero trust", "mitre", "nist", "iso 27001", "kvkk", "kill chain", "cia"],
+  "modules": [
+    {
+      "id": "principles",
+      "title": "Temel Güvenlik Prensipleri",
+      "description": "Tüm güvenliğin dayandığı temel fikirler",
+      "difficulty": "beginner",
+      "duration": "12 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Temel Prensipler",
+          "content": "## CIA Üçlüsü (her şeyin temeli)\n| Prensip | Anlamı |\n|---------|--------|\n| **Confidentiality** (Gizlilik) | Veriye sadece yetkililer erişir |\n| **Integrity** (Bütünlük) | Veri izinsiz değiştirilemez |\n| **Availability** (Erişilebilirlik) | Sistem ihtiyaç olduğunda çalışır |\n\n## Diğer Temel Prensipler\n- **Defense in Depth (Katmanlı Savunma):** Tek bir önleme güvenme; katman katman koru. Bir katman düşerse diğeri korur.\n- **Least Privilege (En Az Yetki):** Herkese sadece işini yapacak kadar yetki ver.\n- **Zero Trust (Sıfır Güven):** 'Asla güvenme, her zaman doğrula.' İç ağ dahil hiçbir şey otomatik güvenilmez.\n- **AAA:** Authentication (kimlik doğrulama), Authorization (yetkilendirme), Accounting (kayıt).\n- **Fail Securely:** Bir sistem çökerse güvenli durumda kalsın (açık değil).\n- **Separation of Duties:** Kritik işler tek kişide toplanmaz.\n\n> Zero Trust, modern güvenliğin en önemli paradigmasıdır — bu platformdaki **PAM** ve **IAM** konuları bunun uygulamasıdır."
+        }
+      ]
+    },
+    {
+      "id": "attack-models",
+      "title": "Saldırı Modelleri & Çerçeveler",
+      "description": "Saldırıları anlamak ve sınıflandırmak için kullanılan modeller",
+      "difficulty": "intermediate",
+      "duration": "12 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Saldırı Çerçeveleri",
+          "content": "## MITRE ATT&CK\n- Gerçek saldırılardan derlenen **TTP** (Taktik, Teknik, Prosedür) veritabanı\n- 14 taktik, 200+ teknik\n- Hem saldırı hem savunma planlamasında sektör standardı\n\n## Cyber Kill Chain (Lockheed Martin)\nSaldırının 7 aşaması:\n```\nReconnaissance → Weaponization → Delivery → Exploitation →\nInstallation → Command & Control → Actions on Objectives\n```\n\n## Diamond Model\n- Bir saldırıyı 4 köşeyle analiz eder: Adversary (saldırgan), Capability (yetenek), Infrastructure (altyapı), Victim (kurban)\n\n## Pyramid of Pain\n- IOC türlerini, saldırgana 'acı verme' derecesine göre sıralar\n- Hash/IP değiştirmek kolay (alt), TTP değiştirmek zor (üst) → TTP tabanlı savunma daha güçlü\n\n## OWASP\n- Web uygulama güvenliğinin referans topluluğu (OWASP Top 10)\n\n> Bu platformdaki **Purple Team** ve **OWASP Top 10** bölümleri bu çerçeveleri pratikte kullanır."
+        }
+      ]
+    },
+    {
+      "id": "standards",
+      "title": "Standartlar & Çerçeveler",
+      "description": "Kurumsal güvenliğin uyum çerçeveleri",
+      "difficulty": "intermediate",
+      "duration": "12 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Güvenlik Standartları",
+          "content": "| Standart | Ne işe yarar |\n|----------|-------------|\n| **NIST Cybersecurity Framework (CSF)** | 5 fonksiyon: Identify, Protect, Detect, Respond, Recover. ABD merkezli ama küresel referans |\n| **ISO/IEC 27001** | Bilgi Güvenliği Yönetim Sistemi (ISMS) standardı — sertifikasyon alınabilir |\n| **CIS Controls** | 18 öncelikli, uygulanabilir güvenlik kontrolü |\n| **PCI-DSS** | Kredi kartı verisi işleyen herkes için zorunlu |\n| **NIST 800-53 / 800-61** | Güvenlik kontrolleri / olay müdahale rehberi |\n| **MITRE ATT&CK** | TTP referansı (teknik çerçeve) |\n| **OWASP ASVS** | Uygulama güvenliği doğrulama standardı |\n\n**NIST CSF 5 Fonksiyon (ezberlenmeli):**\n```\nIdentify → Protect → Detect → Respond → Recover\n(Tanımla → Koru → Tespit Et → Müdahale Et → Kurtar)\n```\n\n> ISO 27001, kurumların 'güvenliğimizi ciddiye alıyoruz' demesinin uluslararası kanıtıdır — birçok ihalede şart koşulur."
+        }
+      ]
+    },
+    {
+      "id": "legal",
+      "title": "Yasal & Düzenleyici Çerçeveler",
+      "description": "Veri koruma ve siber güvenlik mevzuatı",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Yasal Düzenlemeler",
+          "content": "Bir güvenlikçinin teknik bilgi kadar mevzuatı da bilmesi gerekir:\n\n| Düzenleme | Kapsam |\n|-----------|--------|\n| **KVKK** (6698) | Türkiye'nin kişisel veri koruma kanunu. İhlal bildirimi zorunlu |\n| **GDPR** | AB veri koruma tüzüğü. Ağır cezalar (cironun %4'üne kadar) |\n| **NIS2** | AB'nin kritik altyapı siber güvenlik direktifi |\n| **HIPAA** | ABD sağlık verisi koruması |\n| **SOX** | ABD finansal raporlama / iç kontrol |\n| **PCI-DSS** | Kart verisi güvenliği (küresel) |\n| **DORA** | AB finans sektörü dijital dayanıklılık |\n\n**Önemli kavramlar:**\n- **Veri ihlali bildirimi:** KVKK'da 72 saat, GDPR'da 72 saat içinde bildirim\n- **Data residency:** Verinin hangi ülkede saklandığı önemlidir\n- **Right to be forgotten (Unutulma hakkı):** GDPR/KVKK'da kişi verisinin silinmesini isteyebilir\n\n> Teknik bir açığı kapatmak kadar, ihlal sonrası **yasal bildirim sürecini** bilmek de kurumsal güvenliğin parçasıdır. KVKK uyumu Türkiye'de her kurum için zorunludur."
+        }
+      ]
+    }
+  ]
+}

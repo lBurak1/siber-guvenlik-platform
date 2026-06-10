@@ -1,0 +1,87 @@
+{
+  "id": "products",
+  "slug": "products",
+  "title": "Güvenlik Ürünleri & Kategorileri",
+  "subtitle": "Sektörde Yaygın Kullanılan Araçlar",
+  "description": "Bir siber güvenlikçinin bilmesi gereken ürün kategorileri ve her kategorinin lider ürünleri — SIEM'den EDR'a, firewall'dan cloud güvenliğine.",
+  "icon": "🧰",
+  "order": 1,
+  "tags": ["ürünler", "siem", "edr", "firewall", "vendor", "araçlar"],
+  "modules": [
+    {
+      "id": "siem-soar",
+      "title": "SIEM, SOAR & Log Yönetimi",
+      "description": "Log toplama, korelasyon ve otomatik müdahale ürünleri",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "SIEM / SOAR Ürünleri",
+          "content": "**SIEM**, logları merkezi toplayıp tehdit tespiti yapar; **SOAR** ise müdahaleyi otomatikleştirir.\n\n| Ürün | Üretici | Not |\n|------|---------|-----|\n| Splunk | Cisco (Splunk) | Pazar lideri, güçlü ama pahalı |\n| Microsoft Sentinel | Microsoft | Bulut-doğal (cloud-native) SIEM |\n| QRadar | IBM | Kurumsal, köklü |\n| Elastic Security | Elastic | ELK tabanlı, esnek |\n| LogRhythm | LogRhythm | Kurumsal |\n| **Wazuh** | Açık kaynak | Ücretsiz, OSSEC tabanlı |\n| Graylog | Açık kaynak | Performanslı log yönetimi |\n\n**SOAR Ürünleri:**\n- Palo Alto **Cortex XSOAR** (eski Demisto)\n- **Splunk SOAR** (eski Phantom)\n- Microsoft Sentinel (yerleşik SOAR yetenekleri)\n\n> Bu platformdaki **Blue Team → SIEM** modülü bu ürünlerin pratik kullanımına giriş sağlar."
+        }
+      ]
+    },
+    {
+      "id": "edr-xdr",
+      "title": "Endpoint (EDR/XDR) & Antivirüs",
+      "description": "Uç nokta koruma ve tespit ürünleri",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "EDR / XDR Ürünleri",
+          "content": "**EDR** uç noktada davranış tabanlı tespit yapar; **XDR** bunu ağ, e-posta ve buluta genişletir.\n\n| Ürün | Üretici | Not |\n|------|---------|-----|\n| Falcon | CrowdStrike | EDR/XDR pazar lideri, bulut-doğal |\n| SentinelOne Singularity | SentinelOne | AI tabanlı, otonom |\n| Defender for Endpoint | Microsoft | Windows ile entegre, yaygın |\n| Cortex XDR | Palo Alto | Güçlü XDR |\n| Carbon Black | VMware/Broadcom | Köklü EDR |\n\n**Antivirüs / EPP (mirastan gelenler):**\n- Kaspersky, ESET, Bitdefender, Trend Micro, Sophos, Trellix (eski McAfee)\n\n> Bu platformdaki **Blue Team → Endpoint Güvenliği** modülü EDR/XDR mantığını işliyor."
+        }
+      ]
+    },
+    {
+      "id": "network-security",
+      "title": "Ağ Güvenliği — Firewall, NGFW, WAF",
+      "description": "Ağ katmanı koruma ürünleri",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Ağ Güvenliği Ürünleri",
+          "content": "**Next-Gen Firewall (NGFW):**\n| Ürün | Üretici |\n|------|---------|\n| Palo Alto PA Serisi | Palo Alto Networks (lider) |\n| FortiGate | Fortinet |\n| Cisco Secure Firewall | Cisco |\n| Check Point Quantum | Check Point |\n| **pfSense / OPNsense** | Açık kaynak |\n\n**WAF (Web Application Firewall) & CDN:**\n- Cloudflare, Akamai, Imperva, F5, AWS WAF\n\n**ZTNA / SASE (modern uzaktan erişim):**\n- Zscaler, Palo Alto Prisma Access, Netskope, Cloudflare\n\n**IDS/IPS (açık kaynak):**\n- Snort, Suricata, Zeek (eski Bro)\n\n> Bu platformdaki **Ağ Temelleri** ve **Blue Team → Wireshark** modülleri bu ürünlerin arkasındaki teknolojiyi öğretir."
+        }
+      ]
+    },
+    {
+      "id": "vuln-pentest",
+      "title": "Zafiyet Yönetimi & Pentest Araçları",
+      "description": "Tarama, zafiyet yönetimi ve sızma testi araçları",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Zafiyet & Pentest Araçları",
+          "content": "**Zafiyet Yönetimi (Vulnerability Management):**\n| Ürün | Üretici |\n|------|---------|\n| Nessus | Tenable (en yaygın tarayıcı) |\n| Qualys VMDR | Qualys |\n| InsightVM | Rapid7 |\n| **OpenVAS / Greenbone** | Açık kaynak |\n\n**Web Uygulama Güvenliği (DAST):**\n- **Burp Suite** (PortSwigger) — pentest standardı\n- Invicti (eski Netsparker), Acunetix, OWASP ZAP (açık kaynak)\n\n**Ofansif / Pentest Araçları:**\n- **Metasploit** (Rapid7) — exploit framework\n- **Cobalt Strike** — red team C2 (lisanslı, kötüye kullanıma karşı sıkı kontrollü)\n- Nmap, sqlmap, Hydra, Hashcat, BloodHound\n\n> Bu platformdaki **Red Team** ve **OWASP Top 10** bölümleri bu araçların çoğunu pratik anlatıyor.\n\n> ⚠️ Tüm ofansif araçlar yalnızca yetkili test ve lab ortamlarında kullanılır."
+        }
+      ]
+    },
+    {
+      "id": "iam-cloud",
+      "title": "Kimlik (IAM/PAM) & Cloud Güvenliği",
+      "description": "Kimlik yönetimi ve bulut güvenlik ürünleri",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "IAM / PAM & Cloud Ürünleri",
+          "content": "**IAM (Identity & Access Management):**\n- Okta, Microsoft Entra ID (eski Azure AD), Ping Identity, ForgeRock\n\n**PAM (Privileged Access Management):**\n| Ürün | Üretici |\n|------|---------|\n| CyberArk | CyberArk (PAM lideri) |\n| BeyondTrust | BeyondTrust |\n| Delinea | Delinea (eski Thycotic) |\n| **HashiCorp Vault** | Açık kaynak/ticari |\n\n**Cloud Güvenliği (CNAPP / CSPM):**\n- **Wiz** (hızlı yükselen lider), Palo Alto Prisma Cloud, Microsoft Defender for Cloud, Orca Security, Lacework\n\n**Tehdit İstihbaratı (Threat Intel):**\n- Recorded Future, Mandiant (Google), **VirusTotal** (Google), **MISP** (açık kaynak), SOCRadar\n\n> Bu platformdaki **Blue Team → PAM, CTI** ve **DevOps → Docker güvenliği** modülleri bu alanlara giriş sağlar."
+        }
+      ]
+    }
+  ]
+}

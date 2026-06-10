@@ -318,6 +318,39 @@ export const navigation = {
       },
     ],
   },
+  "ecosystem": {
+    label: "Sektör & Ekosistem",
+    color: "pink",
+    description: "Ürünler, şirketler, kişiler ve kavramlar",
+    categories: [
+      {
+        id: "products",
+        title: "Ürünler & Araçlar",
+        icon: "Package",
+        tools: [
+          { id: "products", title: "Güvenlik Ürünleri & Kategorileri", slug: "products" },
+        ],
+      },
+      {
+        id: "companies",
+        title: "Şirketler",
+        icon: "Building2",
+        tools: [
+          { id: "companies-global",   title: "Uluslararası Şirketler",      slug: "companies-global" },
+          { id: "companies-national", title: "Ulusal (Türkiye) Şirketler",  slug: "companies-national" },
+        ],
+      },
+      {
+        id: "people-ideas",
+        title: "Kişiler & Kavramlar",
+        icon: "Users",
+        tools: [
+          { id: "people",   title: "Önemli Kişiler",            slug: "people" },
+          { id: "concepts", title: "Kavramlar & Standartlar",   slug: "concepts" },
+        ],
+      },
+    ],
+  },
   "owasp-top10": {
     label: "OWASP Top 10",
     color: "amber",

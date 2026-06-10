@@ -1,0 +1,57 @@
+{
+  "id": "companies-global",
+  "slug": "companies-global",
+  "title": "Uluslararası Şirketler",
+  "subtitle": "Küresel Siber Güvenlik Devleri",
+  "description": "Bir siber güvenlikçinin tanıması gereken uluslararası şirketler — saf güvenlik devleri, büyük teknoloji şirketleri ve danışmanlık firmaları.",
+  "icon": "🌍",
+  "order": 2,
+  "tags": ["şirketler", "crowdstrike", "palo alto", "microsoft", "fortinet", "vendor"],
+  "modules": [
+    {
+      "id": "pure-play",
+      "title": "Saf Güvenlik Devleri (Pure-Play)",
+      "description": "Sadece güvenliğe odaklanan halka açık büyük şirketler",
+      "difficulty": "beginner",
+      "duration": "12 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Pure-Play Güvenlik Şirketleri",
+          "content": "Yalnızca siber güvenlik üzerine kurulu, sektörü şekillendiren şirketler:\n\n| Şirket | Uzmanlık | Bilinmesi gereken |\n|--------|----------|-------------------|\n| **CrowdStrike** | EDR/XDR, threat intel | Bulut-doğal EDR lideri, Falcon platformu |\n| **Palo Alto Networks** | NGFW, SASE, XDR, cloud | En geniş güvenlik portföyü |\n| **Fortinet** | NGFW, ağ güvenliği | FortiGate, donanım+yazılım |\n| **Zscaler** | ZTNA, SASE | Bulut tabanlı sıfır güven (zero trust) |\n| **SentinelOne** | EDR/XDR | AI tabanlı otonom endpoint |\n| **Check Point** | Firewall, köklü | İsrail merkezli, sektör öncüsü |\n| **Rapid7** | VM, SIEM, Metasploit | InsightVM, Metasploit sahibi |\n| **Tenable** | Zafiyet yönetimi | Nessus tarayıcısının sahibi |\n| **Okta** | IAM | Kimlik yönetiminde lider |\n| **Cloudflare** | CDN, WAF, DDoS | İnternet altyapısı + güvenlik |\n| **Fortra / PortSwigger** | AppSec araçları | PortSwigger = Burp Suite üreticisi |\n\n> Bu şirketlerin isimleri iş ilanlarında ve mülakatlarda sürekli geçer — ürünleriyle birlikte tanımak avantaj sağlar."
+        }
+      ]
+    },
+    {
+      "id": "big-tech",
+      "title": "Büyük Teknoloji Şirketleri",
+      "description": "Güvenliğe ciddi yatırım yapan teknoloji devleri",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Big Tech Güvenlik Kolları",
+          "content": "| Şirket | Güvenlik tarafı |\n|--------|----------------|\n| **Microsoft** | Defender (XDR), Sentinel (SIEM), Entra ID — en büyük güvenlik gelirlerinden biri |\n| **Cisco** | Secure Firewall, Talos (tehdit araştırma), Splunk'ı satın aldı |\n| **Google** | Mandiant (IR), Chronicle/SecOps (SIEM), VirusTotal, Project Zero |\n| **Amazon (AWS)** | GuardDuty, IAM, Security Hub, KMS — bulut güvenlik servisleri |\n| **IBM** | QRadar (SIEM), X-Force (tehdit istihbaratı) |\n| **Broadcom** | Symantec ve Carbon Black'i bünyesine kattı |\n\n**Bilinmesi gereken araştırma ekipleri:**\n- **Google Project Zero** — zero-day araştırması\n- **Cisco Talos** — tehdit istihbaratı\n- **Microsoft MSTIC** — tehdit istihbaratı merkezi\n- **Mandiant / Google TAG** — APT takibi"
+        }
+      ]
+    },
+    {
+      "id": "av-consulting",
+      "title": "Antivirüs Mirası & Danışmanlık / IR",
+      "description": "Köklü antivirüs şirketleri ve olay müdahale firmaları",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "AV Şirketleri & Danışmanlık",
+          "content": "**Antivirüs / Endpoint Mirası (köklü markalar):**\n| Şirket | Köken |\n|--------|-------|\n| Kaspersky | Rusya |\n| ESET | Slovakya |\n| Bitdefender | Romanya |\n| Trend Micro | Japonya |\n| Sophos | İngiltere |\n| Trellix | ABD (eski McAfee Enterprise + FireEye) |\n| Avast/AVG/Norton (Gen Digital) | ABD/Çekya |\n\n**Danışmanlık & Olay Müdahale (Incident Response):**\n- **Mandiant** (Google) — APT/IR'da efsane, büyük ihlalleri araştırır\n- **Kroll**, **CrowdStrike Services** — IR hizmetleri\n- **Deloitte, PwC, KPMG, EY** (Big 4) — kurumsal güvenlik danışmanlığı, denetim, GRC\n- **Accenture, NCC Group, Bishop Fox** — pentest & danışmanlık\n\n> İhlal haberlerinde 'Mandiant raporu' sıkça geçer — APT gruplarını isimlendiren (APT28, APT29...) ekiplerdir."
+        }
+      ]
+    }
+  ]
+}

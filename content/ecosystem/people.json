@@ -1,0 +1,72 @@
+{
+  "id": "people",
+  "slug": "people",
+  "title": "Önemli Kişiler",
+  "subtitle": "Sektörü Şekillendiren İsimler",
+  "description": "Bir siber güvenlikçinin tanıması gereken kişiler — kriptografi öncüleri, araştırmacılar, hacker kültürü figürleri ve eğitimciler.",
+  "icon": "👤",
+  "order": 4,
+  "tags": ["kişiler", "schneier", "mitnick", "kaminsky", "kriptografi", "araştırmacı"],
+  "modules": [
+    {
+      "id": "crypto-pioneers",
+      "title": "Kriptografi Öncüleri",
+      "description": "Modern şifrelemenin temelini atan isimler",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Kriptografi Devleri",
+          "content": "Bugün kullandığımız şifrelemenin arkasındaki isimler:\n\n| Kişi | Katkı |\n|------|-------|\n| **Whitfield Diffie & Martin Hellman** | Açık anahtarlı kriptografi (1976) — Diffie-Hellman anahtar değişimi |\n| **Rivest, Shamir, Adleman** | RSA algoritması — adını üç soyadından alır |\n| **Phil Zimmermann** | PGP (Pretty Good Privacy) — kişisel e-posta şifrelemeyi halka açtı |\n| **Ralph Merkle** | Merkle ağaçları, açık anahtar kriptografiye katkı |\n| **Claude Shannon** | Bilgi teorisinin babası, modern kriptografinin matematiksel temeli |\n\n**Neden önemli?**\n- HTTPS, VPN, dijital imza — hepsi bu kişilerin çalışmalarına dayanır\n- Diffie-Hellman ve RSA, bu platformdaki **Cryptographic Failures** (OWASP) konusunun temelidir\n\n> Diffie & Hellman bu çalışmalarıyla 2015'te Turing Ödülü (bilişimin Nobel'i) aldı."
+        }
+      ]
+    },
+    {
+      "id": "researchers",
+      "title": "Güvenlik Düşünürleri & Araştırmacılar",
+      "description": "Sektörün yön veren araştırmacı ve düşünürleri",
+      "difficulty": "beginner",
+      "duration": "12 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Araştırmacılar & Düşünürler",
+          "content": "| Kişi | Bilinmesi gereken |\n|------|-------------------|\n| **Bruce Schneier** | Güvenlik gurusu, yazar (Applied Cryptography), 'güvenlik bir süreçtir, ürün değil' |\n| **Dan Kaminsky** (1979-2021) | 2008 DNS cache poisoning zafiyetini buldu, interneti kurtaran adam |\n| **Peiter Zatko ('Mudge')** | L0pht üyesi, ABD Kongresi'nde ifade verdi, DARPA & büyük teknoloji güvenlik lideri |\n| **Katie Moussouris** | Bug bounty öncüsü, Microsoft ve Pentagon programlarını kurdu |\n| **Tavis Ormandy** | Google Project Zero, sayısız kritik zero-day buldu |\n| **Halvar Flake (Thomas Dullien)** | Tersine mühendislik ve binary analiz öncüsü |\n| **Joanna Rutkowska** | Rootkit araştırması (Blue Pill), Qubes OS kurucusu |\n\n**Neden önemli?**\n- Schneier'in blogu ve kitapları sektörün referansıdır\n- Project Zero'nun bulguları (Tavis Ormandy) sürekli haber olur\n- Katie Moussouris sayesinde bug bounty programları yaygınlaştı"
+        }
+      ]
+    },
+    {
+      "id": "hacker-culture",
+      "title": "Hacker Kültürü & Tarihî Figürler",
+      "description": "Hacker tarihini şekillendiren isimler",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Hacker Kültürü",
+          "content": "| Kişi | Bilinmesi gereken |\n|------|-------------------|\n| **Kevin Mitnick** (1963-2023) | En ünlü sosyal mühendis, eski 'most wanted' hacker, sonra güvenlik danışmanı & yazar |\n| **Clifford Stoll** | 'The Cuckoo's Egg' yazarı — ilk belgelenmiş siber casusluk avı (1986) |\n| **HD Moore** | Metasploit Framework'ün yaratıcısı |\n| **Marcus Hutchins ('MalwareTech')** | 2017 WannaCry fidye yazılımını durduran 'kill switch'i buldu |\n| **Charlie Miller & Chris Valasek** | Aracı uzaktan hackleyerek (Jeep, 2015) IoT/araç güvenliğini gündeme taşıdı |\n| **George Hotz (geohot)** | iPhone ve PS3'ü ilk kıran kişi |\n\n**Hacker etiği & kültür:**\n- **L0pht** ve **Cult of the Dead Cow (cDc)** — efsane hacker grupları\n- **2600 Magazine**, **DEF CON**, **Black Hat** — kültürün buluşma noktaları\n\n> Kevin Mitnick'in 'The Art of Deception' kitabı sosyal mühendislik konusunda klasiktir."
+        }
+      ]
+    },
+    {
+      "id": "educators",
+      "title": "Gazeteciler & Eğitimciler",
+      "description": "Bilgiyi yayan, topluluğu büyüten isimler",
+      "difficulty": "beginner",
+      "duration": "8 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Gazeteciler & Eğitimciler",
+          "content": "| Kişi | Bilinmesi gereken |\n|------|-------------------|\n| **Brian Krebs** | Bağımsız siber güvenlik gazetecisi (KrebsOnSecurity), büyük ihlalleri ortaya çıkarır |\n| **Mikko Hyppönen** | WithSecure (F-Secure) araştırmacısı, popüler konuşmacı, malware tarihçisi |\n| **Troy Hunt** | 'Have I Been Pwned' (HIBP) kurucusu — veri ihlali sorgulama servisi |\n| **Professor Messer** | Ücretsiz CompTIA eğitim videolarıyla milyonlara ulaştı |\n| **The Cyber Mentor (Heath Adams)** | Pratik pentest eğitimleri (TCM Security) |\n| **John Hammond, IppSec** | YouTube'da CTF/HackTheBox çözümleriyle eğiten isimler |\n\n**Neden önemli?**\n- **Have I Been Pwned** (Troy Hunt) — e-postanın sızdırılıp sızdırılmadığını kontrol edebileceğin ücretsiz servis\n- **KrebsOnSecurity** (Brian Krebs) — sektörün en güvenilir haber kaynaklarından\n- IppSec'in HackTheBox videoları OSCP hazırlığında çok kullanılır\n\n> Türkiye'de de aktif bir topluluk var: BSides Istanbul/Ankara, NOPcon gibi etkinlikler ve birçok bug bounty avcısı uluslararası platformlarda (HackerOne, Bugcrowd) başarılı."
+        }
+      ]
+    }
+  ]
+}

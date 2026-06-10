@@ -1,0 +1,57 @@
+{
+  "id": "companies-national",
+  "slug": "companies-national",
+  "title": "Ulusal (Türkiye) Şirketler & Kurumlar",
+  "subtitle": "Türkiye Siber Güvenlik Ekosistemi",
+  "description": "Türkiye'nin siber güvenlik şirketleri, savunma sanayii oyuncuları ve devlet kurumları — yerli ürünler ve küresel başarılar.",
+  "icon": "🇹🇷",
+  "order": 3,
+  "tags": ["türkiye", "ulusal", "picus", "socradar", "invicti", "stm", "usom"],
+  "modules": [
+    {
+      "id": "tr-companies",
+      "title": "Türkiye Siber Güvenlik Şirketleri",
+      "description": "Yerli ve küresele açılan Türk güvenlik şirketleri",
+      "difficulty": "beginner",
+      "duration": "12 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Türk Güvenlik Şirketleri",
+          "content": "Türkiye, dünya çapında başarılı güvenlik şirketleri çıkardı:\n\n| Şirket | Alan | Not |\n|--------|------|-----|\n| **Picus Security** | Breach & Attack Simulation (BAS) | Türkiye kökenli, küresel BAS lideri |\n| **SOCRadar** | Extended Threat Intelligence | Türk kurucular, küresel müşteri tabanı |\n| **Invicti** (eski Netsparker) | Web uygulama güvenliği (DAST) | Ferruh Mavituna tarafından kuruldu, küresel |\n| **Logsign** | SIEM / SOAR | Yerli SIEM çözümü |\n| **CryptTech** | SIEM / log yönetimi | Köklü yerli ürün |\n| **Barikat** | Güvenlik hizmetleri & danışmanlık | Türkiye'nin büyük oyuncularından |\n| **Labris Networks** | NGFW, DDoS koruma | Yerli ağ güvenliği |\n| **Berqnet** | Firewall (UTM) | Yerli güvenlik duvarı |\n| **Prodaft** | Tehdit istihbaratı | Türk kurucu, APT araştırmalarıyla bilinir |\n| **Roksit / DNS güvenliği** | DNS katmanı güvenlik | Bulut tabanlı |\n\n> Picus, SOCRadar ve Invicti gibi şirketler, Türkiye'den çıkıp küresel pazarda yarışan başarı hikâyeleridir — yerli yeteneğin kanıtı."
+        }
+      ]
+    },
+    {
+      "id": "defense-industry",
+      "title": "Savunma Sanayii & Teknoloji",
+      "description": "Siber güvenlik birimleri olan savunma şirketleri",
+      "difficulty": "beginner",
+      "duration": "8 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Savunma Sanayii Oyuncuları",
+          "content": "Türkiye savunma sanayiinin siber güvenlik yatırımları:\n\n| Kurum | Siber tarafı |\n|-------|-------------|\n| **STM** | Siber füzyon merkezi, tehdit istihbaratı (ThinkTech), siber güvenlik hizmetleri |\n| **HAVELSAN** | Siber güvenlik çözümleri, milli yazılım |\n| **ASELSAN** | Kripto, güvenli haberleşme, siber savunma |\n| **TÜBİTAK BİLGEM** | Milli kriptografi, güvenli sistemler, araştırma |\n\n**Neden önemli?**\n- Kamu ve kritik altyapı projelerinde bu kurumlar başroldedir\n- Milli ve yerli güvenlik teknolojisi geliştirirler\n- Güvenlik kariyerinde önemli istihdam kaynaklarıdır\n\n> TÜBİTAK BİLGEM, milli işletim sistemi (Pardus) ve kriptografi çalışmalarıyla da bilinir."
+        }
+      ]
+    },
+    {
+      "id": "gov-bodies",
+      "title": "Devlet & Düzenleyici Kurumlar",
+      "description": "Türkiye'nin siber güvenlik kurumları ve mevzuatı",
+      "difficulty": "beginner",
+      "duration": "8 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Resmi Kurumlar",
+          "content": "Bir siber güvenlikçinin bilmesi gereken Türkiye kurumları:\n\n| Kurum | Görevi |\n|-------|--------|\n| **USOM** (Ulusal Siber Olaylara Müdahale Merkezi) | Ulusal CERT — siber olayları koordine eder, zararlı site/IP listeler |\n| **TR-CERT** | USOM bünyesinde olay müdahale ekibi |\n| **BTK** (Bilgi Teknolojileri ve İletişim Kurumu) | Düzenleyici, USOM'un bağlı olduğu kurum |\n| **KVKK Kurumu** | Kişisel Verileri Koruma Kurumu — veri ihlali bildirimleri |\n| **Cumhurbaşkanlığı Dijital Dönüşüm Ofisi** | Bilgi ve iletişim güvenliği rehberi |\n| **SOME** (Siber Olaylara Müdahale Ekipleri) | Kurumsal/sektörel müdahale ekipleri |\n\n**Bilinmesi gereken mevzuat:**\n- **KVKK** (6698 sayılı) — Türkiye'nin veri koruma kanunu (GDPR benzeri)\n- **Bilgi ve İletişim Güvenliği Rehberi** — kamu kurumları için zorunlu\n\n> Veri ihlali yaşandığında KVKK'ya bildirim ve USOM koordinasyonu yasal süreçtir — kurumsal güvenlikte bu kurumları tanımak şarttır."
+        }
+      ]
+    }
+  ]
+}

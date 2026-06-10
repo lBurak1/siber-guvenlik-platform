@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Shield, Terminal, Eye, GitMerge,
-  Network, BookOpen, Menu, X, Zap, Monitor, Cpu, AlertTriangle, Search, Boxes, GraduationCap
+  Network, BookOpen, Menu, X, Zap, Monitor, Cpu, AlertTriangle, Search, Boxes, GraduationCap, Globe
 } from "lucide-react";
 import { useState } from "react";
 import { cn, teamConfig } from "@/lib/utils";
@@ -19,6 +19,7 @@ const navLinks = [
   { href: "/purple-team",           icon: GitMerge,   label: "Purple Team",  color: "purple" },
   { href: "/owasp-top10",           icon: AlertTriangle, label: "OWASP Top 10", color: "amber" },
   { href: "/certifications",        icon: GraduationCap, label: "Sertifikalar", color: "indigo" },
+  { href: "/ecosystem",             icon: Globe,      label: "Sektör",       color: "pink" },
   { href: "/cheatsheet",            icon: Zap,        label: "Cheat Sheet",  color: "yellow" },
 ] as const;
 
@@ -33,6 +34,7 @@ const colorMap: Record<string, { active: string; hover: string }> = {
   amber:   { active: "bg-amber-500/10 text-amber-400 border border-amber-500/30",      hover: "hover:text-amber-300 hover:bg-amber-500/5" },
   teal:    { active: "bg-teal-500/10 text-teal-400 border border-teal-500/30",          hover: "hover:text-teal-300 hover:bg-teal-500/5" },
   indigo:  { active: "bg-indigo-500/10 text-indigo-400 border border-indigo-500/30",   hover: "hover:text-indigo-300 hover:bg-indigo-500/5" },
+  pink:    { active: "bg-pink-500/10 text-pink-400 border border-pink-500/30",          hover: "hover:text-pink-300 hover:bg-pink-500/5" },
 };
 
 export default function Navbar() {
