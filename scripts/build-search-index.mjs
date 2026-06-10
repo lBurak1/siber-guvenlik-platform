@@ -26,6 +26,7 @@ const CATEGORIES = {
 
 const entries = [];
 const seenUrls = new Set();
+const stats = {}; // dir -> { label, color, topics, modules }
 
 function push(entry) {
   // Aynı url + komut kombinasyonunu tekrar ekleme
@@ -61,6 +62,10 @@ for (const [dir, meta] of Object.entries(CATEGORIES)) {
       const toolTitle = data.title ?? data.slug ?? file;
       const slug = data.slug ?? file.replace(/\.json$/, "");
       const tags = Array.isArray(data.tags) ? data.tags.join(" ") : "";
+
+      if (!stats[dir]) stats[dir] = { label: meta.label, color: meta.color, topics: 0, modules: 0 };
+      stats[dir].topics += 1;
+      stats[dir].modules += (data.modules ?? []).length;
 
       for (const module of data.modules ?? []) {
         const moduleTitle = module.title ?? "";
@@ -142,4 +147,7 @@ if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
 const outPath = join(outDir, "search-index.json");
 writeFileSync(outPath, JSON.stringify(entries), "utf8");
 
-console.log(`✓ Arama indeksi oluşturuldu: ${entries.length} kayıt → public/search-index.json`);
+writeFileSync(join(outDir, "learn-stats.json"), JSON.stringify(stats), "utf8");
+
+const totalModules = Object.values(stats).reduce((a, s) => a + s.modules, 0);
+console.log(`✓ Arama indeksi: ${entries.length} kayıt | İstatistik: ${totalModules} modül → public/`);

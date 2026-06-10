@@ -3,11 +3,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Shield, Terminal, Eye, GitMerge,
-  Network, BookOpen, Menu, X, Zap, Monitor, Cpu, AlertTriangle, Search, Boxes, GraduationCap, Globe
+  Network, BookOpen, Menu, X, Zap, Monitor, Cpu, AlertTriangle, Search, Boxes, GraduationCap, Globe, LayoutDashboard
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn, teamConfig } from "@/lib/utils";
 import CommandPalette from "@/components/search/CommandPalette";
+import { useProgressStore } from "@/lib/progress-store";
 
 const navLinks = [
   { href: "/network-fundamentals",  icon: Network,    label: "Ağ Temelleri", color: "emerald" },
@@ -41,6 +42,9 @@ export default function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const recordVisit = useProgressStore((s) => s.recordVisit);
+
+  useEffect(() => { recordVisit(); }, [recordVisit]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-surface-3 bg-surface/90 backdrop-blur-xl">
@@ -80,10 +84,25 @@ export default function Navbar() {
           })}
         </div>
 
+        {/* Panel link */}
+        <Link
+          href="/panel"
+          className={cn(
+            "ml-auto lg:ml-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all shrink-0",
+            pathname.startsWith("/panel")
+              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+              : "text-terminal-comment border border-surface-3 hover:text-emerald-300 hover:border-emerald-500/30 bg-surface-1/50"
+          )}
+          title="İlerleme Panelin"
+        >
+          <LayoutDashboard className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Panel</span>
+        </Link>
+
         {/* Search button */}
         <button
           onClick={() => setSearchOpen(true)}
-          className="ml-auto lg:ml-2 flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs text-terminal-comment border border-surface-3 hover:border-terminal-green/40 hover:text-terminal-white bg-surface-1/50 transition-all shrink-0"
+          className="lg:ml-2 flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs text-terminal-comment border border-surface-3 hover:border-terminal-green/40 hover:text-terminal-white bg-surface-1/50 transition-all shrink-0"
           title="Ara (Ctrl+K)"
         >
           <Search className="w-3.5 h-3.5" />

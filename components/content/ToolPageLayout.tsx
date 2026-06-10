@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ArrowLeft, BookOpen, Terminal, Zap, FlaskConical,
-  Download, Shield, ChevronRight, CheckCircle2
+  Download, Shield, ChevronRight, CheckCircle2, Star
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -40,7 +40,7 @@ interface ToolPageLayoutProps {
 
 export default function ToolPageLayout({ tool, activeModuleId }: ToolPageLayoutProps) {
   const pathname = usePathname();
-  const { markComplete, isComplete } = useProgressStore();
+  const { markComplete, isComplete, toggleFavorite, isFavorite } = useProgressStore();
   const cfg = teamConfig[tool.team];
   const teamColor = tool.team.replace("-team", "");
 
@@ -189,18 +189,33 @@ export default function ToolPageLayout({ tool, activeModuleId }: ToolPageLayoutP
             )}
           </div>
 
-          <button
-            onClick={() => completed ? undefined : markComplete(progressKey)}
-            className={cn(
-              "flex items-center gap-2 text-sm font-medium rounded-lg px-5 py-2.5 border transition-all",
-              completed
-                ? "bg-green-500/10 border-green-500/30 text-green-400 cursor-default"
-                : "bg-surface-2 border-surface-3 text-terminal-comment hover:bg-surface-3 hover:text-terminal-white"
-            )}
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            {completed ? "Tamamlandı ✓" : "Tamamlandı Olarak İşaretle"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => toggleFavorite({ url: pathname, title: `${tool.title} · ${module.title}`, cat: cfg.label })}
+              title="Favorilere ekle / çıkar"
+              className={cn(
+                "flex items-center gap-2 text-sm font-medium rounded-lg px-4 py-2.5 border transition-all",
+                isFavorite(pathname)
+                  ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
+                  : "bg-surface-2 border-surface-3 text-terminal-comment hover:text-amber-300 hover:border-amber-500/30"
+              )}
+            >
+              <Star className={cn("w-4 h-4", isFavorite(pathname) && "fill-amber-400")} />
+              {isFavorite(pathname) ? "Favoride" : "Favori"}
+            </button>
+            <button
+              onClick={() => completed ? undefined : markComplete(progressKey)}
+              className={cn(
+                "flex items-center gap-2 text-sm font-medium rounded-lg px-5 py-2.5 border transition-all",
+                completed
+                  ? "bg-green-500/10 border-green-500/30 text-green-400 cursor-default"
+                  : "bg-surface-2 border-surface-3 text-terminal-comment hover:bg-surface-3 hover:text-terminal-white"
+              )}
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              {completed ? "Tamamlandı ✓" : "Tamamlandı Olarak İşaretle"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

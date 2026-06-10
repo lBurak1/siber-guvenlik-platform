@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap, Globe, Router } from "lucide-react";
 
 const sections = [
@@ -221,6 +221,22 @@ const groups = [
     ids: ["certifications", "ecosystem", "cheatsheet"] },
 ];
 
+// Günün Komutu havuzu (her gün biri gösterilir)
+const dailyCommands = [
+  { cmd: "nmap -sV -sC -oN scan.txt 10.10.10.1", desc: "Servis versiyonu + varsayılan scriptlerle kapsamlı tarama ve dosyaya kaydet", href: "/red-team/nmap" },
+  { cmd: "find / -perm -4000 2>/dev/null", desc: "SUID bitli dosyaları bul — Linux yetki yükseltme için kritik", href: "/red-team/linux-privesc" },
+  { cmd: "git log --oneline --graph --all", desc: "Tüm branch'leri görsel ağaç olarak özetle", href: "/devops-fundamentals/git" },
+  { cmd: "docker ps -a", desc: "Çalışan ve durmuş tüm konteynerleri listele", href: "/devops-fundamentals/docker" },
+  { cmd: "chmod 600 ~/.ssh/id_rsa", desc: "SSH özel anahtarını yalnızca sahibinin okuyabilmesi için kısıtla", href: "/linux-fundamentals/permissions" },
+  { cmd: "grep -rni 'password' /var/www 2>/dev/null", desc: "Dizinde büyük/küçük harf duyarsız, satır numaralı şifre araması", href: "/linux-fundamentals/text-processing" },
+  { cmd: "ss -tulnp", desc: "Dinlenen TCP/UDP portlarını ve süreçleri göster", href: "/linux-fundamentals/networking-linux" },
+  { cmd: "Get-ADUser -Filter * | Select Name,Enabled", desc: "Tüm domain kullanıcılarını listele (PowerShell AD)", href: "/windows-fundamentals/active-directory" },
+  { cmd: "sudo tcpdump -i eth0 -w capture.pcap", desc: "Ağ trafiğini yakala ve Wireshark için kaydet", href: "/blue-team/wireshark" },
+  { cmd: "hashcat -m 0 -a 0 hash.txt rockyou.txt", desc: "MD5 hash'leri sözlük saldırısıyla kır", href: "/owasp-top10/cryptographic-failures" },
+  { cmd: "curl -I https://hedef.com", desc: "HTTP başlıklarını çek — sunucu/versiyon bilgisi ve güvenlik header kontrolü", href: "/owasp-top10/security-misconfiguration" },
+  { cmd: "ip route", desc: "Yönlendirme tablosunu ve default gateway'i göster", href: "/network-fundamentals/routing-switching" },
+];
+
 // Sekme aktif/pasif renkleri
 const tabActive: Record<string, string> = {
   orange:  "bg-orange-500/15 text-orange-300 border-orange-500/50",
@@ -247,6 +263,15 @@ const marqueeDot = [
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState(groups[0].id);
+  const [dayIdx, setDayIdx] = useState<number | null>(null);
+  useEffect(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const dayOfYear = Math.floor((now.getTime() - start.getTime()) / 86400000);
+    setDayIdx(dayOfYear % dailyCommands.length);
+  }, []);
+  const daily = dayIdx === null ? null : dailyCommands[dayIdx];
+
   const activeGroup = groups.find((g) => g.id === activeTab) ?? groups[0];
   const gac = accentMap[activeGroup.accent] ?? accentMap.emerald;
   const activeSections = activeGroup.ids
@@ -328,6 +353,29 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* Günün Komutu */}
+      {daily && (
+        <section className="max-w-7xl mx-auto px-4 pt-12">
+          <Link href={daily.href} className="group block">
+            <div className="rounded-2xl border border-terminal-green/20 bg-gradient-to-br from-terminal-green/[0.06] to-transparent p-5 hover:border-terminal-green/50 transition-all">
+              <div className="flex items-center gap-2 text-xs font-mono text-terminal-green mb-3">
+                <Terminal className="w-4 h-4" /> GÜNÜN KOMUTU
+                <span className="ml-auto text-terminal-comment opacity-70">her gün yenilenir</span>
+              </div>
+              <div className="font-mono text-sm sm:text-base bg-terminal-bg border border-surface-3 rounded-lg px-4 py-3 text-terminal-green overflow-x-auto">
+                <span className="text-terminal-comment select-none">$ </span>{daily.cmd}
+              </div>
+              <div className="flex items-center justify-between gap-3 mt-3">
+                <p className="text-sm text-terminal-comment">{daily.desc}</p>
+                <span className="flex items-center gap-1 text-xs font-semibold text-terminal-green shrink-0">
+                  Öğren <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </span>
+              </div>
+            </div>
+          </Link>
+        </section>
+      )}
 
       {/* Section cards — kategorilere ayrılmış */}
       <section className="max-w-7xl mx-auto px-4 py-16">
