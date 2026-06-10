@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap, Globe } from "lucide-react";
+import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap, Globe, Router } from "lucide-react";
 
 const sections = [
   {
@@ -9,14 +9,29 @@ const sections = [
     label: "Ağ Temelleri",
     subtitle: "Önce Temeli Kur",
     description: "OSI & TCP/IP modelleri, TCP el sıkışması, IP adresleme/CIDR ve ARP, DNS, DHCP, HTTP/S, SMB protokollerinin güvenlik perspektifinden incelenmesi.",
-    tools: ["OSI Model", "TCP Handshake", "CIDR/Subnetting", "Routing", "VLAN", "Firewall/VPN"],
+    tools: ["OSI Model", "TCP Handshake", "CIDR/Subnetting", "ARP", "DNS", "SMB"],
     color: "emerald",
     border: "border-emerald-500/20 hover:border-emerald-500/60",
     glow: "hover:shadow-[0_0_40px_rgba(16,185,129,0.15)]",
     badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
     cta: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20",
-    modules: "6 Konu · 12 Modül",
+    modules: "4 Konu · Temel",
     recommended: true,
+  },
+  {
+    id: "advanced-network",
+    href: "/network-fundamentals/routing-switching",
+    icon: Router,
+    label: "Gelişmiş Ağ",
+    subtitle: "İleri Seviye Ağ",
+    description: "Yönlendirme ve anahtarlama, VLAN, NAT, VPN, IDS/IPS, firewall ve ağ segmentasyonu — ağ temellerinin bir üst seviyesi.",
+    tools: ["Routing", "Switching", "VLAN", "NAT", "VPN", "IDS/IPS", "Firewall"],
+    color: "emerald",
+    border: "border-emerald-500/20 hover:border-emerald-500/60",
+    glow: "hover:shadow-[0_0_40px_rgba(16,185,129,0.15)]",
+    badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    cta: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20",
+    modules: "2 Konu · İleri",
   },
   {
     id: "linux-fundamentals",
@@ -194,9 +209,11 @@ const accentMap: Record<string, { bar: string; text: string }> = {
 
 // Ana sayfa kategorileri (kartları gruplar)
 const groups = [
-  { id: "foundation", title: "Temeller", subtitle: "Önce sağlam bir zemin kur — sistem, ağ ve araç hakimiyeti", accent: "emerald",
-    ids: ["network-fundamentals", "linux-fundamentals", "windows-fundamentals", "devops-fundamentals"] },
-  { id: "security", title: "Saldırı & Savunma", subtitle: "Kırmızı, mavi ve mor takım disiplinleri + web güvenliği", accent: "red",
+  { id: "foundation", title: "Temeller", subtitle: "İşletim sistemi ve araç hakimiyeti", accent: "orange",
+    ids: ["linux-fundamentals", "windows-fundamentals", "devops-fundamentals"] },
+  { id: "network", title: "Ağ / Network", subtitle: "Temelden ileri seviyeye ağ bilgisi", accent: "emerald",
+    ids: ["network-fundamentals", "advanced-network"] },
+  { id: "security", title: "Siber Güvenlik", subtitle: "Saldırı, savunma ve web uygulama güvenliği", accent: "red",
     ids: ["red-team", "blue-team", "purple-team", "owasp-top10"] },
   { id: "career", title: "Kariyer & Referans", subtitle: "Sertifika yolu, sektör farkındalığı ve hızlı başvuru", accent: "indigo",
     ids: ["certifications", "ecosystem", "cheatsheet"] },
