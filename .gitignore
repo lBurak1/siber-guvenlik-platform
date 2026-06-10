@@ -39,3 +39,6 @@ next-env.d.ts
 
 # Claude settings
 .claude/
+
+# Otomatik üretilen arama indeksi (prebuild/predev ile yenilenir)
+public/search-index.json

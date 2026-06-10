@@ -3,10 +3,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Shield, Terminal, Eye, GitMerge,
-  Network, BookOpen, Menu, X, Zap, Monitor, Cpu, AlertTriangle
+  Network, BookOpen, Menu, X, Zap, Monitor, Cpu, AlertTriangle, Search
 } from "lucide-react";
 import { useState } from "react";
 import { cn, teamConfig } from "@/lib/utils";
+import CommandPalette from "@/components/search/CommandPalette";
 
 const navLinks = [
   { href: "/network-fundamentals",  icon: Network,    label: "Ağ Temelleri", color: "emerald" },
@@ -33,9 +34,11 @@ const colorMap: Record<string, { active: string; hover: string }> = {
 export default function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 border-b border-surface-3 bg-surface/90 backdrop-blur-xl">
+      <CommandPalette open={searchOpen} setOpen={setSearchOpen} />
       <nav className="mx-auto max-w-[1700px] px-4 h-14 flex items-center gap-3">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0 group mr-2">
@@ -71,15 +74,28 @@ export default function Navbar() {
           })}
         </div>
 
+        {/* Search button */}
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="ml-auto lg:ml-2 flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs text-terminal-comment border border-surface-3 hover:border-terminal-green/40 hover:text-terminal-white bg-surface-1/50 transition-all shrink-0"
+          title="Ara (Ctrl+K)"
+        >
+          <Search className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Komut ara…</span>
+          <kbd className="hidden lg:inline font-mono text-[10px] bg-surface-2 border border-surface-3 rounded px-1 py-0.5 text-terminal-comment">
+            Ctrl K
+          </kbd>
+        </button>
+
         {/* Ethics badge */}
-        <div className="hidden md:flex items-center gap-1.5 text-xs text-terminal-comment font-mono ml-auto shrink-0">
+        <div className="hidden md:flex items-center gap-1.5 text-xs text-terminal-comment font-mono ml-3 shrink-0">
           <span className="w-1.5 h-1.5 rounded-full bg-terminal-green animate-pulse" />
           White Hat Only
         </div>
 
         {/* Mobile menu button */}
         <button
-          className="lg:hidden ml-auto p-2 text-terminal-comment hover:text-terminal-white"
+          className="lg:hidden ml-1 p-2 text-terminal-comment hover:text-terminal-white"
           onClick={() => setMobileOpen(!mobileOpen)}
         >
           {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
