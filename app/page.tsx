@@ -177,6 +177,21 @@ const stats = [
   { label: "Etik",        value: "100%", icon: Lock },
 ];
 
+// Renk aksan haritası (üst çizgi + metin rengi) — Tailwind statik sınıflar
+const accentMap: Record<string, { bar: string; text: string }> = {
+  emerald: { bar: "from-emerald-500/0 via-emerald-400 to-emerald-500/0", text: "text-emerald-300" },
+  orange:  { bar: "from-orange-500/0 via-orange-400 to-orange-500/0",   text: "text-orange-300" },
+  sky:     { bar: "from-sky-500/0 via-sky-400 to-sky-500/0",             text: "text-sky-300" },
+  teal:    { bar: "from-teal-500/0 via-teal-400 to-teal-500/0",          text: "text-teal-300" },
+  red:     { bar: "from-red-500/0 via-red-400 to-red-500/0",             text: "text-red-300" },
+  blue:    { bar: "from-blue-500/0 via-blue-400 to-blue-500/0",          text: "text-blue-300" },
+  purple:  { bar: "from-purple-500/0 via-purple-400 to-purple-500/0",   text: "text-purple-300" },
+  indigo:  { bar: "from-indigo-500/0 via-indigo-400 to-indigo-500/0",   text: "text-indigo-300" },
+  pink:    { bar: "from-pink-500/0 via-pink-400 to-pink-500/0",          text: "text-pink-300" },
+  amber:   { bar: "from-amber-500/0 via-amber-400 to-amber-500/0",       text: "text-amber-300" },
+  yellow:  { bar: "from-yellow-500/0 via-yellow-400 to-yellow-500/0",   text: "text-yellow-300" },
+};
+
 export default function HomePage() {
   return (
     <div className="min-h-screen">
@@ -232,43 +247,66 @@ export default function HomePage() {
 
       {/* Section cards */}
       <section className="max-w-7xl mx-auto px-4 py-16">
-        <h2 className="text-xs font-mono text-terminal-comment uppercase tracking-widest text-center mb-10">
-          Öğrenme Yolu
-        </h2>
-        <div className="grid lg:grid-cols-3 gap-5">
-          {sections.map((s) => {
+        <div className="text-center mb-10">
+          <h2 className="text-xs font-mono text-terminal-comment uppercase tracking-widest mb-2">
+            Öğrenme Yolu
+          </h2>
+          <p className="text-2xl font-bold text-terminal-white">Temelden İleri Seviyeye, Adım Adım</p>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {sections.map((s, idx) => {
             const Icon = s.icon;
+            const ac = accentMap[s.color] ?? accentMap.emerald;
             return (
               <Link key={s.id} href={s.href} className="group block">
-                <div className={`rounded-xl border bg-surface-1 p-6 transition-all duration-300 h-full flex flex-col relative overflow-hidden ${s.border} ${s.glow}`}>
-                  {'recommended' in s && s.recommended && (
-                    <div className="absolute top-3 right-3 text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-                      Önce Başla
-                    </div>
-                  )}
-                  <div className="flex items-start gap-3 mb-4">
-                    <div className={`p-2.5 rounded-xl border ${s.badge}`}>
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="text-xs font-mono text-terminal-comment">{s.subtitle}</div>
-                      <h2 className="text-lg font-bold text-terminal-white">{s.label}</h2>
-                    </div>
-                  </div>
-                  <p className="text-sm text-terminal-white/70 leading-relaxed flex-1 mb-4">
-                    {s.description}
-                  </p>
-                  <div className="flex flex-wrap gap-1.5 mb-5">
-                    {s.tools.map((t) => (
-                      <span key={t} className="text-xs px-2 py-0.5 rounded font-mono bg-surface-2 border border-surface-3 text-terminal-comment">
-                        {t}
+                <div className={`relative rounded-2xl border bg-surface-1 h-full flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 ${s.border} ${s.glow}`}>
+                  {/* Üst renkli aksan çizgisi */}
+                  <div className={`h-1 w-full bg-gradient-to-r ${ac.bar}`} />
+
+                  {/* Arka plan soluk dev ikon */}
+                  <Icon className={`absolute -right-5 -top-3 w-28 h-28 ${ac.text} opacity-[0.04] group-hover:opacity-[0.08] transition-opacity pointer-events-none`} />
+
+                  <div className="p-6 flex flex-col flex-1 relative">
+                    {/* Numara + öneri rozeti */}
+                    <div className="flex items-center justify-between mb-4">
+                      <span className={`text-[11px] font-mono ${ac.text} opacity-50`}>
+                        {String(idx + 1).padStart(2, "0")}
                       </span>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className={`text-xs font-mono px-2 py-0.5 rounded-full border ${s.badge}`}>{s.modules}</span>
-                    <div className={`flex items-center gap-1.5 text-sm font-medium ${s.badge.includes("emerald") ? "text-emerald-300" : s.badge.includes("orange") ? "text-orange-300" : s.badge.includes("sky") ? "text-sky-300" : s.badge.includes("red") ? "text-red-300" : s.badge.includes("blue") ? "text-blue-300" : s.badge.includes("purple") ? "text-purple-300" : "text-yellow-300"}`}>
-                      Başla <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      {'recommended' in s && s.recommended && (
+                        <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full animate-pulse">
+                          ÖNCE BAŞLA
+                        </span>
+                      )}
+                    </div>
+
+                    {/* İkon + başlık */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`p-3 rounded-xl border ${s.badge} group-hover:scale-110 transition-transform`}>
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-mono text-terminal-comment uppercase tracking-wide">{s.subtitle}</div>
+                        <h3 className="text-lg font-bold text-terminal-white leading-tight">{s.label}</h3>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-terminal-white/65 leading-relaxed flex-1 mb-4">
+                      {s.description}
+                    </p>
+
+                    <div className="flex flex-wrap gap-1.5 mb-5">
+                      {s.tools.slice(0, 5).map((t) => (
+                        <span key={t} className="text-[11px] px-2 py-0.5 rounded font-mono bg-surface-2 border border-surface-3 text-terminal-comment">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-surface-3/60">
+                      <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full border ${s.badge}`}>{s.modules}</span>
+                      <div className={`flex items-center gap-1.5 text-sm font-semibold ${ac.text}`}>
+                        Başla <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </div>
                     </div>
                   </div>
                 </div>
