@@ -1,66 +1,34 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Terminal, FolderOpen, Cpu, Network, Code, Monitor, Users, ChevronDown, ChevronRight } from "lucide-react";
+import { GitBranch, Box, Boxes, ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const iconMap: Record<string, React.ElementType> = {
-  Terminal, FolderOpen, Cpu, Network, Code, Monitor, Users,
+  GitBranch, Box, Boxes,
 };
 
 const categories = [
   {
-    id: "cmd",
-    title: "CMD Temelleri",
-    icon: "Terminal",
+    id: "version-control",
+    title: "Versiyon Kontrol",
+    icon: "GitBranch",
     tools: [
-      { slug: "cmd-basics", title: "Komut İstemi (CMD)" },
+      { slug: "git", title: "Git & GitHub" },
     ],
   },
   {
-    id: "powershell",
-    title: "PowerShell",
-    icon: "Code",
+    id: "containers",
+    title: "Konteynerizasyon",
+    icon: "Box",
     tools: [
-      { slug: "powershell-basics", title: "PowerShell Temelleri" },
-    ],
-  },
-  {
-    id: "file-ops-win",
-    title: "Dosya İşlemleri",
-    icon: "FolderOpen",
-    tools: [
-      { slug: "file-operations-win", title: "Dosya & Dizin Yönetimi" },
-    ],
-  },
-  {
-    id: "system-win",
-    title: "Sistem Yönetimi",
-    icon: "Cpu",
-    tools: [
-      { slug: "system-management", title: "Sistem & Servis Yönetimi" },
-    ],
-  },
-  {
-    id: "network-win",
-    title: "Ağ Komutları",
-    icon: "Network",
-    tools: [
-      { slug: "networking-win", title: "Ağ Komutları (CMD/PS)" },
-    ],
-  },
-  {
-    id: "active-directory",
-    title: "Active Directory",
-    icon: "Users",
-    tools: [
-      { slug: "active-directory", title: "Active Directory Yönetimi" },
+      { slug: "docker", title: "Docker & Konteyner" },
     ],
   },
 ];
 
-export default function WindowsSidebar() {
+export default function DevopsSidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
@@ -68,12 +36,12 @@ export default function WindowsSidebar() {
     <aside className="w-64 shrink-0 border-r border-surface-3 bg-surface-1 overflow-y-auto sticky top-14 h-[calc(100vh-3.5rem)]">
       {/* Header */}
       <div className="px-4 py-4 border-b border-surface-3">
-        <Link href="/windows-fundamentals" className="flex items-center gap-2 group">
-          <div className="p-1.5 rounded-lg bg-sky-500/10 border border-sky-500/20">
-            <Monitor className="w-4 h-4 text-sky-400" />
+        <Link href="/devops-fundamentals" className="flex items-center gap-2 group">
+          <div className="p-1.5 rounded-lg bg-teal-500/10 border border-teal-500/20">
+            <Boxes className="w-4 h-4 text-teal-400" />
           </div>
           <div>
-            <div className="text-xs font-mono text-sky-400">WINDOWS</div>
+            <div className="text-xs font-mono text-teal-400">DEVOPS</div>
             <div className="text-sm font-semibold text-terminal-white">Eğitim Modülü</div>
           </div>
         </Link>
@@ -82,7 +50,7 @@ export default function WindowsSidebar() {
       {/* Categories */}
       <nav className="p-3 space-y-1">
         {categories.map((cat) => {
-          const Icon = iconMap[cat.icon] ?? Terminal;
+          const Icon = iconMap[cat.icon] ?? Box;
           const isOpen = !collapsed[cat.id];
           const hasActive = cat.tools.some(t => pathname.includes(t.slug));
 
@@ -92,7 +60,7 @@ export default function WindowsSidebar() {
                 onClick={() => setCollapsed(s => ({ ...s, [cat.id]: !s[cat.id] }))}
                 className={cn(
                   "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-semibold transition-colors",
-                  hasActive ? "text-sky-300" : "text-terminal-comment hover:text-terminal-white"
+                  hasActive ? "text-teal-300" : "text-terminal-comment hover:text-terminal-white"
                 )}
               >
                 <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -107,11 +75,11 @@ export default function WindowsSidebar() {
                     return (
                       <Link
                         key={tool.slug}
-                        href={`/windows-fundamentals/${tool.slug}`}
+                        href={`/devops-fundamentals/${tool.slug}`}
                         className={cn(
                           "flex items-center gap-2 px-2 py-1.5 rounded-md text-xs transition-all",
                           active
-                            ? "bg-sky-500/10 text-sky-300 border-l-2 border-sky-500 -ml-[2px]"
+                            ? "bg-teal-500/10 text-teal-300 border-l-2 border-teal-500 -ml-[2px]"
                             : "text-terminal-comment hover:text-terminal-white hover:bg-surface-2"
                         )}
                       >

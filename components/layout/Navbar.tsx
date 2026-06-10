@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Shield, Terminal, Eye, GitMerge,
-  Network, BookOpen, Menu, X, Zap, Monitor, Cpu, AlertTriangle, Search
+  Network, BookOpen, Menu, X, Zap, Monitor, Cpu, AlertTriangle, Search, Boxes
 } from "lucide-react";
 import { useState } from "react";
 import { cn, teamConfig } from "@/lib/utils";
@@ -13,6 +13,7 @@ const navLinks = [
   { href: "/network-fundamentals",  icon: Network,    label: "Ağ Temelleri", color: "emerald" },
   { href: "/linux-fundamentals",    icon: Terminal,   label: "Linux",        color: "orange" },
   { href: "/windows-fundamentals",  icon: Monitor,    label: "Windows",      color: "sky" },
+  { href: "/devops-fundamentals",   icon: Boxes,      label: "DevOps",       color: "teal" },
   { href: "/red-team",              icon: Shield,     label: "Red Team",     color: "red" },
   { href: "/blue-team",             icon: Eye,        label: "Blue Team",    color: "blue" },
   { href: "/purple-team",           icon: GitMerge,   label: "Purple Team",  color: "purple" },
@@ -29,6 +30,7 @@ const colorMap: Record<string, { active: string; hover: string }> = {
   purple:  { active: "bg-purple-500/10 text-purple-400 border border-purple-500/30",   hover: "hover:text-purple-300 hover:bg-purple-500/5" },
   yellow:  { active: "bg-yellow-500/10 text-yellow-400 border border-yellow-500/30",   hover: "hover:text-yellow-300 hover:bg-yellow-500/5" },
   amber:   { active: "bg-amber-500/10 text-amber-400 border border-amber-500/30",      hover: "hover:text-amber-300 hover:bg-amber-500/5" },
+  teal:    { active: "bg-teal-500/10 text-teal-400 border border-teal-500/30",          hover: "hover:text-teal-300 hover:bg-teal-500/5" },
 };
 
 export default function Navbar() {

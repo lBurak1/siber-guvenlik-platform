@@ -1,0 +1,327 @@
+{
+  "id": "docker",
+  "slug": "docker",
+  "title": "Docker & Konteyner",
+  "subtitle": "Konteynerizasyon — Temelden İleriye",
+  "description": "Modern altyapının temeli. Image'lardan konteynerlere, volume'lardan Docker Compose'a ve konteyner güvenliğine kadar günlük Docker komutlarını öğren.",
+  "icon": "🐳",
+  "order": 2,
+  "tags": ["docker", "konteyner", "container", "image", "dockerfile", "compose", "devops"],
+  "modules": [
+    {
+      "id": "docker-intro",
+      "title": "Docker Nedir? Kurulum ve Mimari",
+      "description": "Konteyner kavramı, VM ile farkı, kurulum",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Konteyner Mantığı",
+          "content": "**Docker:** Uygulamayı tüm bağımlılıklarıyla birlikte izole bir **konteyner** içinde paketleyip her yerde aynı şekilde çalıştıran platform.\n\n**\"Bende çalışıyordu\" probleminin çözümü:** Konteyner; kodu, kütüphaneleri ve ayarları birlikte taşır — senin makinende de, sunucuda da, arkadaşında da aynı çalışır.\n\n**Konteyner vs Sanal Makine (VM):**\n| Özellik | Konteyner | Sanal Makine |\n|---------|-----------|-------------|\n| Boyut | MB | GB |\n| Başlama süresi | Saniyeler | Dakikalar |\n| İşletim sistemi | Host kernel paylaşılır | Tam ayrı OS |\n| Kaynak tüketimi | Düşük | Yüksek |\n\n**Temel Kavramlar:**\n| Kavram | Anlamı |\n|--------|--------|\n| Image | Konteynerin şablonu (salt-okunur kalıp) |\n| Container | Image'dan çalışan canlı örnek |\n| Dockerfile | Image'ı tarif eden metin dosyası |\n| Registry | Image deposu (Docker Hub) |\n| Volume | Kalıcı veri saklama alanı |\n\n**Benzetme:** Image = yemek tarifi, Container = pişmiş yemek. Bir tariften (image) istediğin kadar tabak (container) çıkarabilirsin.\n\n> Siber güvenlikte: izole lab ortamları (DVWA, zafiyetli uygulamalar), araç çalıştırma ve konteyner kaçışı (container escape) saldırıları hep Docker bilgisi gerektirir."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Docker Kurulumu",
+          "installation": {
+            "note": "Linux'ta kurulumdan sonra kullanıcını docker grubuna ekle, yoksa her komutta sudo gerekir.",
+            "linux": [
+              "curl -fsSL https://get.docker.com | sudo sh",
+              "sudo usermod -aG docker $USER",
+              "newgrp docker",
+              "docker --version"
+            ],
+            "windows": [
+              "winget install --id Docker.DockerDesktop -e",
+              "docker --version"
+            ],
+            "macos": [
+              "brew install --cask docker",
+              "docker --version"
+            ]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "İlk Docker Komutu",
+          "commands": [
+            {
+              "command": "docker run hello-world",
+              "description": "Docker'ın doğru kurulduğunu test eder — image'ı indirir ve çalıştırır",
+              "output": "Hello from Docker!\nThis message shows that your installation appears to be working correctly.",
+              "tip": "Sonraki adım: 'docker ps -a' ile çalışıp biten konteyneri gör."
+            },
+            {
+              "command": "docker info",
+              "description": "Docker motorunun durumu, çalışan konteyner sayısı, sürüm bilgisi",
+              "tip": "Hata alırsan Docker servisi çalışmıyordur: sudo systemctl start docker"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "docker-images",
+      "title": "Image Yönetimi ve Dockerfile",
+      "description": "Image indir, listele, kendi image'ını oluştur",
+      "difficulty": "beginner",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Image Komutları",
+          "commands": [
+            {
+              "command": "docker pull nginx:latest",
+              "description": "Docker Hub'dan bir image indirir (latest = en güncel etiket)",
+              "output": "latest: Pulling from library/nginx\nStatus: Downloaded newer image for nginx:latest",
+              "tip": "Sonraki adım: 'docker images' ile indirdiğin image'ı listele."
+            },
+            {
+              "command": "docker images",
+              "description": "Yerel makinedeki tüm image'ları listeler",
+              "output": "REPOSITORY   TAG       IMAGE ID       SIZE\nnginx        latest    a6bd71f48f68   187MB\nhello-world  latest    d2c94e258dcb   13.3kB"
+            },
+            {
+              "command": "docker rmi nginx:latest",
+              "description": "Bir image'ı yerel makineden siler (rmi = remove image)",
+              "tip": "Kullanılan bir image'ı silemezsin; önce konteynerini durdurup sil."
+            },
+            {
+              "command": "docker build -t benim-uygulamam:1.0 .",
+              "description": "Mevcut klasördeki Dockerfile'dan image oluşturur (-t = etiket/isim)",
+              "output": "[+] Building 12.3s (10/10) FINISHED\n => naming to docker.io/library/benim-uygulamam:1.0",
+              "tip": "Sondaki nokta (.) = 'Dockerfile bu klasörde' demek. Sonraki adım: 'docker run benim-uygulamam:1.0' ile çalıştır."
+            }
+          ]
+        },
+        {
+          "id": "advanced",
+          "type": "advanced",
+          "title": "Dockerfile Yazımı",
+          "content": "**Dockerfile:** Image'ın nasıl oluşturulacağını satır satır tarif eden dosya.\n\n**Basit bir Node.js uygulaması için örnek:**\n```dockerfile\n# Temel image (üzerine inşa edilecek)\nFROM node:20-alpine\n\n# Konteyner içindeki çalışma dizini\nWORKDIR /app\n\n# Önce bağımlılık dosyalarını kopyala (cache optimizasyonu)\nCOPY package*.json ./\nRUN npm install\n\n# Sonra tüm kodu kopyala\nCOPY . .\n\n# Uygulamanın dinleyeceği port\nEXPOSE 3000\n\n# Konteyner başlayınca çalışacak komut\nCMD [\"node\", \"server.js\"]\n```\n\n**Önemli Talimatlar:**\n| Talimat | Görevi |\n|---------|--------|\n| FROM | Temel image'ı belirler |\n| WORKDIR | Çalışma dizinini ayarlar |\n| COPY | Dosyaları image'a kopyalar |\n| RUN | Build sırasında komut çalıştırır |\n| EXPOSE | Hangi portu açacağını belgeler |\n| CMD | Konteyner başlayınca çalışan komut |\n| ENV | Ortam değişkeni tanımlar |\n\n> **Güvenlik:** `alpine` gibi küçük base image'lar daha az zafiyet yüzeyi sunar. Asla şifre/API key'i Dockerfile'a yazma — ENV veya secret yönetimi kullan."
+        }
+      ]
+    },
+    {
+      "id": "docker-containers",
+      "title": "Konteyner Yaşam Döngüsü",
+      "description": "run, ps, exec, logs, stop, rm — konteynerleri yönet",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Konteyner Komutları",
+          "commands": [
+            {
+              "command": "docker run -d -p 8080:80 --name web nginx",
+              "description": "Nginx'i arka planda başlatır ve 8080 portundan erişilebilir yapar",
+              "output": "c3f8a2d1b7e9...",
+              "tip": "-d = arka planda (detached), -p 8080:80 = host 8080 → konteyner 80, --name = isim ver. Sonraki adım: tarayıcıda localhost:8080 aç.",
+              "flags": [
+                { "flag": "-d", "description": "Arka planda çalıştır (detached)" },
+                { "flag": "-p host:konteyner", "description": "Port yönlendirme" },
+                { "flag": "--name", "description": "Konteynere isim ver" },
+                { "flag": "-it", "description": "Etkileşimli terminal (shell için)" },
+                { "flag": "--rm", "description": "Durunca otomatik sil" }
+              ]
+            },
+            {
+              "command": "docker ps",
+              "description": "Çalışan konteynerleri listeler",
+              "output": "CONTAINER ID   IMAGE   STATUS         PORTS                  NAMES\nc3f8a2d1b7e9   nginx   Up 2 minutes   0.0.0.0:8080->80/tcp   web",
+              "flags": [
+                { "flag": "docker ps -a", "description": "Durmuş olanlar dahil HEPSİ" }
+              ]
+            },
+            {
+              "command": "docker exec -it web bash",
+              "description": "Çalışan bir konteynerin içine girip shell açar (içeride komut çalıştır)",
+              "tip": "Konteynerin içini incelemek/debug için kritik. Çıkmak için: exit. Bazı küçük image'larda bash yoktur, 'sh' dene."
+            },
+            {
+              "command": "docker logs web",
+              "description": "Konteynerin çıktı/log kayıtlarını gösterir",
+              "flags": [
+                { "flag": "docker logs -f web", "description": "Canlı takip (follow)" },
+                { "flag": "docker logs --tail 50 web", "description": "Son 50 satır" }
+              ]
+            },
+            {
+              "command": "docker stop web",
+              "description": "Çalışan konteyneri nazikçe durdurur",
+              "tip": "Tekrar başlatmak için: docker start web"
+            },
+            {
+              "command": "docker rm web",
+              "description": "Durmuş bir konteyneri siler",
+              "tip": "Çalışan konteyneri silmek için: docker rm -f web (zorla). Sonraki adım: 'docker ps -a' ile silindiğini doğrula."
+            },
+            {
+              "command": "docker system prune -a",
+              "description": "Kullanılmayan tüm konteyner, image ve ağları temizler (disk açar)",
+              "warning": "-a kullanılmayan TÜM image'ları siler. Çok yer açar ama dikkatli kullan."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "docker-volumes-networks",
+      "title": "Volume ve Network — Kalıcı Veri ve İletişim",
+      "description": "Veriyi kalıcı tut, konteynerleri birbirine bağla",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Neden Volume?",
+          "content": "**Problem:** Konteyner silinince içindeki tüm veri kaybolur. Veritabanı konteynerini silersen tüm kayıtlar gider!\n\n**Çözüm — Volume:** Veriyi konteynerin DIŞINDA, host'ta saklayan kalıcı depolama.\n\n**İki tür bağlama:**\n- **Named volume:** Docker yönetir → `-v db_data:/var/lib/mysql`\n- **Bind mount:** Host'taki belirli klasör → `-v /home/burak/data:/app/data`\n\n**Network:** Konteynerlerin birbiriyle konuşması için sanal ağ. Aynı ağdaki konteynerler birbirini İSİM ile bulabilir (örn: `web` konteyneri `db` konteynerine `db:3306` ile bağlanır)."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Volume ve Network Komutları",
+          "commands": [
+            {
+              "command": "docker volume create db_data",
+              "description": "Kalıcı bir veri alanı oluşturur",
+              "tip": "Sonraki adım: konteyneri başlatırken -v db_data:/var/lib/mysql ile bağla."
+            },
+            {
+              "command": "docker run -d -v db_data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=gizli --name db mysql:8",
+              "description": "MySQL'i kalıcı volume ile başlatır — konteyner silinse bile veri kalır",
+              "tip": "-e ile ortam değişkeni (şifre) verilir. Gerçek ortamda şifreyi Docker secret ile yönet."
+            },
+            {
+              "command": "docker volume ls",
+              "description": "Tüm volume'ları listeler"
+            },
+            {
+              "command": "docker network create uygulama-ag",
+              "description": "Konteynerlerin haberleşeceği özel bir ağ oluşturur"
+            },
+            {
+              "command": "docker run -d --network uygulama-ag --name web nginx",
+              "description": "Konteyneri belirli bir ağa bağlayarak başlatır",
+              "tip": "Aynı ağdaki başka konteyner 'web' ismiyle buna ulaşabilir — IP gerekmez."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "docker-compose",
+      "title": "Docker Compose — Çok Konteynerli Uygulamalar",
+      "description": "Tek dosyayla tüm servisleri ayağa kaldır",
+      "difficulty": "advanced",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Compose Mantığı",
+          "content": "**Docker Compose:** Birden fazla konteyneri (web + veritabanı + cache) tek bir YAML dosyasında tanımlayıp tek komutla yöneten araç.\n\n**docker-compose.yml örneği:**\n```yaml\nservices:\n  web:\n    image: nginx\n    ports:\n      - \"8080:80\"\n    depends_on:\n      - db\n    networks:\n      - app-net\n\n  db:\n    image: mysql:8\n    environment:\n      MYSQL_ROOT_PASSWORD: gizli\n    volumes:\n      - db_data:/var/lib/mysql\n    networks:\n      - app-net\n\nvolumes:\n  db_data:\n\nnetworks:\n  app-net:\n```\n\n**Avantaj:** 10 tane `docker run` komutu yerine tek `docker compose up`. Tüm yapı versiyon kontrolüne (Git!) girer, her ortamda aynı çalışır."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Compose Komutları",
+          "commands": [
+            {
+              "command": "docker compose up -d",
+              "description": "docker-compose.yml'deki tüm servisleri arka planda başlatır",
+              "output": "[+] Running 3/3\n ✔ Network app-net   Created\n ✔ Container db      Started\n ✔ Container web     Started",
+              "tip": "Sonraki adım: 'docker compose ps' ile servislerin durumunu gör."
+            },
+            {
+              "command": "docker compose ps",
+              "description": "Compose ile başlatılan servislerin durumunu listeler"
+            },
+            {
+              "command": "docker compose logs -f",
+              "description": "Tüm servislerin loglarını canlı takip eder"
+            },
+            {
+              "command": "docker compose down",
+              "description": "Tüm servisleri durdurur ve konteynerleri/ağı siler",
+              "tip": "Volume'ları da silmek için: docker compose down -v (DİKKAT: veri kaybı)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "docker-security",
+      "title": "Konteyner Güvenliği",
+      "description": "Image tarama, en az yetki ve güvenli yapılandırma",
+      "difficulty": "advanced",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Konteyner Güvenlik İlkeleri",
+          "content": "**Docker güvenli değil — güvenli yapılandırılır.** Bir mühendis olarak bilmen gerekenler:\n\n**Yaygın Riskler:**\n- **Zafiyetli base image:** Eski image'larda bilinen CVE'ler\n- **root olarak çalışma:** Konteyner içinde root = kaçış riski\n- **Açık Docker socket:** /var/run/docker.sock mount edilmesi = host ele geçirme\n- **Gömülü secret'lar:** Image içinde şifre/API key\n- **Sınırsız kaynak:** DoS'a açık\n\n**Güvenlik Kontrol Listesi:**\n| Önlem | Komut/Yöntem |\n|-------|--------------|\n| Image'ı tara | trivy image myapp:1.0 |\n| root olarak çalışma | Dockerfile'da USER tanımla |\n| Salt-okunur dosya sistemi | --read-only |\n| Kaynak sınırla | --memory, --cpus |\n| Yetenekleri kıs | --cap-drop ALL |\n| Resmi/imzalı image kullan | Docker Official Images |"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Güvenlik Komutları",
+          "commands": [
+            {
+              "command": "trivy image nginx:latest",
+              "description": "Image'daki bilinen zafiyetleri (CVE) tarar — en popüler konteyner tarayıcı",
+              "output": "nginx:latest (debian 12.1)\nTotal: 142 (LOW: 95, MEDIUM: 32, HIGH: 13, CRITICAL: 2)",
+              "tip": "CI/CD pipeline'a ekle: HIGH/CRITICAL varsa build'i durdur. Kurulum: apt install trivy"
+            },
+            {
+              "command": "docker run --user 1000:1000 --read-only --cap-drop ALL nginx",
+              "description": "En az yetki ile konteyner çalıştırma — root değil, salt-okunur, yetenekler kapalı",
+              "tip": "Saldırgan konteyneri ele geçirse bile yapabilecekleri kısıtlanır."
+            },
+            {
+              "command": "docker scout cves myapp:1.0",
+              "description": "Docker'ın yerleşik zafiyet analiz aracı (Docker Scout)",
+              "tip": "trivy'ye alternatif, Docker Desktop ile gelir."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "Pratik: Güvenli Lab Ortamı Kur",
+          "scenario": {
+            "title": "Docker ile İzole Bir Web Uygulaması Çalıştır",
+            "objective": "Docker kullanarak bir web sunucusu ayağa kaldır, içine gir, loglarını incele, image'ını zafiyet taramasından geçir ve temizle.",
+            "environment": "Docker kurulu yerel makine",
+            "difficulty": "intermediate",
+            "steps": [
+              "Nginx'i isimlendirerek başlat: docker run -d -p 8080:80 --name lab-web nginx",
+              "Tarayıcıda kontrol et: localhost:8080",
+              "Çalışan konteynerleri gör: docker ps",
+              "İçine gir: docker exec -it lab-web bash",
+              "İçeride: cat /etc/os-release ile hangi dağıtım olduğuna bak, sonra exit",
+              "Logları incele: docker logs lab-web",
+              "Image'ı tara: trivy image nginx:latest",
+              "Temizle: docker rm -f lab-web"
+            ],
+            "hints": [
+              "8080 portu doluysa farklı bir port kullan: -p 8081:80",
+              "docker stats ile konteynerin canlı kaynak kullanımını izleyebilirsin",
+              "Tüm denemeleri temizlemek için: docker system prune -a"
+            ],
+            "defenseNote": "Güvenlik notu: İzole lab ortamları için Docker idealdir — DVWA gibi zafiyetli uygulamaları kendi sistemini riske atmadan çalıştırabilirsin. Ancak ASLA --privileged bayrağını veya /var/run/docker.sock mount'unu güvenmediğin image'larla kullanma; bu host'un tamamen ele geçirilmesine yol açabilir (container escape)."
+          }
+        }
+      ]
+    }
+  ]
+}

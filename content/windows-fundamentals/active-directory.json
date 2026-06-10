@@ -1,0 +1,190 @@
+{
+  "id": "active-directory",
+  "slug": "active-directory",
+  "title": "Active Directory Yönetimi",
+  "subtitle": "Kurumsal Kimlik ve Erişim Altyapısı",
+  "description": "Kurumsal Windows ağlarının kalbi. Domain, OU, kullanıcı/grup yönetiminden Group Policy'ye ve güvenlik sertleştirmesine kadar AD'yi temelden öğren.",
+  "icon": "Users",
+  "order": 6,
+  "tags": ["active directory", "domain", "GPO", "kerberos", "LDAP", "powershell", "kurumsal"],
+  "modules": [
+    {
+      "id": "ad-intro",
+      "title": "Active Directory Nedir?",
+      "description": "Domain, DC, forest, OU kavramları ve AD mimarisi",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "AD Mimarisi ve Kavramlar",
+          "content": "**Active Directory (AD):** Microsoft'un kurumsal ağlarda kullanıcı, bilgisayar ve kaynakları merkezi olarak yöneten dizin hizmeti. Bir şirketteki binlerce bilgisayarı ve kullanıcıyı tek noktadan yönetmeyi sağlar.\n\n**Neden Kritik?**\n- Kurumların %90'ından fazlası AD kullanır\n- Tek oturum açma (SSO) — bir parolayla tüm kaynaklara erişim\n- Merkezi politika yönetimi (GPO)\n- **Güvenlik açısından #1 hedef:** Domain Controller ele geçirilirse tüm ağ düşer\n\n**Temel Kavramlar:**\n| Kavram | Anlamı |\n|--------|--------|\n| Domain | Yönetim sınırı (örn: sirket.local) |\n| Domain Controller (DC) | AD'yi barındıran sunucu |\n| Forest | Bir veya daha fazla domain'in en üst kapsayıcısı |\n| Tree | Aynı isim alanını paylaşan domain'ler |\n| OU (Organizational Unit) | Kullanıcı/bilgisayarları gruplayan klasör |\n| Object | Kullanıcı, bilgisayar, grup gibi her kayıt |\n| Schema | Tüm nesne tiplerinin tanımı |\n\n**Hiyerarşi:**\n```\nForest\n └─ Domain (sirket.local)\n     ├─ OU: Muhasebe\n     │   ├─ Kullanıcı: ahmet\n     │   └─ Bilgisayar: PC-01\n     └─ OU: IT\n         └─ Grup: Yöneticiler\n```\n\n**Arkadaki Protokoller:**\n- **LDAP** (389/636): Dizin sorgulama\n- **Kerberos** (88): Kimlik doğrulama (bilet tabanlı)\n- **DNS** (53): AD, çalışmak için DNS'e bağımlıdır\n- **SMB** (445): Dosya paylaşımı, GPO dağıtımı"
+        }
+      ]
+    },
+    {
+      "id": "ad-users-groups",
+      "title": "Kullanıcı ve Grup Yönetimi",
+      "description": "PowerShell ve komut satırıyla AD nesnelerini yönet",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Yönetim Araçları",
+          "content": "AD'yi yönetmenin üç yolu:\n1. **GUI:** Active Directory Users and Computers (dsa.msc)\n2. **PowerShell:** ActiveDirectory modülü (otomasyon için en güçlü)\n3. **Klasik CMD:** net, dsadd, dsquery komutları\n\nPowerShell modülünü yüklemek için (DC veya RSAT kurulu makinede):\n```powershell\nImport-Module ActiveDirectory\n```\n\n> Profesyonel sistem yöneticileri toplu işlemler için PowerShell kullanır — 500 kullanıcıyı tek tek GUI'den eklemek yerine bir script ile."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "PowerShell AD Komutları",
+          "commands": [
+            {
+              "command": "Get-ADUser -Filter * | Select-Object Name, SamAccountName, Enabled",
+              "description": "Domaindeki tüm kullanıcıları listeler",
+              "output": "Name          SamAccountName   Enabled\n----          --------------   -------\nAhmet Yılmaz  ahmet            True\nAyşe Demir    ayse             True",
+              "tip": "Sonraki adım: tek bir kullanıcının detayı için -Identity kullan."
+            },
+            {
+              "command": "Get-ADUser -Identity ahmet -Properties *",
+              "description": "Belirli bir kullanıcının TÜM özelliklerini gösterir",
+              "tip": "-Properties * çok fazla bilgi verir; son giriş, grup üyelikleri, hesap durumu burada."
+            },
+            {
+              "command": "New-ADUser -Name \"Mehmet Kaya\" -SamAccountName mehmet -AccountPassword (Read-Host -AsSecureString) -Enabled $true",
+              "description": "Yeni bir domain kullanıcısı oluşturur ve hesabı etkinleştirir",
+              "tip": "Sonraki adım: kullanıcıyı bir gruba ekle (aşağıda). Read-Host -AsSecureString parolayı güvenli sorar."
+            },
+            {
+              "command": "Add-ADGroupMember -Identity \"Muhasebe\" -Members mehmet",
+              "description": "Bir kullanıcıyı gruba ekler",
+              "tip": "Grup üyeliği = erişim yetkisi. En az yetki prensibini uygula — sadece gereken gruplara ekle."
+            },
+            {
+              "command": "Get-ADGroupMember -Identity \"Domain Admins\"",
+              "description": "Bir grubun üyelerini listeler — özellikle ayrıcalıklı grupları denetle",
+              "warning": "Domain Admins üyeliği = domaindeki en yüksek yetki. Bu grubu DÜZENLİ denetle; beklenmedik üye = ihlal işareti."
+            },
+            {
+              "command": "Disable-ADAccount -Identity mehmet",
+              "description": "Bir hesabı devre dışı bırakır (işten ayrılan çalışan senaryosu)",
+              "tip": "Silmek yerine devre dışı bırakmak adli inceleme için kanıtı korur."
+            },
+            {
+              "command": "Search-ADAccount -LockedOut",
+              "description": "Kilitlenmiş tüm hesapları bulur — brute force saldırısı belirtisi olabilir",
+              "tip": "Çok sayıda kilitli hesap = olası parola saldırısı. SIEM ile korele et."
+            }
+          ]
+        },
+        {
+          "id": "advanced",
+          "type": "advanced",
+          "title": "Klasik CMD Komutları",
+          "content": "PowerShell olmayan ortamlarda veya hızlı kontrol için klasik komutlar:\n\n```cmd\nREM Domaindeki tüm kullanıcılar\nnet user /domain\n\nREM Belirli kullanıcının detayı ve grupları\nnet user ahmet /domain\n\nREM Domain gruplarını listele\nnet group /domain\n\nREM Bir grubun üyeleri\nnet group \"Domain Admins\" /domain\n\nREM Domain'e bilgisayar bilgisi\nnltest /dclist:sirket.local\n\nREM Mevcut kullanıcının grupları ve yetkileri\nwhoami /groups\nwhoami /priv\n```\n\n> `whoami /priv` siber güvenlikte kritik: hangi ayrıcalıklara sahip olduğunu gösterir (örn: SeImpersonatePrivilege → privilege escalation potansiyeli)."
+        }
+      ]
+    },
+    {
+      "id": "ad-ou-gpo",
+      "title": "OU ve Group Policy (GPO)",
+      "description": "Organizasyon birimleri ve merkezi politika yönetimi",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Group Policy Nedir?",
+          "content": "**Group Policy (GPO):** Kullanıcı ve bilgisayarlara merkezi olarak ayar/politika dağıtma mekanizması. Tek noktadan binlerce makineyi yapılandırırsın.\n\n**GPO ile neler yapılır?**\n- Parola politikası (min uzunluk, karmaşıklık, süre)\n- USB engelleme\n- Yazılım dağıtımı\n- Masaüstü/tarayıcı ayarları\n- Güvenlik kısıtlamaları (PowerShell loglama, AppLocker)\n- Login script çalıştırma\n\n**GPO Uygulama Sırası (LSDOU):**\n```\nLocal → Site → Domain → OU\n```\nSonra uygulanan öncekini ezer. OU seviyesi en spesifik, en son uygulanır.\n\n**Güvenlik açısından:** GPO hem savunma (sertleştirme) hem saldırı (yanlış yapılandırılmış GPO ile yayılma) için kritiktir."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "OU ve GPO Komutları",
+          "commands": [
+            {
+              "command": "New-ADOrganizationalUnit -Name \"Muhasebe\" -Path \"DC=sirket,DC=local\"",
+              "description": "Yeni bir Organizational Unit (OU) oluşturur",
+              "tip": "OU'lar hem düzenleme hem GPO hedeflemesi için kullanılır."
+            },
+            {
+              "command": "Get-ADOrganizationalUnit -Filter * | Select-Object Name, DistinguishedName",
+              "description": "Domaindeki tüm OU'ları listeler"
+            },
+            {
+              "command": "gpupdate /force",
+              "description": "Group Policy ayarlarını hemen yeniler (varsayılan 90 dk'yı beklemeden)",
+              "output": "Updating policy...\nComputer Policy update has completed successfully.\nUser Policy update has completed successfully.",
+              "tip": "Bir GPO değişikliği yaptıktan sonra test makinesinde bunu çalıştır."
+            },
+            {
+              "command": "gpresult /r",
+              "description": "Mevcut kullanıcı/bilgisayara uygulanan GPO'ları gösterir",
+              "tip": "gpresult /h rapor.html ile detaylı HTML raporu üretir — sorun gidermede çok kullanışlı."
+            },
+            {
+              "command": "Get-GPO -All | Select-Object DisplayName, CreationTime",
+              "description": "Domaindeki tüm GPO'ları listeler (GroupPolicy modülü)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ad-security",
+      "title": "AD Güvenliği — Saldırı Yüzeyi ve Savunma",
+      "description": "Yaygın AD saldırılarının farkındalığı ve sertleştirme",
+      "difficulty": "advanced",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "AD'ye Yönelik Yaygın Saldırılar (Farkındalık)",
+          "content": "Bir sistem/güvenlik mühendisi olarak AD'nin nasıl hedef alındığını **bilmek savunmanın ön koşuludur**. Aşağıdakiler yalnızca yetkili sızma testleri ve lab ortamları için farkındalık amaçlıdır.\n\n| Saldırı | Mantığı | Savunma |\n|---------|---------|---------|\n| **Kerberoasting** | Servis hesabı biletini alıp offline parola kırma | Uzun/karmaşık servis parolaları, gMSA |\n| **Pass-the-Hash** | Parola yerine NTLM hash'i ile kimlik doğrulama | LAPS, NTLM kısıtlama, Credential Guard |\n| **Pass-the-Ticket** | Çalınan Kerberos bileti ile erişim | Bilet ömrü kısıtlama, izleme |\n| **DCSync** | DC taklidi ile parola hash'leri çekme | Replikasyon yetkilerini denetle |\n| **Golden Ticket** | krbtgt hash'i ile sahte bilet üretme | krbtgt parolasını düzenli değiştir |\n| **LLMNR/NBT-NS Poisoning** | Ad çözümlemeyi zehirleyip hash yakalama | LLMNR/NBT-NS devre dışı bırak |\n\n**Ele geçirme zinciri (kavramsal):**\n```\nİlk erişim → Enumeration → Yetki yükseltme →\nLateral movement → Domain Admin → Persistence\n```\n\n> **Etik çerçeve:** Bu teknikler yalnızca yazılı izinli sızma testlerinde ve izole laboratuvarlarda (örn: GOAD, Active Directory lab) uygulanır. Amaç beyaz şapkalı savunma yetkinliği kazanmaktır."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Savunma ve Denetim Komutları",
+          "commands": [
+            {
+              "command": "Get-ADUser -Filter {ServicePrincipalName -like '*'} -Properties ServicePrincipalName",
+              "description": "SPN'e sahip hesapları bulur — Kerberoasting hedeflerini önceden tespit et",
+              "tip": "Bu hesapların parolaları çok güçlü olmalı veya gMSA'ya geçilmeli."
+            },
+            {
+              "command": "Get-ADUser -Filter {AdminCount -eq 1} -Properties AdminCount",
+              "description": "Ayrıcalıklı gruplara üye olmuş/olan hesapları listeler",
+              "tip": "AdminCount=1 olan beklenmedik hesaplar = yetki yükseltme veya kalıcılık belirtisi olabilir."
+            },
+            {
+              "command": "Search-ADAccount -PasswordNeverExpires | Select-Object Name",
+              "description": "Parolası hiç süresi dolmayan hesapları bulur (güvenlik riski)",
+              "warning": "Parolası süresiz hesaplar, özellikle ayrıcalıklı olanlar, ciddi risktir. Denetle ve düzelt."
+            },
+            {
+              "command": "Get-ADDefaultDomainPasswordPolicy",
+              "description": "Domain parola politikasını gösterir — sertleştirme kontrolü",
+              "tip": "Minimum 14 karakter, karmaşıklık açık, kilitlenme eşiği makul mü kontrol et."
+            },
+            {
+              "command": "Get-WinEvent -FilterHashtable @{LogName='Security'; ID=4625} -MaxEvents 20",
+              "description": "Son başarısız oturum açma denemelerini gösterir (brute force tespiti)",
+              "tip": "Event ID 4625 = başarısız giriş. Çok sayıda = parola saldırısı. SIEM'e besle."
+            }
+          ]
+        },
+        {
+          "id": "defense",
+          "type": "defense",
+          "title": "AD Sertleştirme Kontrol Listesi",
+          "content": "**Temel Sertleştirme:**\n- ✅ **LAPS** kur — her makineye farklı yerel admin parolası\n- ✅ **Tiered yönetim modeli** — Tier 0 (DC), Tier 1 (sunucu), Tier 2 (istemci) ayrımı\n- ✅ Domain Admins üyeliğini **minimumda** tut, günlük işte kullanma\n- ✅ **krbtgt** parolasını düzenli (yılda 2 kez) değiştir\n- ✅ **LLMNR/NBT-NS** devre dışı bırak\n- ✅ Servis hesaplarını **gMSA**'ya taşı\n- ✅ **SMB imzalama** zorunlu kıl\n\n**İzleme:**\n- ✅ Event 4624/4625 (giriş), 4672 (admin giriş), 4768/4769 (Kerberos) izle\n- ✅ Domain Admins grubu değişikliklerine (4728/4732) alarm kur\n- ✅ **BloodHound** ile saldırı yollarını proaktif analiz et (savunma için)\n- ✅ Düzenli **AD güvenlik değerlendirmesi** (PingCastle, Purple Knight)\n\n**Yedekleme:**\n- ✅ DC'lerin düzenli System State yedeği\n- ✅ Yedeklerin offline/immutable kopyası (ransomware'e karşı)\n\n> Unutma: AD güvenliği bir kerelik iş değil, sürekli bir denetim döngüsüdür."
+        }
+      ]
+    }
+  ]
+}

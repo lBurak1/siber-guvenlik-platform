@@ -1,0 +1,344 @@
+{
+  "id": "git",
+  "slug": "git",
+  "title": "Git & GitHub",
+  "subtitle": "Versiyon Kontrolü — Temelden İleriye",
+  "description": "Her mühendisin günlük kullandığı versiyon kontrol sistemi. init'ten rebase'e, branch yönetiminden çakışma çözmeye kadar Git'i komut alışkanlığı kazanacak şekilde öğren.",
+  "icon": "🔀",
+  "order": 1,
+  "tags": ["git", "github", "versiyon kontrol", "commit", "branch", "merge", "rebase"],
+  "modules": [
+    {
+      "id": "git-intro",
+      "title": "Git Nedir? Kurulum ve Yapılandırma",
+      "description": "Versiyon kontrol kavramı, Git'in kurulumu ve ilk yapılandırma",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Versiyon Kontrol ve Git",
+          "content": "**Versiyon Kontrol Sistemi (VCS):** Dosyalarındaki değişiklikleri zaman içinde kaydeden, istediğin anki haline dönebilmeni sağlayan sistem.\n\n**Neden Git?**\n- Kodun her halini saklar — \"dün çalışıyordu\" sorununu çözer\n- Ekip çalışmasını mümkün kılar — aynı dosyada birden fazla kişi\n- Deneme yapmanı sağlar — yeni branch'te dene, beğenmezsen sil\n- Geri alma — yanlış değişikliği saniyeler içinde geri al\n\n**Temel Kavramlar:**\n| Kavram | Anlamı |\n|--------|--------|\n| Repository (repo) | Projenin tüm geçmişini tutan klasör |\n| Commit | Değişikliklerin kaydedilmiş bir anlık görüntüsü |\n| Branch | Bağımsız geliştirme dalı |\n| Remote | Uzak sunucudaki repo (GitHub, GitLab) |\n| Staging Area | Commit edilmeyi bekleyen değişiklikler |\n| Working Directory | Üzerinde çalıştığın güncel dosyalar |\n\n**Git'in 3 Bölgesi:**\n```\nWorking Directory  →  Staging Area  →  Repository\n   (git add)           (git commit)\n```\n\n> Siber güvenlikte de kritik: kod denetimi, exploit geliştirme, araç versiyonlama ve `.git` klasörü sızıntıları (kaynak kod ifşası) hep Git bilgisi gerektirir."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Git Kurulumu",
+          "installation": {
+            "note": "Kurulumdan sonra kimlik bilgilerini ayarlamak zorunludur — yoksa commit atamazsın.",
+            "linux": [
+              "sudo apt update && sudo apt install git -y",
+              "git --version"
+            ],
+            "windows": [
+              "winget install --id Git.Git -e",
+              "git --version"
+            ],
+            "macos": [
+              "brew install git",
+              "git --version"
+            ]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "İlk Yapılandırma",
+          "commands": [
+            {
+              "command": "git config --global user.name \"Adın Soyadın\"",
+              "description": "Commit'lerde görünecek isminizi ayarlar (bir kez yapılır)",
+              "tip": "Sonraki adım: e-posta adresini de ayarla, ikisi de zorunludur."
+            },
+            {
+              "command": "git config --global user.email \"mail@ornek.com\"",
+              "description": "Commit'lerde görünecek e-posta adresinizi ayarlar"
+            },
+            {
+              "command": "git config --global init.defaultBranch main",
+              "description": "Yeni repo'larda varsayılan branch adını 'main' yapar (eski varsayılan: master)"
+            },
+            {
+              "command": "git config --list",
+              "description": "Tüm Git yapılandırmasını listeler — ayarların doğru mu kontrol et",
+              "output": "user.name=Adın Soyadın\nuser.email=mail@ornek.com\ninit.defaultbranch=main"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "git-basics",
+      "title": "Temel İş Akışı — init, add, commit",
+      "description": "Bir repo başlat, değişiklikleri kaydet, geçmişi incele",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Günlük Git Komutları",
+          "commands": [
+            {
+              "command": "git init",
+              "description": "Bulunduğun klasörü yeni bir Git repo'suna dönüştürür (.git klasörü oluşur)",
+              "output": "Initialized empty Git repository in /home/burak/proje/.git/",
+              "tip": "Sonraki adım: dosyalarını oluştur, sonra 'git status' ile durumu kontrol et."
+            },
+            {
+              "command": "git status",
+              "description": "Hangi dosyalar değişti, hangileri stage'de — en sık kullanacağın komut",
+              "output": "On branch main\nUntracked files:\n  (use \"git add <file>...\" to include in what will be committed)\n        index.html\n        style.css",
+              "tip": "Sonraki adım: kaydetmek istediğin dosyaları 'git add' ile stage'e ekle."
+            },
+            {
+              "command": "git add index.html",
+              "description": "Tek bir dosyayı staging area'ya ekler (commit'e hazırlar)",
+              "flags": [
+                { "flag": "git add .", "description": "Tüm değişiklikleri stage'e ekle" },
+                { "flag": "git add *.js", "description": "Sadece .js dosyalarını ekle" },
+                { "flag": "git add -A", "description": "Silinenler dahil tüm değişiklikler" }
+              ]
+            },
+            {
+              "command": "git commit -m \"İlk commit: ana sayfa eklendi\"",
+              "description": "Stage'deki değişiklikleri açıklamayla birlikte kalıcı olarak kaydeder",
+              "output": "[main (root-commit) a3f8c2d] İlk commit: ana sayfa eklendi\n 1 file changed, 20 insertions(+)",
+              "tip": "Sonraki adım: 'git log' ile commit'inin kaydedildiğini gör. İyi commit mesajı: kısa, ne yaptığını anlatan, emir kipinde."
+            },
+            {
+              "command": "git log --oneline",
+              "description": "Commit geçmişini tek satırlık özet halinde gösterir",
+              "output": "a3f8c2d (HEAD -> main) İlk commit: ana sayfa eklendi",
+              "flags": [
+                { "flag": "git log", "description": "Detaylı geçmiş (yazar, tarih, mesaj)" },
+                { "flag": "git log --graph --oneline --all", "description": "Branch'leri görsel ağaç olarak göster" },
+                { "flag": "git log -p", "description": "Her commit'in tam değişikliğini göster" }
+              ]
+            },
+            {
+              "command": "git diff",
+              "description": "Henüz stage'lenmemiş değişiklikleri satır satır gösterir",
+              "tip": "git diff --staged → stage'lenmiş ama commit edilmemiş değişiklikleri gösterir"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "git-branches",
+      "title": "Branch'ler ve Birleştirme (Merge)",
+      "description": "Bağımsız dallar oluştur, birleştir, çakışmaları çöz",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Branch Mantığı",
+          "content": "**Branch (Dal):** Ana koddan bağımsız bir geliştirme hattı. Yeni özellik geliştirirken `main`'i bozmamak için ayrı branch'te çalışırsın.\n\n**Tipik Akış (Feature Branch Workflow):**\n```\nmain ───●────●────────────●  (merge)\n          \\              /\nfeature    ●────●────●  (yeni özellik)\n```\n\n1. `main`'den yeni branch aç\n2. Branch'te geliştir, commit at\n3. Bitince `main`'e merge et\n4. Branch'i sil\n\n**Neden?**\n- `main` her zaman çalışır halde kalır\n- Birden fazla özellik paralel geliştirilir\n- Code review (PR) bu modelle yapılır"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Branch Komutları",
+          "commands": [
+            {
+              "command": "git branch",
+              "description": "Tüm branch'leri listeler, aktif olanı * ile gösterir",
+              "output": "* main"
+            },
+            {
+              "command": "git switch -c yeni-ozellik",
+              "description": "Yeni branch oluştur ve ona geç (modern komut)",
+              "output": "Switched to a new branch 'yeni-ozellik'",
+              "tip": "Sonraki adım: bu branch'te değişiklik yap, commit at. Eski yöntem: 'git checkout -b yeni-ozellik' (aynı işi yapar)."
+            },
+            {
+              "command": "git switch main",
+              "description": "Var olan başka bir branch'e geçiş yapar",
+              "tip": "Eski yöntem: git checkout main"
+            },
+            {
+              "command": "git merge yeni-ozellik",
+              "description": "Belirtilen branch'i şu an bulunduğun branch'e birleştirir",
+              "output": "Updating a3f8c2d..b7d1e9f\nFast-forward\n index.html | 15 +++++++++++++++",
+              "tip": "Önce 'git switch main' yap, sonra merge et — yani 'yeni-ozellik'i main'in İÇİNE çekersin."
+            },
+            {
+              "command": "git branch -d yeni-ozellik",
+              "description": "Merge edilmiş branch'i siler (temizlik)",
+              "tip": "-d güvenli siler (merge edilmemişse uyarır). -D zorla siler (dikkat!)."
+            }
+          ]
+        },
+        {
+          "id": "advanced",
+          "type": "advanced",
+          "title": "Merge Çakışması (Conflict) Çözme",
+          "content": "İki branch aynı satırı farklı değiştirdiğinde Git karar veremez — **çakışma (conflict)** olur.\n\n**Çakışma işaretleri dosyada şöyle görünür:**\n```\n<<<<<<< HEAD\nbu senin main'deki halin\n=======\nbu diğer branch'teki hali\n>>>>>>> yeni-ozellik\n```\n\n**Çözüm adımları:**\n1. `git status` ile çakışan dosyaları gör\n2. Dosyayı aç, `<<<<<<<`, `=======`, `>>>>>>>` satırlarını sil\n3. Doğru olan kodu bırak (ikisini birleştirebilirsin de)\n4. `git add dosya.txt` ile çözüldü olarak işaretle\n5. `git commit` ile birleştirmeyi tamamla\n\n> **İptal etmek istersen:** `git merge --abort` ile merge'ü tamamen geri al, hiçbir şey olmamış gibi."
+        }
+      ]
+    },
+    {
+      "id": "git-remote",
+      "title": "Uzak Repo — GitHub ile Çalışmak",
+      "description": "clone, push, pull, fetch — kodu sunucuyla senkronize et",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Remote Komutları",
+          "commands": [
+            {
+              "command": "git clone https://github.com/kullanici/repo.git",
+              "description": "Uzak bir repo'yu bilgisayarına tam geçmişiyle kopyalar",
+              "output": "Cloning into 'repo'...\nremote: Enumerating objects: 120, done.\nReceiving objects: 100% (120/120), done.",
+              "tip": "Sonraki adım: 'cd repo' ile klasöre gir, çalışmaya başla."
+            },
+            {
+              "command": "git remote add origin https://github.com/kullanici/repo.git",
+              "description": "Yerel repo'na uzak bir adres bağlar (origin = standart isim)",
+              "tip": "Bu komut, kendi başlattığın 'git init' repo'sunu GitHub'a bağlamak için. clone yaptıysan otomatik bağlıdır."
+            },
+            {
+              "command": "git push -u origin main",
+              "description": "Yerel commit'leri ilk kez uzak repoya gönderir (-u = bağlantıyı hatırla)",
+              "output": "To https://github.com/kullanici/repo.git\n * [new branch]      main -> main",
+              "tip": "Sonraki adım: bir sonraki seferden sadece 'git push' yeterli olur."
+            },
+            {
+              "command": "git pull",
+              "description": "Uzak repodaki yeni değişiklikleri indirip yereline birleştirir",
+              "tip": "Ekip çalışmasında: çalışmaya başlamadan ÖNCE her zaman pull yap, çakışmayı azaltır."
+            },
+            {
+              "command": "git fetch",
+              "description": "Uzaktan değişiklikleri indirir AMA birleştirmez — önce incelemek için",
+              "tip": "pull = fetch + merge. fetch ile önce 'git log origin/main' diyerek neyin geldiğini görebilirsin."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "git-undo",
+      "title": "Hataları Geri Alma — restore, reset, revert, stash",
+      "description": "Yanlış yaptığında kurtaran komutlar",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Geri Alma Komutları",
+          "commands": [
+            {
+              "command": "git restore dosya.txt",
+              "description": "Henüz commit edilmemiş değişiklikleri geri alır (dosyayı son haline döndürür)",
+              "warning": "Kaydedilmemiş değişiklikler KALICI silinir. Dikkatli kullan."
+            },
+            {
+              "command": "git restore --staged dosya.txt",
+              "description": "Yanlışlıkla 'git add' yaptığın dosyayı stage'den çıkarır (değişiklik korunur)"
+            },
+            {
+              "command": "git commit --amend -m \"Düzeltilmiş mesaj\"",
+              "description": "Son commit'in mesajını veya içeriğini düzeltir",
+              "tip": "Sadece henüz push ETMEDİĞİN commit'lerde kullan. Push edilmişse geçmişi bozar."
+            },
+            {
+              "command": "git revert a3f8c2d",
+              "description": "Belirtilen commit'in etkisini TERSİNE çeviren yeni bir commit oluşturur",
+              "tip": "Push edilmiş commit'leri geri almanın GÜVENLİ yolu — geçmişi silmez, üstüne ekler."
+            },
+            {
+              "command": "git reset --hard HEAD~1",
+              "description": "Son commit'i tamamen siler ve dosyaları o haline döndürür",
+              "warning": "ÇOK TEHLİKELİ: commit ve değişiklikler kaybolur. Push edilmiş geçmişte ASLA kullanma. HEAD~1 = bir önceki commit."
+            },
+            {
+              "command": "git stash",
+              "description": "Yarım kalan değişiklikleri geçici rafa kaldırır (temiz çalışma alanı)",
+              "output": "Saved working directory and index state WIP on main: a3f8c2d",
+              "tip": "Sonraki adım: 'git stash pop' ile rafa kaldırdıklarını geri getir. Acil branch değiştirmen gerektiğinde hayat kurtarır."
+            },
+            {
+              "command": "git reflog",
+              "description": "HEAD'in tüm hareket geçmişi — 'sildiğim commit'i geri getirebilir miyim?' sorusunun cevabı",
+              "tip": "reset --hard ile bir şey kaybettiysen, reflog'dan commit hash'ini bulup geri dönebilirsin. Git'te neredeyse hiçbir şey gerçekten kaybolmaz."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "git-advanced",
+      "title": "İleri Seviye — rebase, cherry-pick, tag, .gitignore",
+      "description": "Profesyonel iş akışı araçları ve pratik senaryo",
+      "difficulty": "advanced",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "İleri Git Komutları",
+          "commands": [
+            {
+              "command": "git rebase main",
+              "description": "Branch'inin başlangıç noktasını main'in en güncel haline taşır — daha temiz, lineer geçmiş",
+              "warning": "Paylaşılan (push edilmiş) branch'lerde rebase YAPMA — ekibin geçmişini bozar. Sadece kendi yerel branch'inde.",
+              "tip": "merge bir 'birleştirme commit'i' oluşturur; rebase ise commit'leri yeniden dizer. Temiz geçmiş için tercih edilir."
+            },
+            {
+              "command": "git cherry-pick a3f8c2d",
+              "description": "Başka bir branch'teki TEK bir commit'i mevcut branch'e kopyalar",
+              "tip": "Bir bugfix'i tüm branch'i merge etmeden almak istediğinde kullanışlı."
+            },
+            {
+              "command": "git tag -a v1.0.0 -m \"İlk kararlı sürüm\"",
+              "description": "Bir commit'i sürüm olarak etiketler (release noktaları)",
+              "tip": "git push origin v1.0.0 ile tag'i GitHub'a gönder. Sürüm yönetiminin temeli."
+            },
+            {
+              "command": "echo \"node_modules/\" >> .gitignore",
+              "description": ".gitignore dosyası: Git'in TAKİP ETMEMESİ gereken dosya/klasörler",
+              "tip": "Asla commit'lenmemeli: node_modules/, .env (şifreler!), *.log, build/, .DS_Store. Güvenlik açısından kritik — .env sızıntısı = API key ifşası."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "Pratik: Sıfırdan GitHub'a Proje",
+          "scenario": {
+            "title": "Kendi Repo'nu Oluştur ve Yayınla",
+            "objective": "Yerel bir proje oluştur, Git ile versiyon kontrolüne al, GitHub'a yükle ve bir feature branch ile değişiklik yapıp merge et.",
+            "environment": "Yerel makine (Linux/Windows/macOS) + ücretsiz GitHub hesabı",
+            "difficulty": "beginner",
+            "steps": [
+              "Yeni klasör oluştur: mkdir git-pratik && cd git-pratik",
+              "Repo başlat: git init",
+              "Bir dosya oluştur: echo '# Benim Projem' > README.md",
+              "Stage ve commit: git add README.md && git commit -m 'İlk commit'",
+              "GitHub'da boş bir repo oluştur (web arayüzünden)",
+              "Bağla ve gönder: git remote add origin URL && git push -u origin main",
+              "Feature branch: git switch -c ozellik-ekle",
+              "README'yi düzenle, commit at, main'e dön ve merge et: git switch main && git merge ozellik-ekle",
+              "Değişikliği gönder: git push"
+            ],
+            "hints": [
+              "GitHub artık şifre yerine Personal Access Token (PAT) ister — Settings > Developer settings > Tokens",
+              "git log --oneline --graph ile tüm akışı görselleştir",
+              "Branch'i silmeyi unutma: git branch -d ozellik-ekle"
+            ],
+            "defenseNote": "Güvenlik notu: Bir repoyu push etmeden önce 'git status' ile ne gönderdiğini KONTROL ET. Yanlışlıkla push edilen .env, API key veya şifreler git geçmişine kalıcı işlenir ve geçmişten silmek (git filter-repo / BFG) gerekir. En iyisi: .gitignore'u baştan doğru kur."
+          }
+        }
+      ]
+    }
+  ]
+}

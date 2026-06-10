@@ -90,6 +90,18 @@ export const teamConfig = {
     gradient: "from-amber-900/20 to-transparent",
     description: "OWASP Top 10 — Web Uygulama Güvenliğinin En Kritik Zafiyetleri",
   },
+  "devops-fundamentals": {
+    label: "DevOps Temelleri",
+    shortLabel: "DEVOPS",
+    color: "#14b8a6",
+    bgClass: "bg-teal-500/10",
+    borderClass: "border-teal-500/30",
+    textClass: "text-teal-400",
+    glowClass: "shadow-[0_0_20px_rgba(20,184,166,0.3)]",
+    badgeClass: "bg-teal-500/20 text-teal-300 border-teal-500/30",
+    gradient: "from-teal-900/20 to-transparent",
+    description: "DevOps Temelleri — Git ve Docker ile modern mühendislik komut alışkanlıkları",
+  },
 } as const;
 
 export const riskConfig = {

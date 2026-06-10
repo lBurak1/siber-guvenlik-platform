@@ -60,6 +60,7 @@ const windowsMap: Record<string, () => Promise<any>> = {
   "file-operations-win": () => import("@/content/windows-fundamentals/file-operations-win.json"),
   "system-management":   () => import("@/content/windows-fundamentals/system-management.json"),
   "networking-win":      () => import("@/content/windows-fundamentals/networking-win.json"),
+  "active-directory":    () => import("@/content/windows-fundamentals/active-directory.json"),
 };
 
 // ─── OWASP Top 10 ────────────────────────────────────────────────────
@@ -74,6 +75,12 @@ const owaspMap: Record<string, () => Promise<any>> = {
   "integrity-failures":       () => import("@/content/owasp-top10/integrity-failures.json"),
   "logging-failures":         () => import("@/content/owasp-top10/logging-failures.json"),
   "ssrf":                     () => import("@/content/owasp-top10/ssrf.json"),
+};
+
+// ─── DevOps Fundamentals ─────────────────────────────────────────────
+const devopsMap: Record<string, () => Promise<any>> = {
+  "git":    () => import("@/content/devops-fundamentals/git.json"),
+  "docker": () => import("@/content/devops-fundamentals/docker.json"),
 };
 
 // ─── Cheat Sheet ─────────────────────────────────────────────────────
@@ -124,6 +131,10 @@ export async function getWindowsTopic(slug: string): Promise<NetworkTopic | null
 
 export async function getOwaspTopic(slug: string): Promise<NetworkTopic | null> {
   return load<NetworkTopic>(owaspMap, slug);
+}
+
+export async function getDevopsTopic(slug: string): Promise<NetworkTopic | null> {
+  return load<NetworkTopic>(devopsMap, slug);
 }
 
 export async function getCheatSheet(slug: string): Promise<PortCheatSheet | null> {

@@ -259,6 +259,37 @@ export const navigation = {
           { id: "networking-win", title: "Ağ Komutları (CMD/PS)", slug: "networking-win" },
         ],
       },
+      {
+        id: "active-directory",
+        title: "Active Directory",
+        icon: "Users",
+        tools: [
+          { id: "active-directory", title: "Active Directory Yönetimi", slug: "active-directory" },
+        ],
+      },
+    ],
+  },
+  "devops-fundamentals": {
+    label: "DevOps Temelleri",
+    color: "teal",
+    description: "Git ve Docker — modern mühendislik komutları",
+    categories: [
+      {
+        id: "version-control",
+        title: "Versiyon Kontrol",
+        icon: "GitBranch",
+        tools: [
+          { id: "git", title: "Git & GitHub", slug: "git" },
+        ],
+      },
+      {
+        id: "containers",
+        title: "Konteynerizasyon",
+        icon: "Box",
+        tools: [
+          { id: "docker", title: "Docker & Konteyner", slug: "docker" },
+        ],
+      },
     ],
   },
   "owasp-top10": {

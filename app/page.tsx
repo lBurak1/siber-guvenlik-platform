@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle } from "lucide-react";
+import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes } from "lucide-react";
 
 const sections = [
   {
@@ -47,6 +47,21 @@ const sections = [
     badge: "bg-sky-500/10 text-sky-400 border-sky-500/20",
     cta: "bg-sky-500/10 text-sky-300 border-sky-500/30 hover:bg-sky-500/20",
     modules: "5 Konu · 25+ Komut",
+  },
+  {
+    id: "devops-fundamentals",
+    href: "/devops-fundamentals",
+    icon: Boxes,
+    label: "DevOps Temelleri",
+    subtitle: "Git & Docker",
+    description: "Her mühendisin günlük araçları: Git ile versiyon kontrolü, Docker ile konteynerizasyon. Komut alışkanlığı kazandıran, CV'de aranan temel yetkinlikler.",
+    tools: ["git commit", "git rebase", "branch", "docker run", "Dockerfile", "compose", "trivy"],
+    color: "teal",
+    border: "border-teal-500/20 hover:border-teal-500/60",
+    glow: "hover:shadow-[0_0_40px_rgba(20,184,166,0.15)]",
+    badge: "bg-teal-500/10 text-teal-400 border-teal-500/20",
+    cta: "bg-teal-500/10 text-teal-300 border-teal-500/30 hover:bg-teal-500/20",
+    modules: "2 Konu · 50+ Komut",
   },
   {
     id: "red-team",
@@ -126,9 +141,9 @@ const sections = [
 ] as const;
 
 const stats = [
-  { label: "Araç & Konu", value: "44+", icon: Terminal },
-  { label: "Modül",       value: "120+", icon: Cpu },
-  { label: "CTF Lab",     value: "40+", icon: BookOpen },
+  { label: "Araç & Konu", value: "47+", icon: Terminal },
+  { label: "Modül",       value: "135+", icon: Cpu },
+  { label: "CTF Lab",     value: "42+", icon: BookOpen },
   { label: "Etik",        value: "100%", icon: Lock },
 ];
 

@@ -7,6 +7,7 @@ const topics = [
   { slug: "file-operations-win", icon: "📁",  title: "Dosya & Dizin Yönetimi",       desc: "mkdir nested, xcopy, robocopy, attrib, icacls, mklink — tam dosya kontrolü", level: "Orta" },
   { slug: "system-management",   icon: "⚙️",  title: "Sistem & Servis Yönetimi",     desc: "tasklist, sc, net user, wmic, Get-Service, regedit komutları", level: "Orta" },
   { slug: "networking-win",      icon: "🌐",  title: "Ağ Komutları (CMD/PS)",        desc: "ipconfig, netstat, ping, tracert, nslookup, Test-NetConnection, netsh", level: "Orta" },
+  { slug: "active-directory",    icon: "🏢",  title: "Active Directory Yönetimi",     desc: "Domain, OU, kullanıcı/grup yönetimi, GPO ve AD güvenliği — kurumsal Windows", level: "İleri" },
 ];
 
 export default function WindowsFundamentalsPage() {
@@ -20,7 +21,7 @@ export default function WindowsFundamentalsPage() {
         CMD'den PowerShell'e, sistem yönetiminden ağ komutlarına — Windows'u komut satırıyla yönet.
       </p>
       <div className="ml-10 mb-8 text-xs font-mono text-terminal-comment bg-surface-1 border border-sky-500/20 rounded-lg px-3 py-2 inline-block">
-        <span className="text-sky-400">önerilen sıra →</span> CMD → PowerShell → Dosya İşlemleri → Sistem Yönetimi → Ağ Komutları
+        <span className="text-sky-400">önerilen sıra →</span> CMD → PowerShell → Dosya İşlemleri → Sistem Yönetimi → Ağ Komutları → Active Directory
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
