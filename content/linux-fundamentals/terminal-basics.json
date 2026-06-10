@@ -147,6 +147,46 @@
       ]
     },
     {
+      "id": "terminal-errors",
+      "title": "Terminal Hataları ve Garip Promptlar",
+      "description": "dquote>, >, komut bulunamadı gibi durumlar ne anlama geliyor ve nasıl çözülür?",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Bash Promptları ve Hata Mesajları",
+          "content": "Terminalde bazen garip şeyler çıkabilir — paniğe gerek yok, hepsinin çözümü var.\n\n## Garip Promptlar\n\n| Prompt | Anlamı | Çözüm |\n|--------|--------|-------|\n| `dquote>` | Çift tırnak (`\"`) kapanmadı | **Ctrl+C** yap, komutu tekrar yaz |\n| `quote>` | Tek tırnak (`'`) kapanmadı | **Ctrl+C** yap, komutu tekrar yaz |\n| `>` | Komut bitmedi (pipe veya \\) | **Ctrl+C** yap veya komutu tamamla |\n| `(reverse-i-search)` | Ctrl+R ile geçmiş arama | Enter = çalıştır, Ctrl+C = çık |\n| `[sudo] password for burak:` | Sudo şifresi soruluyor | Kendi şifreni yaz (ekranda görünmez!) |\n\n## Yaygın Hata Mesajları\n\n| Hata | Anlamı | Çözüm |\n|------|--------|-------|\n| `command not found` | Program yüklü değil veya PATH'te yok | `which komut` veya `apt install komut` |\n| `Permission denied` | Yetkin yok | `sudo` ile dene veya `chmod` ile izin ver |\n| `No such file or directory` | Dosya/dizin yok | `ls` ile kontrol et, yazım hatasına bak |\n| `Segmentation fault` | Program çöktü | Programı yeniden dene, log bak |\n| `^C` | Ctrl+C basıldı, komut iptal | Normal, devam et |\n| `bash: ./script.sh: Permission denied` | Script çalıştırma izni yok | `chmod +x script.sh` sonra tekrar dene |\n\n## dquote> Durumu — Pratik Örnek\n\nEğer şunu yazarsan:\n```\nsqlmap -u \"http://hedef.com\n```\n(tırnağı kapatmadan Enter basarsan) bash şunu gösterir:\n```\ndquote>\n```\nBu, bash'ın \"tırnağı kapatan bir \" bekliyorum\" demesi. **Ctrl+C** bas, komutu doğru yaz."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Kurtarma Komutları",
+          "commands": [
+            {
+              "command": "# Ctrl+C → Her zaman kurtarır!\n# Takıldığında, bitmek bilmeyen komutta, yanlış promptta\n# Ctrl+C bas → normal $ prompt'a dön",
+              "description": "Ctrl+C — en önemli tuş kombinasyonu. Her türlü tıkanma durumunda",
+              "tip": "Ctrl+C komutun çalışmasını DURDURUR. Ctrl+Z arka plana gönderir (fg komutu ile geri alınır)"
+            },
+            {
+              "command": "# Garip bir prompt görürsen önce Ctrl+C dene:\n$ sqlmap -u \"http://hedef.com   ← tırnağı kapatmadım\ndquote>                          ← bash bekliyor\n# Ctrl+C bas:\n^C\n$                                ← normal prompt geri döndü",
+              "description": "dquote> durumundan çıkış — Ctrl+C ile normale dön"
+            },
+            {
+              "command": "reset",
+              "description": "Terminal tamamen bozulduysa (garip karakterler, renk sorunu) — terminali sıfırla",
+              "tip": "Bazen cat ile binary dosya açılınca terminal renk kodlarıyla dolar. reset her şeyi düzeltir"
+            },
+            {
+              "command": "# Komutu önceki satırdan devam ettirmek için \\ kullanılır:\n# Doğru kullanım:\nsqlmap -u \"http://hedef.com/page.php?id=1\" \\\n  --dbs \\\n  --batch\n# Her satır sonundaki \\ = 'komut devam ediyor' anlamı\n# > prompt çıkarsa bu normaldir, komutu tamamlamayı bekliyor",
+              "description": "Çok satırlı komut yazımı — > promptu ne zaman normaldir?"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "prompt",
       "title": "Prompt Yapısını Anlama",
       "description": "$ işareti ne demek? # ne demek? Terminaldeki bilgileri okuma",

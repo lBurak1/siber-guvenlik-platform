@@ -100,9 +100,17 @@ export default function TerminalBlock({
 
       {/* Tip */}
       {tip && (
-        <div className="px-4 py-2.5 bg-blue-500/5 border-t border-blue-500/20 text-xs text-blue-400 flex items-start gap-2">
-          <Lightbulb className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-          {tip}
+        <div className={cn(
+          "px-4 py-3 border-t text-xs flex items-start gap-2",
+          tip.startsWith("Sonraki adım")
+            ? "bg-emerald-500/8 border-emerald-500/25 text-emerald-300"
+            : "bg-blue-500/5 border-blue-500/20 text-blue-400"
+        )}>
+          {tip.startsWith("Sonraki adım")
+            ? <span className="shrink-0 mt-0.5">→</span>
+            : <Lightbulb className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+          }
+          <span>{tip}</span>
         </div>
       )}
     </div>
