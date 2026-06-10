@@ -1,4 +1,6 @@
+"use client";
 import Link from "next/link";
+import { useState } from "react";
 import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap, Globe, Router } from "lucide-react";
 
 const sections = [
@@ -209,15 +211,23 @@ const accentMap: Record<string, { bar: string; text: string }> = {
 
 // Ana sayfa kategorileri (kartları gruplar)
 const groups = [
-  { id: "foundation", title: "Temeller", subtitle: "İşletim sistemi ve araç hakimiyeti", accent: "orange",
+  { id: "foundation", title: "Temeller", short: "Temeller", icon: Cpu, subtitle: "İşletim sistemi ve araç hakimiyeti", accent: "orange",
     ids: ["linux-fundamentals", "windows-fundamentals", "devops-fundamentals"] },
-  { id: "network", title: "Ağ / Network", subtitle: "Temelden ileri seviyeye ağ bilgisi", accent: "emerald",
+  { id: "network", title: "Ağ / Network", short: "Ağ", icon: Network, subtitle: "Temelden ileri seviyeye ağ bilgisi", accent: "emerald",
     ids: ["network-fundamentals", "advanced-network"] },
-  { id: "security", title: "Siber Güvenlik", subtitle: "Saldırı, savunma ve web uygulama güvenliği", accent: "red",
+  { id: "security", title: "Siber Güvenlik", short: "Siber Güvenlik", icon: Shield, subtitle: "Saldırı, savunma ve web uygulama güvenliği", accent: "red",
     ids: ["red-team", "blue-team", "purple-team", "owasp-top10"] },
-  { id: "career", title: "Kariyer & Referans", subtitle: "Sertifika yolu, sektör farkındalığı ve hızlı başvuru", accent: "indigo",
+  { id: "career", title: "Kariyer & Referans", short: "Kariyer", icon: GraduationCap, subtitle: "Sertifika yolu, sektör farkındalığı ve hızlı başvuru", accent: "indigo",
     ids: ["certifications", "ecosystem", "cheatsheet"] },
 ];
+
+// Sekme aktif/pasif renkleri
+const tabActive: Record<string, string> = {
+  orange:  "bg-orange-500/15 text-orange-300 border-orange-500/50",
+  emerald: "bg-emerald-500/15 text-emerald-300 border-emerald-500/50",
+  red:     "bg-red-500/15 text-red-300 border-red-500/50",
+  indigo:  "bg-indigo-500/15 text-indigo-300 border-indigo-500/50",
+};
 
 // Akan şerit içerikleri (telifsiz — komut/araç/kavram isimleri)
 const marqueeA = [
@@ -236,6 +246,13 @@ const marqueeDot = [
 ];
 
 export default function HomePage() {
+  const [activeTab, setActiveTab] = useState(groups[0].id);
+  const activeGroup = groups.find((g) => g.id === activeTab) ?? groups[0];
+  const gac = accentMap[activeGroup.accent] ?? accentMap.emerald;
+  const activeSections = activeGroup.ids
+    .map((id) => sections.find((s) => s.id === id))
+    .filter((s): s is typeof sections[number] => Boolean(s));
+
   return (
     <div className="min-h-screen">
       {/* Hero */}
@@ -321,82 +338,92 @@ export default function HomePage() {
           <p className="text-2xl font-bold text-terminal-white">Temelden İleri Seviyeye, Adım Adım</p>
         </div>
 
-        <div className="space-y-14">
+        {/* Sekmeler (T / N / S / K) */}
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8">
           {groups.map((group) => {
-            const gac = accentMap[group.accent] ?? accentMap.emerald;
-            const groupSections = group.ids
-              .map((id) => sections.find((s) => s.id === id))
-              .filter((s): s is typeof sections[number] => Boolean(s));
-
+            const TabIcon = group.icon;
+            const isActive = group.id === activeTab;
             return (
-              <div key={group.id}>
-                {/* Grup başlığı */}
-                <div className="flex items-center gap-3 mb-6">
-                  <div className={`h-9 w-1.5 rounded-full bg-gradient-to-b ${gac.bar.replace("to-r", "to-b")}`} />
-                  <div>
-                    <h3 className="text-xl font-bold text-terminal-white">{group.title}</h3>
-                    <p className="text-xs text-terminal-comment mt-0.5">{group.subtitle}</p>
+              <button
+                key={group.id}
+                onClick={() => setActiveTab(group.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
+                  isActive
+                    ? tabActive[group.accent]
+                    : "bg-surface-1 text-terminal-comment border-surface-3 hover:text-terminal-white hover:border-surface-3"
+                }`}
+              >
+                <TabIcon className="w-4 h-4" />
+                {group.short}
+                <span className="text-[10px] font-mono opacity-60">{group.ids.length}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Aktif grup başlığı */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className={`h-9 w-1.5 rounded-full bg-gradient-to-b ${gac.bar.replace("to-r", "to-b")}`} />
+          <div>
+            <h3 className="text-xl font-bold text-terminal-white">{activeGroup.title}</h3>
+            <p className="text-xs text-terminal-comment mt-0.5">{activeGroup.subtitle}</p>
+          </div>
+        </div>
+
+        {/* Aktif grup kartları */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr gap-5">
+          {activeSections.map((s, i) => {
+            const Icon = s.icon;
+            const ac = accentMap[s.color] ?? accentMap.emerald;
+            return (
+              <Link key={s.id} href={s.href} className="group block">
+                <div className={`relative rounded-2xl border bg-surface-1 h-full flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 ${s.border} ${s.glow}`}>
+                  <div className={`h-1 w-full bg-gradient-to-r ${ac.bar}`} />
+                  <Icon className={`absolute -right-5 -top-3 w-28 h-28 ${ac.text} opacity-[0.04] group-hover:opacity-[0.08] transition-opacity pointer-events-none`} />
+
+                  <div className="p-6 flex flex-col flex-1 relative">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className={`text-[11px] font-mono ${ac.text} opacity-50`}>
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      {'recommended' in s && s.recommended && (
+                        <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full animate-pulse">
+                          ÖNCE BAŞLA
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className={`p-3 rounded-xl border ${s.badge} group-hover:scale-110 transition-transform`}>
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-mono text-terminal-comment uppercase tracking-wide">{s.subtitle}</div>
+                        <h3 className="text-lg font-bold text-terminal-white leading-tight">{s.label}</h3>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-terminal-white/65 leading-relaxed flex-1 mb-4">
+                      {s.description}
+                    </p>
+
+                    <div className="flex flex-wrap gap-1.5 mb-5">
+                      {s.tools.slice(0, 5).map((t) => (
+                        <span key={t} className="text-[11px] px-2 py-0.5 rounded font-mono bg-surface-2 border border-surface-3 text-terminal-comment">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-surface-3/60">
+                      <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full border ${s.badge}`}>{s.modules}</span>
+                      <div className={`flex items-center gap-1.5 text-sm font-semibold ${ac.text}`}>
+                        Başla <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                {/* Grup kartları */}
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr gap-5">
-                  {groupSections.map((s, i) => {
-                    const Icon = s.icon;
-                    const ac = accentMap[s.color] ?? accentMap.emerald;
-                    return (
-                      <Link key={s.id} href={s.href} className="group block">
-                        <div className={`relative rounded-2xl border bg-surface-1 h-full flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 ${s.border} ${s.glow}`}>
-                          <div className={`h-1 w-full bg-gradient-to-r ${ac.bar}`} />
-                          <Icon className={`absolute -right-5 -top-3 w-28 h-28 ${ac.text} opacity-[0.04] group-hover:opacity-[0.08] transition-opacity pointer-events-none`} />
-
-                          <div className="p-6 flex flex-col flex-1 relative">
-                            <div className="flex items-center justify-between mb-4">
-                              <span className={`text-[11px] font-mono ${ac.text} opacity-50`}>
-                                {String(i + 1).padStart(2, "0")}
-                              </span>
-                              {'recommended' in s && s.recommended && (
-                                <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full animate-pulse">
-                                  ÖNCE BAŞLA
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="flex items-center gap-3 mb-4">
-                              <div className={`p-3 rounded-xl border ${s.badge} group-hover:scale-110 transition-transform`}>
-                                <Icon className="w-6 h-6" />
-                              </div>
-                              <div>
-                                <div className="text-[11px] font-mono text-terminal-comment uppercase tracking-wide">{s.subtitle}</div>
-                                <h3 className="text-lg font-bold text-terminal-white leading-tight">{s.label}</h3>
-                              </div>
-                            </div>
-
-                            <p className="text-sm text-terminal-white/65 leading-relaxed flex-1 mb-4">
-                              {s.description}
-                            </p>
-
-                            <div className="flex flex-wrap gap-1.5 mb-5">
-                              {s.tools.slice(0, 5).map((t) => (
-                                <span key={t} className="text-[11px] px-2 py-0.5 rounded font-mono bg-surface-2 border border-surface-3 text-terminal-comment">
-                                  {t}
-                                </span>
-                              ))}
-                            </div>
-
-                            <div className="flex items-center justify-between pt-3 border-t border-surface-3/60">
-                              <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full border ${s.badge}`}>{s.modules}</span>
-                              <div className={`flex items-center gap-1.5 text-sm font-semibold ${ac.text}`}>
-                                Başla <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
+              </Link>
             );
           })}
         </div>
