@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap, Globe, Router, CheckCircle2 } from "lucide-react";
+import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap, Globe, Router, CheckCircle2, MessageCircleQuestion } from "lucide-react";
 
 const sections = [
   {
@@ -185,6 +185,21 @@ const sections = [
     cta: "bg-amber-500/10 text-amber-300 border-amber-500/30 hover:bg-amber-500/20",
     modules: "10 Zafiyet · 40+ Modül",
   },
+  {
+    id: "interview",
+    href: "/mulakat",
+    icon: MessageCircleQuestion,
+    label: "Mülakat Soruları",
+    subtitle: "İşe Hazırlık",
+    description: "Siber güvenlik mülakatlarında en sık sorulan sorular ve net cevapları. Genel kavramlardan ağ, Linux, web, blue/red team'e kadar kategorize edilmiş soru-cevap.",
+    tools: ["TCP vs UDP", "CIA", "XSS", "SQLi", "IR süreci", "Privesc", "Zero Trust"],
+    color: "indigo",
+    border: "border-indigo-500/20 hover:border-indigo-500/60",
+    glow: "hover:shadow-[0_0_40px_rgba(99,102,241,0.15)]",
+    badge: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+    cta: "bg-indigo-500/10 text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/20",
+    modules: "6 Kategori · 35+ Soru",
+  },
 ] as const;
 
 const stats = [
@@ -217,8 +232,8 @@ const groups = [
     ids: ["network-fundamentals", "advanced-network"] },
   { id: "security", title: "Siber Güvenlik", short: "Siber Güvenlik", icon: Shield, subtitle: "Saldırı, savunma ve web uygulama güvenliği", accent: "red",
     ids: ["red-team", "blue-team", "purple-team", "owasp-top10"] },
-  { id: "career", title: "Kariyer & Referans", short: "Kariyer", icon: GraduationCap, subtitle: "Sertifika yolu, sektör farkındalığı ve hızlı başvuru", accent: "indigo",
-    ids: ["certifications", "ecosystem", "cheatsheet"] },
+  { id: "career", title: "Kariyer & Referans", short: "Kariyer", icon: GraduationCap, subtitle: "Sertifika yolu, sektör, mülakat ve hızlı başvuru", accent: "indigo",
+    ids: ["certifications", "ecosystem", "interview", "cheatsheet"] },
 ];
 
 // Günün Komutu havuzu (her gün biri gösterilir)
