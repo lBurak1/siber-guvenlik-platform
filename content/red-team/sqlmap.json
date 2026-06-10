@@ -94,6 +94,12 @@
       "duration": "80 dk",
       "sections": [
         {
+          "id": "theory",
+          "type": "theory",
+          "title": "İleri Seviye Teknikler Hakkında",
+          "content": "Bu modülde gerçek pentest senaryolarında karşılaşacağın daha kompleks durumları ele alıyoruz:\n\n**Ne Öğreneceksin?**\n- **Cookie / Session tabanlı test** — giriş gerektiren sayfalarda SQLi\n- **Level & Risk** — daha derin ama daha gürültülü tarama\n- **Tamper scriptleri** — WAF/IDS atlatma\n- **OS Shell** — veritabanından işletim sistemine sıçrama\n- **Burp isteğiyle test** — en güvenilir yöntem\n\n**Ne Zaman Bu Teknikleri Kullanırsın?**\n\n| Senaryo | Çözüm |\n|---------|-------|\n| Giriş gerektiren sayfa | `--cookie` ile session ver |\n| Temel test sonuç vermedi | `--level=5 --risk=3` dene |\n| WAF 403 veriyor | `--tamper` scriptleri kullan |\n| DB kullanıcısı admin ise | `--os-shell` ile shell al |\n| Karmaşık POST isteği | Burp'ten `-r istek.txt` ile ver |\n\n> **Not:** Level ve Risk artırdıkça hedef sunucuya çok daha fazla istek gider — gerçek sistemlerde tespit edilme ihtimali yükselir. Lab ortamlarında dene."
+        },
+        {
           "id": "commands",
           "type": "commands",
           "title": "İleri Seviye SQLMap Parametreleri",

@@ -6,6 +6,8 @@ import {
   ArrowLeft, BookOpen, Terminal, Zap, FlaskConical,
   Download, Shield, ChevronRight, CheckCircle2
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { cn, teamConfig, difficultyConfig } from "@/lib/utils";
 import { Tool, Module, ContentSection } from "@/lib/types";
 import { useProgressStore } from "@/lib/progress-store";
@@ -218,12 +220,50 @@ function SectionRenderer({ section, teamColor }: { section: ContentSection; team
         <h2 className="text-lg font-semibold text-terminal-white">{section.title}</h2>
       </div>
 
-      {/* Theory content */}
+      {/* Theory content — Markdown rendered */}
       {section.content && (
-        <div className="prose-custom text-sm text-terminal-white/80 leading-relaxed space-y-3">
-          {section.content.split("\n\n").map((para, i) => (
-            <p key={i}>{para}</p>
-          ))}
+        <div className="markdown-content text-sm text-terminal-white/80 leading-relaxed">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              h1: ({ children }) => <h1 className="text-xl font-bold text-terminal-white mt-6 mb-3">{children}</h1>,
+              h2: ({ children }) => <h2 className="text-lg font-bold text-terminal-white mt-5 mb-2">{children}</h2>,
+              h3: ({ children }) => <h3 className="text-base font-semibold text-terminal-white mt-4 mb-2">{children}</h3>,
+              p: ({ children }) => <p className="mb-3 leading-relaxed">{children}</p>,
+              strong: ({ children }) => <strong className="text-terminal-white font-semibold">{children}</strong>,
+              em: ({ children }) => <em className="text-terminal-comment italic">{children}</em>,
+              code: ({ children, className }) => {
+                const isBlock = className?.includes("language-");
+                return isBlock
+                  ? <code className="block bg-surface-2 border border-surface-3 rounded-lg p-4 font-mono text-xs text-terminal-green overflow-x-auto whitespace-pre my-3">{children}</code>
+                  : <code className="bg-surface-2 text-terminal-cyan font-mono text-xs px-1.5 py-0.5 rounded border border-surface-3">{children}</code>;
+              },
+              pre: ({ children }) => <div className="my-3">{children}</div>,
+              ul: ({ children }) => <ul className="list-none space-y-1.5 mb-3 ml-2">{children}</ul>,
+              ol: ({ children }) => <ol className="list-decimal list-inside space-y-1.5 mb-3 ml-2 text-terminal-white/80">{children}</ol>,
+              li: ({ children }) => (
+                <li className="flex items-start gap-2">
+                  <span className="text-terminal-green mt-0.5 shrink-0">▸</span>
+                  <span>{children}</span>
+                </li>
+              ),
+              table: ({ children }) => (
+                <div className="overflow-x-auto my-4 rounded-lg border border-surface-3">
+                  <table className="w-full text-xs">{children}</table>
+                </div>
+              ),
+              thead: ({ children }) => <thead className="bg-surface-2 border-b border-surface-3">{children}</thead>,
+              th: ({ children }) => <th className="px-4 py-2.5 text-left font-mono font-semibold text-terminal-white whitespace-nowrap">{children}</th>,
+              td: ({ children }) => <td className="px-4 py-2.5 text-terminal-comment border-b border-surface-3/50 last:border-0">{children}</td>,
+              tr: ({ children }) => <tr className="hover:bg-surface-2/50 transition-colors">{children}</tr>,
+              blockquote: ({ children }) => (
+                <blockquote className="border-l-2 border-terminal-green/50 pl-4 my-3 text-terminal-comment italic">{children}</blockquote>
+              ),
+              hr: () => <hr className="border-surface-3 my-4" />,
+            }}
+          >
+            {section.content}
+          </ReactMarkdown>
         </div>
       )}
 
