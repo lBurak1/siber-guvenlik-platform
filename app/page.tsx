@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap, Globe, Router } from "lucide-react";
+import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap, Globe, Router, CheckCircle2 } from "lucide-react";
 
 const sections = [
   {
@@ -310,8 +310,8 @@ export default function HomePage() {
             <Link href="/red-team" className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-red-500/10 text-red-300 border border-red-500/30 hover:bg-red-500/20 font-medium transition-all text-sm">
               <Shield className="w-4 h-4" /> Red Team
             </Link>
-            <Link href="/cheatsheet" className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-yellow-500/10 text-yellow-300 border border-yellow-500/30 hover:bg-yellow-500/20 font-medium transition-all text-sm">
-              <Zap className="w-4 h-4" /> Cheat Sheet
+            <Link href="/quiz" className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-terminal-green/10 text-terminal-green border border-terminal-green/30 hover:bg-terminal-green/20 font-medium transition-all text-sm">
+              <CheckCircle2 className="w-4 h-4" /> Kendini Test Et
             </Link>
           </div>
         </div>
