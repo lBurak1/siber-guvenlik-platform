@@ -102,6 +102,18 @@ export const teamConfig = {
     gradient: "from-teal-900/20 to-transparent",
     description: "DevOps Temelleri — Git ve Docker ile modern mühendislik komut alışkanlıkları",
   },
+  "certifications": {
+    label: "Sertifikalar",
+    shortLabel: "CERT",
+    color: "#6366f1",
+    bgClass: "bg-indigo-500/10",
+    borderClass: "border-indigo-500/30",
+    textClass: "text-indigo-400",
+    glowClass: "shadow-[0_0_20px_rgba(99,102,241,0.3)]",
+    badgeClass: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
+    gradient: "from-indigo-900/20 to-transparent",
+    description: "Sertifikalar — Security+, OSCP, CISSP ve kariyer yol haritası",
+  },
 } as const;
 
 export const riskConfig = {

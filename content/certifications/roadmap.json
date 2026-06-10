@@ -1,0 +1,57 @@
+{
+  "id": "roadmap",
+  "slug": "roadmap",
+  "title": "Yol Haritası & Seçim Rehberi",
+  "subtitle": "Hangi Sertifika, Kime, Ne Zaman?",
+  "description": "Siber güvenlik sertifikalarına genel bakış: neden önemli, kariyer yollarına göre nasıl seçilir ve sınavlara nasıl hazırlanılır.",
+  "icon": "🗺️",
+  "order": 1,
+  "tags": ["sertifika", "kariyer", "yol haritası", "security+", "oscp", "cissp"],
+  "modules": [
+    {
+      "id": "why-certs",
+      "title": "Sertifikalar Neden Önemli?",
+      "description": "İşe alımda sertifikaların rolü ve gerçekçi beklentiler",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Sertifikaların Rolü",
+          "content": "**Sertifika tek başına iş garantisi değildir — ama kapı açar.** İşe alım uzmanı gözüyle gerçekler:\n\n**Sertifika ne sağlar?**\n- **CV filtresini geçmek:** Birçok ilan otomatik tarama yapar; Security+ veya OSCP gibi anahtar kelimeler olmadan eleme olabilir\n- **Temel bilgiyi kanıtlamak:** Belirli bir bilgi seviyesine sahip olduğunu gösterir\n- **Disiplin göstergesi:** Özellikle OSCP gibi zorlu sınavlar, azim ve pratik beceri kanıtıdır\n- **Maaş artışı / terfi:** Birçok kurumda sertifika primi vardır\n- **Zorunluluk:** Bazı pozisyonlar (özellikle kamu/savunma) sertifika şart koşar (örn: DoD 8570)\n\n**Sertifika neyin yerini TUTMAZ?**\n- Gerçek deneyim ve pratik (lab, CTF, ev lab'ı)\n- Problem çözme yeteneği\n- Portföy (GitHub, blog, writeup'lar)\n- İletişim ve takım becerisi\n\n**Altın oran:** Sertifika + pratik + portföy. Üçü birlikte seni işe alınabilir yapar.\n\n> Kıdemli mühendis tavsiyesi: Sertifikayı 'öğrenmek için' al, 'sadece CV için' değil. Sınava çalışırken edindiğin bilgi, sertifikanın kendisinden daha değerlidir."
+        }
+      ]
+    },
+    {
+      "id": "career-paths",
+      "title": "Kariyer Yollarına Göre Sertifikalar",
+      "description": "Red/Blue/Yönetim yollarına göre önerilen sertifika sıralaması",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Sertifika Yol Haritası",
+          "content": "**Önce temel, sonra uzmanlık.** Hangi yöne gidersen git, temel sertifikalar (Security+, Network+) sağlam bir başlangıçtır.\n\n## Genel Başlangıç (Herkes İçin)\n| Sıra | Sertifika | Neden |\n|------|-----------|-------|\n| 1 | CompTIA Network+ | Ağ temeli olmadan güvenlik olmaz |\n| 2 | CompTIA Security+ | Sektörün giriş standardı |\n| 3 | Linux temeli (LPIC-1 / pratik) | Tüm araçlar Linux'ta |\n\n## 🔴 Ofansif Yol (Red Team / Pentest)\n```\nSecurity+ → eJPT → OSCP → OSEP / OSWE / CRTP\n```\n- **eJPT:** İlk pratik pentest sertifikası (başlangıç)\n- **OSCP:** Sektörün altın standardı (pratik, zorlu)\n- **CRTP:** Active Directory uzmanlığı\n- **OSEP/OSWE:** İleri seviye (evasion / web)\n\n## 🔵 Defansif Yol (Blue Team / SOC)\n```\nSecurity+ → CySA+ → BTL1 → GCIH / GCIA\n```\n- **CySA+:** SOC analisti için\n- **BTL1:** Pratik blue team\n- **GIAC (GCIH/GCIA):** İleri, prestijli (pahalı)\n\n## 🟣 Yönetim & Mimari Yol\n```\nSecurity+ → CISSP → CISM / CCSP\n```\n- **CISSP:** Yönetim/mimari için altın standart (deneyim ister)\n- **CISM:** Güvenlik yönetimi\n- **CCSP:** Cloud güvenlik mimarisi\n\n## ☁️ Cloud Güvenliği Yolu\n```\nSecurity+ → AZ-500 (Azure) / AWS Security Specialty → CCSP\n```\n\n> Not: Senin platformundaki içerik (Linux, Windows, Network, Red/Blue Team, OWASP, DevOps) bu sertifikaların pratik temelini birebir kapsıyor — sertifikaya çalışırken buradaki modülleri lab olarak kullan."
+        }
+      ]
+    },
+    {
+      "id": "exam-strategy",
+      "title": "Sınava Hazırlık Stratejisi",
+      "description": "Çalışma kaynakları, lab ortamları ve sınav günü taktikleri",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Etkili Hazırlık",
+          "content": "**1. Doğru Kaynağı Seç**\n- **Resmi materyal:** Sertifikayı veren kurumun kendi kursu/kitabı\n- **Video kurslar:** Professor Messer (Security+, ücretsiz!), TCM Security, INE\n- **Pratik platformlar:** TryHackMe, HackTheBox, Proving Grounds (OSCP için)\n- **Kitaplar:** OSCP için 'The Cyber Mentor', CISSP için 'Sybex Official Guide'\n\n**2. Pratik Yap (En Önemlisi)**\n- Teori okumak yetmez — özellikle OSCP, CRTP gibi pratik sınavlarda\n- Ev lab'ı kur (VirtualBox + Kali + zafiyetli makineler)\n- Bu platformdaki komutları kendi lab'ında dene\n\n**3. Çalışma Planı**\n- Sınav tarihini önceden belirle (motivasyon)\n- Günlük tutarlı çalışma > ara sıra uzun seanslar\n- Deneme sınavları çöz, zayıf konuları tespit et\n\n**4. Sınav Günü Taktikleri**\n| Sınav Tipi | Taktik |\n|-----------|--------|\n| Çoktan seçmeli (Security+, CISSP) | Zaman yönetimi, eleme yöntemi |\n| Pratik/Lab (OSCP, CRTP) | Not al (writeup), molaları planla, kolay hedeflerle başla |\n| Performance-based | Komutları ezberden değil mantıkla |\n\n**5. OSCP'ye Özel: 'Try Harder' Felsefesi**\n- 24 saat sınav + 24 saat rapor\n- Methodoloji geliştir: enumeration → exploitation → privesc\n- Rapor yazımı puanın parçası — ihmal etme\n\n> ⚠️ **Etik uyarı:** Sertifika sınavlarında ve pratiklerde edindiğin tüm beceriler yalnızca yetkili ortamlarda kullanılır. Sertifika etik taahhüdü de içerir (özellikle OffSec, EC-Council, (ISC)²).\n\n> 💡 Fiyatlar ve sınav detayları zamanla değişir — kayıt öncesi mutlaka resmi siteden güncel bilgiyi kontrol et."
+        }
+      ]
+    }
+  ]
+}

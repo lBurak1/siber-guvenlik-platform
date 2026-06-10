@@ -1,0 +1,57 @@
+{
+  "id": "defensive",
+  "slug": "defensive",
+  "title": "Defansif Sertifikalar (Blue Team)",
+  "subtitle": "Savunma, SOC ve Olay Müdahale",
+  "description": "CySA+, BTL1, GCIH ve GSEC — savunma, tehdit avı ve olay müdahale becerilerini kanıtlayan sertifikalar.",
+  "icon": "🔵",
+  "order": 4,
+  "tags": ["cysa+", "btl1", "gcih", "gsec", "soc", "blue team", "giac"],
+  "modules": [
+    {
+      "id": "cysa-plus",
+      "title": "CompTIA CySA+",
+      "description": "SOC analisti için davranış ve analiz odaklı sertifika",
+      "difficulty": "intermediate",
+      "duration": "12 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "CySA+ Künyesi",
+          "content": "**CySA+ (Cybersecurity Analyst+)**, SOC analisti rolüne yönelik, tehdit tespiti ve analiz odaklı bir sertifikadır.\n\n| Özellik | Bilgi |\n|---------|-------|\n| Veren kurum | CompTIA |\n| Güncel kod | CS0-003 |\n| Seviye | Orta |\n| Kime uygun | SOC analisti, tehdit avcısı, güvenlik analisti |\n| Sınav formatı | En fazla 85 soru, çoktan seçmeli + PBQ |\n| Süre | 165 dakika |\n| Maliyet | ~$400 |\n| Geçerlilik | 3 yıl |\n| Ön koşul | Security+ seviyesi bilgi önerilir |\n\n## Neler Biliniyor Olmalı?\n- Güvenlik operasyonları & log analizi\n- Zafiyet yönetimi (tarama, önceliklendirme)\n- Olay müdahale (incident response) süreci\n- SIEM kullanımı ve korelasyon\n- Tehdit istihbaratı (CTI) temelleri\n- Davranış analizi ve anomali tespiti\n\n## Kariyer Değeri\n- SOC Tier 1/2 analisti için ideal\n- Security+ sonrası blue team yolu için doğal devam\n- DoD 8570 onaylı\n\n> Bu platformdaki **Blue Team** (SIEM, log analizi, CTI, EDR) modülleri CySA+ kapsamının büyük kısmını pratikle karşılar."
+        }
+      ]
+    },
+    {
+      "id": "btl1",
+      "title": "BTL1 (Blue Team Level 1)",
+      "description": "Tamamen pratik blue team sertifikası",
+      "difficulty": "intermediate",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "BTL1 Künyesi",
+          "content": "**BTL1**, blue team tarafının pratik OSCP'si gibidir — gerçek olay müdahale senaryolarında iş yaparsın.\n\n| Özellik | Bilgi |\n|---------|-------|\n| Veren kurum | Security Blue Team |\n| Seviye | Başlangıç–Orta (pratik) |\n| Kime uygun | SOC analisti, DFIR'a ilgi duyanlar |\n| Sınav formatı | 24 saat pratik lab (gerçek olay senaryosu) |\n| Maliyet | ~$400 |\n| Ön koşul | Yok |\n\n## Neler Biliniyor Olmalı?\n- Phishing analizi (e-posta başlık inceleme)\n- SIEM ile log analizi (Splunk)\n- Dijital adli bilişim (DFIR) temelleri\n- Tehdit istihbaratı kullanımı\n- Olay müdahale süreci uçtan uca\n- Zararlı yazılım analizi temeli\n\n## Kariyer Değeri\n- Pratik beceriyi kanıtlar (teori sınavlarından farklı)\n- SOC ve DFIR rolleri için güçlü\n- Erişilebilir fiyat\n\n> Bu platformdaki **Blue Team → E-posta Güvenliği, SIEM, Sandbox, CTI** modülleri BTL1'in pratik konularını doğrudan kapsar."
+        }
+      ]
+    },
+    {
+      "id": "giac-certs",
+      "title": "GIAC Sertifikaları (GSEC, GCIH, GCIA)",
+      "description": "SANS tabanlı, prestijli ama pahalı uzmanlık sertifikaları",
+      "difficulty": "advanced",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "GIAC / SANS Künyesi",
+          "content": "**GIAC** sertifikaları SANS eğitimleriyle ilişkili, sektörde çok prestijli ama maliyetli sertifikalardır.\n\n| Sertifika | Odak |\n|-----------|------|\n| GSEC | Güvenlik temelleri (Security+ üstü) |\n| GCIH | Olay müdahale & hacker teknikleri |\n| GCIA | Saldırı tespiti (IDS/network) |\n| GCFA | İleri adli bilişim |\n| GNFA | Ağ adli bilişimi |\n\n| Genel Özellik | Bilgi |\n|---------------|-------|\n| Veren kurum | GIAC (SANS) |\n| Seviye | Orta–İleri |\n| Sınav formatı | Çoktan seçmeli, açık kitap (kendi notların) |\n| Maliyet | Yüksek — SANS kursu ile birlikte ~$8000+, sınav tek başına ~$1000 |\n| Geçerlilik | 4 yıl |\n\n## GCIH — En Popüler Blue Team GIAC\n- Saldırı tekniklerini savunan gözüyle öğretir\n- Olay müdahale sürecini derinlemesine kapsar\n- Hem ofansif hem defansif bakış\n\n## Kariyer Değeri\n- Kurumsal ve üst düzey SOC/DFIR rolleri\n- Genelde işveren öder (kişisel bütçe için pahalı)\n- Çok saygın, CV'de güçlü\n\n> İpucu: GIAC pahalı olduğu için, bireysel başlangıçta CySA+ veya BTL1 daha mantıklı. GIAC'ı genelde bir kuruma girdikten sonra (işveren sponsorluğuyla) hedefle."
+        }
+      ]
+    }
+  ]
+}

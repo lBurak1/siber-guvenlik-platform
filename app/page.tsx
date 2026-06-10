@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes } from "lucide-react";
+import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap } from "lucide-react";
 
 const sections = [
   {
@@ -109,6 +109,21 @@ const sections = [
     modules: "1 Metodoloji · 3 Modül",
   },
   {
+    id: "certifications",
+    href: "/certifications",
+    icon: GraduationCap,
+    label: "Sertifikalar",
+    subtitle: "Kariyer Yol Haritası",
+    description: "Security+, OSCP, CISSP, CySA+, AZ-500 ve daha fazlası. Her sertifika için kime uygun, sınav formatı, maliyet, neler bilinmeli ve kariyer değeri — işe alımda fark yaratan rehber.",
+    tools: ["Security+", "OSCP", "CRTP", "CySA+", "BTL1", "CISSP", "AZ-500"],
+    color: "indigo",
+    border: "border-indigo-500/20 hover:border-indigo-500/60",
+    glow: "hover:shadow-[0_0_40px_rgba(99,102,241,0.15)]",
+    badge: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+    cta: "bg-indigo-500/10 text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/20",
+    modules: "5 Kategori · 15+ Sertifika",
+  },
+  {
     id: "cheatsheet",
     href: "/cheatsheet",
     icon: Zap,
@@ -141,9 +156,9 @@ const sections = [
 ] as const;
 
 const stats = [
-  { label: "Araç & Konu", value: "47+", icon: Terminal },
-  { label: "Modül",       value: "135+", icon: Cpu },
-  { label: "CTF Lab",     value: "42+", icon: BookOpen },
+  { label: "Araç & Konu", value: "52+", icon: Terminal },
+  { label: "Modül",       value: "150+", icon: Cpu },
+  { label: "Sertifika",   value: "15+", icon: GraduationCap },
   { label: "Etik",        value: "100%", icon: Lock },
 ];
 

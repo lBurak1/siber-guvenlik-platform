@@ -1,0 +1,57 @@
+{
+  "id": "offensive",
+  "slug": "offensive",
+  "title": "Ofansif Sertifikalar (Red Team)",
+  "subtitle": "Sızma Testi ve Saldırı Uzmanlığı",
+  "description": "OSCP, OSEP, OSWE, eCPPT ve CRTP — pratik sızma testi ve red team becerilerini kanıtlayan sertifikalar.",
+  "icon": "🔴",
+  "order": 3,
+  "tags": ["oscp", "osep", "oswe", "ecppt", "crtp", "pentest", "red team"],
+  "modules": [
+    {
+      "id": "oscp",
+      "title": "OSCP (OffSec Certified Professional)",
+      "description": "Sızma testinin altın standardı — zorlu, pratik, çok saygın",
+      "difficulty": "advanced",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "OSCP Künyesi",
+          "content": "**OSCP**, sektördeki en saygın pratik pentest sertifikasıdır. 'Try Harder' felsefesiyle bilinir — ezber değil, gerçek beceri ölçer.\n\n| Özellik | Bilgi |\n|---------|-------|\n| Veren kurum | OffSec (Offensive Security) |\n| Kurs | PEN-200 |\n| Seviye | Orta–İleri |\n| Kime uygun | Pentester, red teamer adayları |\n| Sınav formatı | 23 saat 45 dk pratik lab + 24 saat rapor yazımı |\n| Puanlama | 100 üzerinden 70 puan (makine ele geçirme) |\n| Maliyet | ~$1600+ (kurs + lab + sınav paketi) |\n| Geçerlilik | Süresiz (expire olmaz) |\n| Ön koşul | Resmi yok; Linux + ağ + scripting bilgisi şart |\n\n## Neler Biliniyor Olmalı?\n- **Enumeration:** Kapsamlı bilgi toplama (en kritik beceri)\n- **Web saldırıları:** SQLi, LFI/RFI, dosya yükleme, command injection\n- **Buffer overflow:** Temel exploit geliştirme\n- **Privilege escalation:** Linux ve Windows yetki yükseltme\n- **Active Directory:** AD saldırıları (sınava dahil edildi)\n- **Pivoting & tunneling:** Ağ içinde yanal hareket\n- **Rapor yazımı:** Profesyonel pentest raporu (puanın parçası)\n\n## Nasıl Hazırlanılır?\n- Resmi PEN-200 kursu + lab\n- **Proving Grounds Practice** (OffSec'in pratik makineleri)\n- **HackTheBox** & **TryHackMe** (OSCP-benzeri makine listeleri)\n- TJ Null'un OSCP hazırlık listesi\n\n## Kariyer Değeri\n- Pentest/red team ilanlarında en çok aranan sertifika\n- Pratik beceriyi tartışmasız kanıtlar\n- Ciddi maaş ve pozisyon avantajı\n\n> Bu platformdaki **Red Team** (Nmap, SQLMap, privesc), **Linux/Windows PrivEsc**, **Active Directory** ve **OWASP** modülleri OSCP konularının çekirdeğini oluşturur. Burada öğren, lab'da pratik yap."
+        }
+      ]
+    },
+    {
+      "id": "crtp",
+      "title": "CRTP (Certified Red Team Professional)",
+      "description": "Active Directory saldırı uzmanlığı — uygun fiyatlı ve değerli",
+      "difficulty": "intermediate",
+      "duration": "12 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "CRTP Künyesi",
+          "content": "**CRTP**, Active Directory saldırılarına odaklanan, fiyat/değer oranı en iyi sertifikalardan biridir. Kurumsal ağların %90'ı AD kullandığı için çok değerli.\n\n| Özellik | Bilgi |\n|---------|-------|\n| Veren kurum | Altered Security |\n| Seviye | Orta |\n| Kime uygun | Red teamer, AD pentester |\n| Sınav formatı | 24 saat pratik lab + rapor |\n| Maliyet | ~$250-400 (uygun) |\n| Ön koşul | Temel pentest + Windows bilgisi |\n\n## Neler Biliniyor Olmalı?\n- AD enumeration (PowerView, BloodHound)\n- Kerberoasting & AS-REP Roasting\n- Pass-the-Hash / Pass-the-Ticket\n- Lateral movement teknikleri\n- Domain privilege escalation\n- Persistence (Golden/Silver Ticket)\n- Savunma atlatma temelleri\n\n## Kariyer Değeri\n- AD pentest uzmanlığını kanıtlar\n- OSCP ile birlikte güçlü bir kombinasyon\n- Uygun fiyatı sayesinde erişilebilir\n\n> Bu platformdaki **Windows → Active Directory** modülü (domain, GPO, AD güvenliği, Kerberoasting farkındalığı) CRTP'nin temel konularına doğrudan giriş sağlar."
+        }
+      ]
+    },
+    {
+      "id": "advanced-offsec",
+      "title": "İleri Seviye: OSEP, OSWE, eCPPT",
+      "description": "Uzmanlaşma sertifikaları — evasion, web ve genel pentest",
+      "difficulty": "advanced",
+      "duration": "12 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "İleri Ofansif Sertifikalar",
+          "content": "OSCP sonrası uzmanlaşmak isteyenler için:\n\n## OSEP (OffSec Experienced Penetration Tester)\n| Özellik | Bilgi |\n|---------|-------|\n| Kurs | PEN-300 |\n| Odak | Antivirüs/savunma atlatma (evasion), ileri AD |\n| Seviye | İleri |\n| Sınav | 48 saat pratik |\n\n- **Neler:** AV bypass, uygulama whitelisting atlatma, gelişmiş AD saldırıları, C2 geliştirme\n- OSCP'nin bir üst seviyesi\n\n## OSWE (OffSec Web Expert)\n| Özellik | Bilgi |\n|---------|-------|\n| Kurs | WEB-300 |\n| Odak | İleri web uygulama güvenliği, white-box |\n| Seviye | İleri |\n\n- **Neler:** Kaynak kod analizi, ileri SQLi, deserialization, authentication bypass, exploit geliştirme\n- Web uygulama güvenliğinde uzmanlaşmak için\n\n## eCPPT (eLearnSecurity Certified Professional Penetration Tester)\n| Özellik | Bilgi |\n|---------|-------|\n| Veren | INE |\n| Odak | Genel pentest (eJPT'nin üstü) |\n| Sınav | 7 gün lab + 7 gün rapor |\n\n- **Neler:** Ağ pentest, web, sistem güvenliği, buffer overflow, rapor\n- eJPT → eCPPT → OSCP iyi bir ilerleme\n\n> Bu platformdaki **OWASP Top 10** modülü OSWE'nin web konularına; **Red Team post-exploitation** OSEP'in evasion temeline giriş sağlar."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "id": "management-cloud",
+  "slug": "management-cloud",
+  "title": "Yönetim & Cloud Sertifikaları",
+  "subtitle": "Liderlik, Mimari ve Bulut Güvenliği",
+  "description": "CISSP, CISM, AZ-500 ve AWS Security Specialty — yönetim, mimari ve bulut güvenliği kariyeri için üst seviye sertifikalar.",
+  "icon": "🏛️",
+  "order": 5,
+  "tags": ["cissp", "cism", "az-500", "aws", "ccsp", "yönetim", "cloud"],
+  "modules": [
+    {
+      "id": "cissp",
+      "title": "CISSP",
+      "description": "Yönetim ve mimari kariyerinin altın standardı",
+      "difficulty": "advanced",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "CISSP Künyesi",
+          "content": "**CISSP**, güvenlik yönetimi ve mimarisinde dünyanın en tanınan sertifikasıdır. Teknik derinlikten çok geniş yönetimsel bakış ölçer ('bir inç derinlik, bir mil genişlik').\n\n| Özellik | Bilgi |\n|---------|-------|\n| Veren kurum | (ISC)² |\n| Seviye | İleri (kıdemli) |\n| Kime uygun | Güvenlik yöneticisi, mimar, CISO adayı |\n| Sınav formatı | CAT (uyarlanabilir), 100-150 soru |\n| Süre | 3 saat |\n| Maliyet | ~$750 |\n| Geçerlilik | 3 yıl (CPE ile) |\n| **Ön koşul** | **8 alanda 5 yıl kanıtlı deneyim** (yoksa 'Associate' olursun) |\n\n## 8 Domain (CBK)\n1. Güvenlik & Risk Yönetimi\n2. Varlık Güvenliği\n3. Güvenlik Mimarisi & Mühendisliği\n4. İletişim & Ağ Güvenliği\n5. Kimlik & Erişim Yönetimi (IAM)\n6. Güvenlik Değerlendirme & Test\n7. Güvenlik Operasyonları\n8. Yazılım Geliştirme Güvenliği\n\n## Kariyer Değeri\n- Yönetim/mimari pozisyonlarında neredeyse zorunlu\n- Maaş skalasında üst seviye\n- CISO, güvenlik mimarı, danışman yolları\n\n> Not: CISSP deneyim gerektirir — yeni başlayan biri sınavı geçse bile 5 yıl deneyim olmadan 'Associate of (ISC)²' unvanı alır, deneyim tamamlanınca CISSP olur. Kariyerin ortasında hedeflenecek bir sertifika."
+        }
+      ]
+    },
+    {
+      "id": "cism-cisa",
+      "title": "CISM & CISA (ISACA)",
+      "description": "Güvenlik yönetimi ve denetim sertifikaları",
+      "difficulty": "advanced",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "ISACA Yönetim Sertifikaları",
+          "content": "**ISACA** sertifikaları yönetişim, risk ve denetim odaklıdır — teknik değil, stratejik roller için.\n\n## CISM (Certified Information Security Manager)\n| Özellik | Bilgi |\n|---------|-------|\n| Odak | Güvenlik programı yönetimi |\n| Kime uygun | Güvenlik müdürü, yönetici |\n| Ön koşul | 5 yıl deneyim (yönetim alanında) |\n| Maliyet | ~$575-760 |\n\n- **Neler:** Güvenlik yönetişimi, risk yönetimi, program geliştirme, olay yönetimi\n- CISSP'e göre daha yönetim/iş odaklı\n\n## CISA (Certified Information Systems Auditor)\n| Özellik | Bilgi |\n|---------|-------|\n| Odak | Bilgi sistemleri denetimi |\n| Kime uygun | BT denetçisi, uyumluluk uzmanı |\n| Ön koşul | 5 yıl denetim deneyimi |\n\n- **Neler:** Denetim süreçleri, BT yönetişimi, varlık koruma\n- Denetim/uyumluluk (audit/compliance) kariyeri için\n\n## CRISC (Risk odaklı)\n- Risk yönetimi ve kontrol için ISACA sertifikası\n\n## Kariyer Değeri\n- GRC (Governance, Risk, Compliance) kariyeri için\n- Yönetim ve danışmanlık rolleri\n- Teknik yoldan yönetime geçenler için ideal"
+        }
+      ]
+    },
+    {
+      "id": "cloud-security",
+      "title": "Cloud Güvenliği: AZ-500, AWS Security, CCSP",
+      "description": "Bulut güvenliği uzmanlığı — en hızlı büyüyen alan",
+      "difficulty": "intermediate",
+      "duration": "12 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Cloud Güvenlik Sertifikaları",
+          "content": "**Bulut güvenliği, sektörün en hızlı büyüyen ve en çok talep gören alanı.** Şirketler buluta taşındıkça bu beceriler kritikleşiyor.\n\n## AZ-500 (Microsoft Azure Security Engineer)\n| Özellik | Bilgi |\n|---------|-------|\n| Veren | Microsoft |\n| Odak | Azure güvenliği |\n| Maliyet | ~$165 |\n| Geçerlilik | 1 yıl (ücretsiz online yenileme) |\n\n- **Neler:** Azure kimlik (Entra ID), ağ güvenliği, veri koruma, güvenlik operasyonları\n- Azure kullanan kurumlar için ideal\n\n## AWS Certified Security – Specialty\n| Özellik | Bilgi |\n|---------|-------|\n| Veren | Amazon (AWS) |\n| Odak | AWS güvenliği |\n| Maliyet | ~$300 |\n| Geçerlilik | 3 yıl |\n| Ön koşul | AWS deneyimi önerilir |\n\n- **Neler:** IAM, veri şifreleme, ağ güvenliği, olay müdahale, logging/monitoring\n- AWS ortamları için en değerli güvenlik sertifikası\n\n## CCSP (Certified Cloud Security Professional)\n| Özellik | Bilgi |\n|---------|-------|\n| Veren | (ISC)² |\n| Odak | Vendor-bağımsız cloud güvenlik mimarisi |\n| Ön koşul | 5 yıl deneyim (3'ü güvenlik, 1'i cloud) |\n\n- **Neler:** Cloud mimari, veri güvenliği, uyumluluk, risk\n- CISSP'in cloud versiyonu gibi, üst seviye\n\n## Kariyer Değeri\n- Cloud security engineer, DevSecOps rolleri\n- Yüksek talep + yüksek maaş\n- AZ-500/AWS pratik, CCSP stratejik/mimari\n\n> Bu platformdaki **DevOps (Docker güvenliği)** ve **Blue Team** modülleri cloud güvenliğine pratik bir temel sağlar. Cloud güvenliği = altyapı + kimlik + izleme."
+        }
+      ]
+    }
+  ]
+}

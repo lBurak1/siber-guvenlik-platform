@@ -292,6 +292,32 @@ export const navigation = {
       },
     ],
   },
+  "certifications": {
+    label: "Sertifikalar",
+    color: "indigo",
+    description: "Siber güvenlik sertifika yol haritası",
+    categories: [
+      {
+        id: "guide",
+        title: "Yol Haritası",
+        icon: "Map",
+        tools: [
+          { id: "roadmap", title: "Yol Haritası & Seçim Rehberi", slug: "roadmap" },
+        ],
+      },
+      {
+        id: "by-level",
+        title: "Seviyeye Göre",
+        icon: "Award",
+        tools: [
+          { id: "entry-level", title: "Başlangıç (Security+, eJPT)", slug: "entry-level" },
+          { id: "offensive",   title: "Ofansif (OSCP, CRTP)",       slug: "offensive" },
+          { id: "defensive",   title: "Defansif (CySA+, BTL1)",     slug: "defensive" },
+          { id: "management-cloud", title: "Yönetim & Cloud (CISSP, AZ-500)", slug: "management-cloud" },
+        ],
+      },
+    ],
+  },
   "owasp-top10": {
     label: "OWASP Top 10",
     color: "amber",

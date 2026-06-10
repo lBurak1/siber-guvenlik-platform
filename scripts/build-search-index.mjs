@@ -18,6 +18,8 @@ const CATEGORIES = {
   "linux-fundamentals":   { label: "Linux",        color: "orange",  kind: "modules" },
   "windows-fundamentals": { label: "Windows",      color: "sky",     kind: "modules" },
   "owasp-top10":          { label: "OWASP",        color: "amber",   kind: "modules" },
+  "devops-fundamentals":  { label: "DevOps",       color: "teal",    kind: "modules" },
+  "certifications":       { label: "Sertifikalar", color: "indigo",  kind: "modules" },
   "cheatsheet":           { label: "Cheat Sheet",  color: "yellow",  kind: "cheatsheet" },
 };
 

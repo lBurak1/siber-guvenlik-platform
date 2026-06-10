@@ -83,6 +83,15 @@ const devopsMap: Record<string, () => Promise<any>> = {
   "docker": () => import("@/content/devops-fundamentals/docker.json"),
 };
 
+// ─── Certifications ──────────────────────────────────────────────────
+const certMap: Record<string, () => Promise<any>> = {
+  "roadmap":          () => import("@/content/certifications/roadmap.json"),
+  "entry-level":      () => import("@/content/certifications/entry-level.json"),
+  "offensive":        () => import("@/content/certifications/offensive.json"),
+  "defensive":        () => import("@/content/certifications/defensive.json"),
+  "management-cloud": () => import("@/content/certifications/management-cloud.json"),
+};
+
 // ─── Cheat Sheet ─────────────────────────────────────────────────────
 const cheatsheetMap: Record<string, () => Promise<any>> = {
   "ssh":    () => import("@/content/cheatsheet/port-22-ssh.json"),
@@ -135,6 +144,10 @@ export async function getOwaspTopic(slug: string): Promise<NetworkTopic | null> 
 
 export async function getDevopsTopic(slug: string): Promise<NetworkTopic | null> {
   return load<NetworkTopic>(devopsMap, slug);
+}
+
+export async function getCertTopic(slug: string): Promise<NetworkTopic | null> {
+  return load<NetworkTopic>(certMap, slug);
 }
 
 export async function getCheatSheet(slug: string): Promise<PortCheatSheet | null> {

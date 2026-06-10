@@ -1,0 +1,57 @@
+{
+  "id": "entry-level",
+  "slug": "entry-level",
+  "title": "Başlangıç Seviyesi Sertifikalar",
+  "subtitle": "Kariyere İlk Adım",
+  "description": "Security+, Network+, eJPT ve CEH — siber güvenliğe giriş için en çok tercih edilen sertifikalar.",
+  "icon": "🎓",
+  "order": 2,
+  "tags": ["security+", "network+", "ejpt", "ceh", "comptia", "başlangıç"],
+  "modules": [
+    {
+      "id": "security-plus",
+      "title": "CompTIA Security+",
+      "description": "Sektörün giriş standardı, en çok aranan temel sertifika",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Security+ Künyesi",
+          "content": "**CompTIA Security+**, siber güvenliğe girişin fiili (de facto) standardıdır. Hem ofansif hem defansif temel bilgiyi ölçer.\n\n| Özellik | Bilgi |\n|---------|-------|\n| Veren kurum | CompTIA |\n| Güncel kod | SY0-701 |\n| Seviye | Başlangıç |\n| Kime uygun | SOC analisti adayı, sistem yöneticisi, yeni başlayanlar |\n| Sınav formatı | En fazla 90 soru — çoktan seçmeli + performans tabanlı (PBQ) |\n| Süre | 90 dakika |\n| Geçme notu | 750/900 |\n| Maliyet | ~$400 (bölgeye göre değişir) |\n| Geçerlilik | 3 yıl (CEU ile yenilenir) |\n| Ön koşul | Yok (Network+ önerilir) |\n\n## Neler Biliniyor Olmalı?\n- **Tehditler & saldırılar:** Malware türleri, sosyal mühendislik, OWASP temelleri\n- **Mimari:** Ağ güvenliği, zero trust, bulut güvenliği\n- **Uygulama:** Kimlik yönetimi, PKI, şifreleme, güvenli protokoller\n- **Operasyon:** Olay müdahale, log analizi, forensic temeli\n- **Yönetişim & risk:** Uyumluluk, politikalar, risk yönetimi\n\n## Nasıl Hazırlanılır?\n- **Professor Messer** (YouTube, ÜCRETSİZ) — en popüler kaynak\n- CompTIA resmi çalışma kılavuzu\n- Deneme sınavları (Jason Dion - Udemy)\n\n## Kariyer Değeri\n- DoD 8570 baseline (kamu/savunma için zorunlu olabilir)\n- SOC Tier 1, yardım masası güvenlik, junior güvenlik rolleri için kapı açar\n\n> Bu platformdaki Ağ Temelleri + OWASP + Blue Team modülleri Security+ kapsamının büyük kısmını pratik olarak karşılar."
+        }
+      ]
+    },
+    {
+      "id": "network-plus",
+      "title": "CompTIA Network+",
+      "description": "Ağ temelleri — güvenliğin ön koşulu",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Network+ Künyesi",
+          "content": "**Ağı anlamadan güvenliği anlayamazsın.** Network+, TCP/IP, yönlendirme, anahtarlama ve ağ sorun gidermeyi öğretir.\n\n| Özellik | Bilgi |\n|---------|-------|\n| Veren kurum | CompTIA |\n| Güncel kod | N10-009 |\n| Seviye | Başlangıç |\n| Kime uygun | Network/sistem mühendisi adayı, güvenliğe geçiş |\n| Sınav formatı | En fazla 90 soru, çoktan seçmeli + PBQ |\n| Süre | 90 dakika |\n| Maliyet | ~$400 |\n| Geçerlilik | 3 yıl |\n\n## Neler Biliniyor Olmalı?\n- OSI & TCP/IP modelleri\n- IP adresleme, subnetting, VLAN\n- Yönlendirme & anahtarlama temelleri\n- Kablosuz ağlar, ağ topolojileri\n- Ağ sorun giderme (ping, traceroute, netstat)\n- Ağ güvenliği temelleri (firewall, VPN)\n\n## Kariyer Değeri\n- Security+'tan ÖNCE alınması önerilir (temel oturur)\n- Network teknisyeni, NOC, sistem yöneticisi rolleri\n\n> Bu platformdaki **Ağ Temelleri** bölümü (OSI/TCP-IP, subnetting, protokoller) Network+ konularını birebir kapsar."
+        }
+      ]
+    },
+    {
+      "id": "ejpt",
+      "title": "eJPT (eLearnSecurity Junior Penetration Tester)",
+      "description": "İlk pratik pentest sertifikası — uygulamalı başlangıç",
+      "difficulty": "beginner",
+      "duration": "10 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "eJPT Künyesi",
+          "content": "**eJPT**, sızma testine pratik giriş için ideal — ezber değil, gerçek lab ortamında iş yaparsın.\n\n| Özellik | Bilgi |\n|---------|-------|\n| Veren kurum | INE (eski eLearnSecurity) |\n| Seviye | Başlangıç (pratik) |\n| Kime uygun | Pentest'e başlamak isteyenler |\n| Sınav formatı | Pratik lab + soru tabanlı (gerçek makinelerde iş yap) |\n| Süre | 48 saat |\n| Maliyet | ~$250 (kurs dahil paketler değişir) |\n| Ön koşul | Yok |\n\n## Neler Biliniyor Olmalı?\n- Bilgi toplama (recon, Nmap)\n- Ağ keşfi ve enumeration\n- Temel web uygulama saldırıları\n- Metasploit kullanımı\n- Basit privilege escalation\n- Pivoting temeli\n\n## Kariyer Değeri\n- OSCP'den önce mükemmel bir basamak\n- Junior pentester, güvenlik stajyeri rolleri\n- Pratik beceriyi CV'de kanıtlar\n\n> Bu platformdaki **Red Team** (Nmap, Gobuster, SQLMap) + **Linux/Network** modülleri eJPT'nin temel becerilerini kapsar.\n\n## Bonus: CEH (Certified Ethical Hacker)\n- **EC-Council** veriyor, çok bilinen ama daha **teorik** bir sertifika\n- Çoktan seçmeli sınav (pratik versiyonu ayrı: CEH Practical)\n- Maliyet yüksek (~$1200+)\n- HR/kamu tarafında tanınır ama teknik camiada OSCP kadar saygın değil\n- Karar: Bütçen kısıtlıysa eJPT pratik beceri için daha verimli"
+        }
+      ]
+    }
+  ]
+}
