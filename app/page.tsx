@@ -338,8 +338,15 @@ export default function HomePage() {
           <p className="text-2xl font-bold text-terminal-white">Temelden İleri Seviyeye, Adım Adım</p>
         </div>
 
+        <style>{`
+          @keyframes tabFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+          .tab-card { opacity: 0; animation: tabFadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+          @keyframes tabPop { 0% { transform: scale(0.96); } 60% { transform: scale(1.04); } 100% { transform: scale(1); } }
+          .tab-active-pop { animation: tabPop 0.35s ease; }
+        `}</style>
+
         {/* Sekmeler (T / N / S / K) */}
-        <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8">
+        <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-10">
           {groups.map((group) => {
             const TabIcon = group.icon;
             const isActive = group.id === activeTab;
@@ -347,15 +354,17 @@ export default function HomePage() {
               <button
                 key={group.id}
                 onClick={() => setActiveTab(group.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
+                className={`flex items-center gap-3 px-6 sm:px-8 py-4 rounded-2xl border-2 text-base sm:text-lg font-bold transition-all duration-200 hover:scale-[1.04] ${
                   isActive
-                    ? tabActive[group.accent]
-                    : "bg-surface-1 text-terminal-comment border-surface-3 hover:text-terminal-white hover:border-surface-3"
+                    ? `${tabActive[group.accent]} tab-active-pop shadow-lg`
+                    : "bg-surface-1 text-terminal-comment border-surface-3 hover:text-terminal-white hover:border-surface-2"
                 }`}
               >
-                <TabIcon className="w-4 h-4" />
+                <TabIcon className="w-6 h-6 sm:w-7 sm:h-7" />
                 {group.short}
-                <span className="text-[10px] font-mono opacity-60">{group.ids.length}</span>
+                <span className={`text-xs font-mono rounded-full px-2 py-0.5 ${isActive ? "bg-black/20" : "bg-surface-2/60 opacity-70"}`}>
+                  {group.ids.length}
+                </span>
               </button>
             );
           })}
@@ -371,12 +380,12 @@ export default function HomePage() {
         </div>
 
         {/* Aktif grup kartları */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr gap-5">
+        <div key={activeTab} className="grid sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr gap-5">
           {activeSections.map((s, i) => {
             const Icon = s.icon;
             const ac = accentMap[s.color] ?? accentMap.emerald;
             return (
-              <Link key={s.id} href={s.href} className="group block">
+              <Link key={s.id} href={s.href} className="group block tab-card" style={{ animationDelay: `${i * 80}ms` }}>
                 <div className={`relative rounded-2xl border bg-surface-1 h-full flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 ${s.border} ${s.glow}`}>
                   <div className={`h-1 w-full bg-gradient-to-r ${ac.bar}`} />
                   <Icon className={`absolute -right-5 -top-3 w-28 h-28 ${ac.text} opacity-[0.04] group-hover:opacity-[0.08] transition-opacity pointer-events-none`} />
