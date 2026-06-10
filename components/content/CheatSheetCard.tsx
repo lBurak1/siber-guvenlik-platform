@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Copy, Check, AlertTriangle, Lightbulb, ChevronDown, ChevronUp, Shield } from "lucide-react";
+import { Copy, Check, AlertTriangle, Lightbulb, ChevronDown, ChevronUp, Shield, Printer } from "lucide-react";
 import { cn, riskConfig } from "@/lib/utils";
 import { PortCheatSheet, CheatSection, CheatCommand } from "@/lib/types";
 
@@ -138,6 +138,13 @@ export default function CheatSheetCard({ sheet }: { sheet: PortCheatSheet }) {
           </h1>
           <p className="text-sm text-terminal-comment mt-2 leading-relaxed">{sheet.description}</p>
         </div>
+        <button
+          onClick={() => window.print()}
+          className="no-print shrink-0 self-start flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-2 border border-surface-3 text-xs text-terminal-comment hover:text-yellow-300 hover:border-yellow-500/30 transition-all"
+          title="Yazdır veya PDF olarak kaydet"
+        >
+          <Printer className="w-4 h-4" /> Yazdır / PDF
+        </button>
       </div>
 
       {/* Sections */}

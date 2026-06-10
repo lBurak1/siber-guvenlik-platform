@@ -394,11 +394,14 @@ export default function HomePage() {
 
       {/* Section cards — kategorilere ayrılmış */}
       <section className="max-w-7xl mx-auto px-4 py-16">
-        <div className="text-center mb-12">
+        <div className="text-center mb-10">
           <h2 className="text-xs font-mono text-terminal-comment uppercase tracking-widest mb-2">
             Öğrenme Yolu
           </h2>
-          <p className="text-2xl font-bold text-terminal-white">Temelden İleri Seviyeye, Adım Adım</p>
+          <p className="text-2xl font-bold text-terminal-white mb-4">Temelden İleri Seviyeye, Adım Adım</p>
+          <Link href="/yol-haritasi" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-1 border border-surface-3 text-sm text-terminal-comment hover:text-terminal-white hover:border-terminal-green/30 transition-all">
+            <Network className="w-4 h-4 text-terminal-green" /> Görsel Yol Haritasını Gör <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
 
         <style>{`

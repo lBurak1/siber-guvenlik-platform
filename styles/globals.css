@@ -144,3 +144,13 @@
 .glitch-text {
   animation: glitch 5s infinite;
 }
+
+/* Yazdırma / PDF — sadece içerik yazdırılsın */
+@media print {
+  header, aside, .no-print { display: none !important; }
+  main { display: block !important; }
+  body { background: #fff !important; color: #000 !important; }
+  .module-card, .bg-surface-1, .bg-surface-2 { background: #fff !important; border-color: #ccc !important; }
+  * { color: #000 !important; box-shadow: none !important; }
+  a { text-decoration: none !important; }
+}
