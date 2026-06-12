@@ -1,0 +1,126 @@
+{
+  "id": "acl-security",
+  "slug": "acl-security",
+  "title": "ACL & Port Güvenliği",
+  "subtitle": "Ağ Güvenliği Temelleri — CCNA",
+  "description": "Cisco cihazlarında trafik filtreleme (Access Control Lists), switch port güvenliği ve Layer 2 saldırılarına karşı korumalar — CCNA Security Fundamentals konuları.",
+  "icon": "🔒",
+  "order": 10,
+  "tags": ["acl", "port security", "ccna", "güvenlik", "dhcp snooping", "filtreleme"],
+  "modules": [
+    {
+      "id": "acl",
+      "title": "Access Control Lists (ACL)",
+      "description": "Standart ve genişletilmiş ACL ile trafik filtreleme",
+      "difficulty": "intermediate",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "ACL Mantığı",
+          "content": "**ACL (Access Control List):** Router/switch üzerinde trafiği IP, port veya protokole göre **izin veren (permit)** veya **engelleyen (deny)** kural listesi. Ağ güvenliğinin temel aracı.\n\n**İki tür:**\n| Tür | Filtreler | Numara |\n|-----|-----------|--------|\n| **Standart** | Sadece kaynak IP | 1-99 |\n| **Genişletilmiş (Extended)** | Kaynak+hedef IP, port, protokol | 100-199 |\n\n**Kritik kurallar:**\n1. **Yukarıdan aşağı** değerlendirilir — ilk eşleşen uygulanır, durur\n2. Sonda **gizli 'deny any'** vardır — açıkça izin verilmeyen her şey engellenir\n3. **Sıralama önemli:** Spesifik kurallar üste, genel kurallar alta\n4. ACL bir arayüze **uygulanmalı** (in/out yönü)\n\n**Yerleştirme:**\n- **Standart ACL:** Hedefe yakın yerleştir (çok şeyi engellemesin)\n- **Extended ACL:** Kaynağa yakın yerleştir (gereksiz trafiği erken durdur)\n\n> CCNA ipucu: Wildcard mask kullanılır (0.0.0.255). Tek host için 'host 192.168.1.5', herkes için 'any'."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "ACL Komutları",
+          "commands": [
+            {
+              "command": "access-list 10 permit 192.168.1.0 0.0.0.255\naccess-list 10 deny any\ninterface gigabitEthernet 0/1\n ip access-group 10 out",
+              "description": "Standart ACL — sadece bir ağa izin ver, arayüze uygula",
+              "tip": "Standart ACL kaynak IP'ye göre filtreler. ip access-group ile arayüze (in/out) uygulanır.",
+              "flags": [
+                { "flag": "access-list 1-99", "description": "Standart ACL" },
+                { "flag": "ip access-group", "description": "Arayüze uygula (in/out)" }
+              ]
+            },
+            {
+              "command": "access-list 100 permit tcp 192.168.1.0 0.0.0.255 any eq 80\naccess-list 100 permit tcp 192.168.1.0 0.0.0.255 any eq 443\naccess-list 100 deny ip any any",
+              "description": "Genişletilmiş ACL — sadece HTTP/HTTPS'e izin ver",
+              "tip": "Extended ACL port/protokol filtreler. eq 80 = HTTP, eq 443 = HTTPS. Diğer her şey engellenir."
+            },
+            {
+              "command": "ip access-list extended WEB-ERISIM\n permit tcp any host 192.168.1.10 eq 443\n deny ip any any log\ninterface g0/0\n ip access-group WEB-ERISIM in",
+              "description": "İsimli (named) ACL — okunabilir ve düzenlenebilir",
+              "tip": "İsimli ACL'ler numaralılardan daha yönetilebilir. 'log' eşleşmeleri kaydeder."
+            },
+            {
+              "command": "show access-lists\nshow ip interface gigabitEthernet 0/1",
+              "description": "ACL'leri ve hangi arayüze uygulandığını doğrula",
+              "tip": "show access-lists her kuralın kaç kez eşleştiğini (matches) gösterir — sorun gidermede altın."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "port-security",
+      "title": "Port Güvenliği & Layer 2 Koruma + Lab",
+      "description": "Switch port security ve L2 saldırı savunmaları",
+      "difficulty": "advanced",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Layer 2 Güvenliği",
+          "content": "Ağ saldırılarının çoğu **Layer 2'de** (switch seviyesi) başlar. CCNA bu temel korumaları öğretir:\n\n**Port Security:** Bir switch portuna kaç MAC adresi bağlanabileceğini sınırlar. Yetkisiz cihaz takılırsa portu kapatır.\n- **Violation modları:** protect (sessiz engelle), restrict (engelle+logla), shutdown (portu kapat — varsayılan)\n- **Sticky MAC:** Öğrenilen MAC'i otomatik kaydeder\n\n**Yaygın L2 saldırıları ve savunmaları:**\n| Saldırı | Savunma |\n|---------|---------|\n| MAC Flooding (CAM overflow) | Port Security |\n| DHCP Spoofing | DHCP Snooping |\n| ARP Spoofing | Dynamic ARP Inspection (DAI) |\n| VLAN Hopping | Native VLAN değiştir, DTP kapat |\n| STP manipülasyonu | BPDU Guard, Root Guard |\n\n**DHCP Snooping:** Yetkisiz (rogue) DHCP sunucularını engeller; portları 'trusted/untrusted' olarak işaretler.\n\n> CCNA ipucu: Kullanılmayan portları kapat (shutdown) ve kullanılmayan VLAN'a ata — saldırı yüzeyini azaltır."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Port Security Komutları",
+          "commands": [
+            {
+              "command": "interface fastEthernet 0/1\n switchport mode access\n switchport port-security\n switchport port-security maximum 2\n switchport port-security violation restrict\n switchport port-security mac-address sticky",
+              "description": "Port güvenliği — max 2 MAC, ihlalde engelle+logla, sticky",
+              "tip": "maximum = izinli MAC sayısı. sticky öğrenilen MAC'leri kaydeder. violation modunu ihtiyaca göre seç.",
+              "flags": [
+                { "flag": "port-security maximum", "description": "İzinli MAC sayısı" },
+                { "flag": "violation", "description": "İhlal modu (protect/restrict/shutdown)" },
+                { "flag": "mac-address sticky", "description": "MAC'i otomatik öğren+kaydet" }
+              ]
+            },
+            {
+              "command": "show port-security interface fastEthernet 0/1",
+              "description": "Port güvenlik durumunu ve ihlal sayısını gör",
+              "output": "Port Security: Enabled\nViolation Mode: Restrict\nMax MAC: 2\nViolation Count: 0",
+              "tip": "Violation Count artıyorsa yetkisiz cihaz denemesi var demektir."
+            },
+            {
+              "command": "ip dhcp snooping\nip dhcp snooping vlan 10\ninterface gigabitEthernet 0/1\n ip dhcp snooping trust",
+              "description": "DHCP Snooping — rogue DHCP sunucusunu engelle",
+              "tip": "Sadece gerçek DHCP sunucusuna giden port 'trust' edilir; diğer portlardan gelen DHCP yanıtları bloklanır."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "Lab: ACL ve Port Security Uygula",
+          "scenario": {
+            "title": "Güvenli Switch/Router Yapılandırması",
+            "objective": "Packet Tracer'da bir ağ kur; ACL ile VLAN'lar arası erişimi kısıtla ve switch portlarında port security uygula. Yetkisiz erişimin engellendiğini doğrula.",
+            "environment": "Cisco Packet Tracer / GNS3",
+            "difficulty": "intermediate",
+            "steps": [
+              "VLAN'lı bir switch + router-on-a-stick kur",
+              "Extended ACL ile Misafir VLAN'ın iç sunuculara erişimini engelle",
+              "ACL'i router subinterface'ine uygula (in)",
+              "Erişim PC'lerinde port-security + sticky MAC yapılandır",
+              "Yetkisiz MAC ile bağlanmayı dene → ihlal/engelleme gör",
+              "show access-lists ve show port-security ile doğrula"
+            ],
+            "hints": [
+              "ACL sırasını kontrol et — gizli deny any en sonda",
+              "Port security'de violation shutdown ise portu 'errdisable'dan kurtarmak için shut/no shut gerekir",
+              "Packet Tracer NetAcad CCNA müfredatının resmi simülatörüdür"
+            ],
+            "defenseNote": "Savunma özeti: ACL ile en az ayrıcalık (yalnız gerekli trafiğe izin), port security ile fiziksel erişim kontrolü, DHCP snooping + DAI ile L2 spoofing önleme, kullanılmayan portları kapatma — katmanlı ağ savunmasının temeli."
+          }
+        }
+      ]
+    }
+  ]
+}

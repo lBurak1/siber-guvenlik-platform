@@ -1,0 +1,102 @@
+{
+  "id": "vlan-stp",
+  "slug": "vlan-stp",
+  "title": "VLAN, Trunk & STP",
+  "subtitle": "Switching — CCNA Layer 2",
+  "description": "Anahtarlama dünyasının kalbi: VLAN'larla ağ bölümleme, 802.1Q trunk, inter-VLAN routing, Spanning Tree Protocol (STP) ve EtherChannel — CCNA switching konuları.",
+  "icon": "🔗",
+  "order": 6,
+  "tags": ["vlan", "trunk", "stp", "spanning-tree", "etherchannel", "switching", "ccna", "802.1q"],
+  "modules": [
+    {
+      "id": "vlan-trunk",
+      "title": "VLAN ve Trunk Yapılandırma",
+      "description": "VLAN oluşturma, port atama, 802.1Q trunk ve inter-VLAN routing",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "VLAN Mantığı",
+          "content": "**VLAN (Virtual LAN):** Tek bir fiziksel switch'i mantıksal olarak ayrı ağlara böler. Her VLAN ayrı bir broadcast domain'dir.\n\n**Neden VLAN?**\n- **Segmentasyon:** Muhasebe ≠ IT ≠ Misafir (güvenlik + performans)\n- **Broadcast azaltma:** Her VLAN kendi broadcast'ini tutar\n- **Esneklik:** Fiziksel konumdan bağımsız gruplama\n\n**Port türleri:**\n| Tür | Görev |\n|-----|-------|\n| **Access** | Tek bir VLAN'a ait uç cihaz portu |\n| **Trunk** | Birden fazla VLAN trafiğini taşır (switch'ler arası) |\n\n**802.1Q (dot1q):** Trunk üzerinde hangi paketin hangi VLAN'a ait olduğunu **etiketleme (tagging)** standardı.\n\n**Inter-VLAN Routing:** VLAN'lar varsayılan olarak birbirine erişemez (bu güvenliktir). Aralarında trafik için **Layer 3** gerekir:\n- Router-on-a-stick (tek fiziksel bağlantı, subinterface)\n- Layer 3 switch (SVI)\n\n> CCNA ipucu: VLAN 1 varsayılandır ve native VLAN'dır — güvenlik için yönetim/native VLAN'ı değiştirmek önerilir."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "VLAN & Trunk Komutları",
+          "commands": [
+            {
+              "command": "vlan 10\n name MUHASEBE\nvlan 20\n name IT",
+              "description": "VLAN oluştur ve isimlendir",
+              "tip": "show vlan brief ile oluşturduğun VLAN'ları ve port atamalarını gör."
+            },
+            {
+              "command": "interface fastEthernet 0/1\n switchport mode access\n switchport access vlan 10",
+              "description": "Portu access yap ve VLAN 10'a ata",
+              "tip": "Uç cihaz (PC) bağlı portlar access olmalı. Aralık için: interface range fa0/1-12",
+              "flags": [
+                { "flag": "switchport mode access", "description": "Port türü: access" },
+                { "flag": "switchport access vlan", "description": "VLAN ataması" }
+              ]
+            },
+            {
+              "command": "interface gigabitEthernet 0/1\n switchport mode trunk\n switchport trunk allowed vlan 10,20\n switchport trunk native vlan 99",
+              "description": "Switch'ler arası bağlantıyı trunk yap",
+              "tip": "Trunk birden çok VLAN taşır. native vlan'ı 1'den değiştirmek (99) VLAN hopping saldırısına karşı savunmadır."
+            },
+            {
+              "command": "show vlan brief\nshow interfaces trunk",
+              "description": "VLAN atamalarını ve trunk durumunu doğrula",
+              "output": "VLAN Name      Status   Ports\n10   MUHASEBE  active   Fa0/1\n20   IT        active   Fa0/2",
+              "tip": "show interfaces trunk hangi VLAN'ların trunk'tan geçtiğini gösterir."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stp-etherchannel",
+      "title": "STP & EtherChannel",
+      "description": "Döngü önleme (Spanning Tree) ve bağlantı toplama",
+      "difficulty": "advanced",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "STP ve EtherChannel",
+          "content": "**Problem:** Yedeklilik için switch'ler arasında birden fazla bağlantı kurarsan, Layer 2 **döngü (loop)** oluşur → broadcast fırtınası ağı çökertir.\n\n**STP (Spanning Tree Protocol):** Döngüleri önler. Yedek yolları otomatik **bloklar**, sadece bir aktif yol bırakır. Aktif yol koparsa bloklu yolu açar.\n\n**STP kavramları:**\n- **Root Bridge:** Referans switch (en düşük bridge ID seçilir)\n- **Port rolleri:** Root, Designated (forwarding), Blocking\n- **PortFast:** Uç cihaz portlarını anında forwarding yapar (PC'ler için)\n- **BPDU Guard:** PortFast portunda BPDU gelirse kapatır (güvenlik)\n\n**Modern STP:** RSTP (Rapid STP, 802.1w) çok daha hızlı yakınsar.\n\n**EtherChannel:** Birden fazla fiziksel bağlantıyı **tek mantıksal bağlantıya** toplar → bant genişliği artar, STP bloklama olmaz, yedeklilik sağlar.\n- **LACP** (802.3ad): standart\n- **PAgP**: Cisco özel\n\n> CCNA ipucu: Root bridge'i kontrol etmek için kritik switch'in priority değerini düşür: spanning-tree vlan 1 priority 4096"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "STP & EtherChannel Komutları",
+          "commands": [
+            {
+              "command": "show spanning-tree",
+              "description": "STP durumunu, root bridge ve port rollerini gör",
+              "tip": "Root bridge'in kim olduğunu ve hangi portların blocking/forwarding olduğunu gösterir."
+            },
+            {
+              "command": "spanning-tree vlan 1 priority 4096",
+              "description": "Bu switch'i root bridge yapmak için priority düşür",
+              "tip": "Düşük priority = root olma şansı yüksek. Varsayılan 32768; 4096'nın katları kullanılır."
+            },
+            {
+              "command": "interface fastEthernet 0/1\n spanning-tree portfast\n spanning-tree bpduguard enable",
+              "description": "Uç cihaz portunu hızlandır + BPDU Guard ile koru",
+              "tip": "PortFast PC'leri anında bağlar; BPDU Guard bu porta switch takılırsa kapatır (loop/saldırı önleme).",
+              "warning": "PortFast'i ASLA switch'e giden portta kullanma — döngü riski."
+            },
+            {
+              "command": "interface range gigabitEthernet 0/1-2\n channel-group 1 mode active\nexit\ninterface port-channel 1\n switchport mode trunk",
+              "description": "İki portu LACP EtherChannel'da topla",
+              "tip": "mode active = LACP. show etherchannel summary ile durumu kontrol et. (SU) = çalışıyor."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

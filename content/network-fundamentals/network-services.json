@@ -1,0 +1,101 @@
+{
+  "id": "network-services",
+  "slug": "network-services",
+  "title": "Ağ Servisleri: DHCP, NAT, NTP",
+  "subtitle": "IP Servisleri — CCNA",
+  "description": "Cisco cihazlarında temel ağ servislerinin yapılandırması: otomatik IP dağıtımı (DHCP), adres çevirimi (NAT/PAT), zaman senkronizasyonu (NTP) ve DNS — CCNA IP Services konuları.",
+  "icon": "⚙️",
+  "order": 9,
+  "tags": ["dhcp", "nat", "pat", "ntp", "dns", "ccna", "ip services"],
+  "modules": [
+    {
+      "id": "dhcp-dns",
+      "title": "DHCP & DNS Yapılandırma",
+      "description": "Router'ı DHCP sunucusu yapma ve DNS ayarları",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "DHCP Nasıl Çalışır?",
+          "content": "**DHCP (Dynamic Host Configuration Protocol):** Cihazlara otomatik IP, subnet maskesi, gateway ve DNS dağıtır. Elle IP atamanın (yüzlerce cihazda) imkansızlığını çözer.\n\n**DORA süreci (ezberlenmeli):**\n```\nDiscover  → İstemci 'IP arıyorum' (broadcast)\nOffer     → Sunucu 'şu IP'yi al' önerir\nRequest   → İstemci 'kabul ediyorum'\nAck       → Sunucu 'onaylandı'\n```\n\n**Cisco router DHCP sunucusu olabilir** veya DHCP isteklerini başka sunucuya iletebilir (**ip helper-address** — relay).\n\n**Önemli:** Router'ın kendi arayüz IP'si ve gateway, DHCP havuzundan **hariç tutulmalıdır** (excluded-address), yoksa çakışma olur.\n\n> CCNA ipucu: Farklı VLAN/subnet'teki DHCP sunucusu için arayüze 'ip helper-address' eklenir — broadcast olan DHCP'yi yönlendirir."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "DHCP & DNS Komutları",
+          "commands": [
+            {
+              "command": "ip dhcp excluded-address 192.168.1.1 192.168.1.10\nip dhcp pool LAN-HAVUZ\n network 192.168.1.0 255.255.255.0\n default-router 192.168.1.1\n dns-server 8.8.8.8\n lease 7",
+              "description": "Router'ı DHCP sunucusu olarak yapılandır",
+              "tip": "Önce gateway/statik IP'leri hariç tut (excluded). default-router = gateway, lease = kira süresi (gün).",
+              "flags": [
+                { "flag": "excluded-address", "description": "Dağıtılmayacak IP'ler" },
+                { "flag": "default-router", "description": "Gateway" },
+                { "flag": "dns-server", "description": "DNS sunucusu" }
+              ]
+            },
+            {
+              "command": "interface gigabitEthernet 0/0\n ip helper-address 10.0.0.5",
+              "description": "DHCP relay — başka subnet'teki DHCP sunucusuna ilet",
+              "tip": "DHCP broadcast'tir, router'ları geçmez. helper-address onu unicast olarak sunucuya yönlendirir."
+            },
+            {
+              "command": "show ip dhcp binding",
+              "description": "DHCP'nin dağıttığı IP'leri (kira tablosu) gör",
+              "tip": "Hangi MAC'e hangi IP verildiğini gösterir. Sorun gidermede kullanışlı."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nat-ntp",
+      "title": "NAT/PAT & NTP",
+      "description": "Adres çevirimi ve zaman senkronizasyonu",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "NAT'ı Anlamak",
+          "content": "**NAT (Network Address Translation):** Özel IP adreslerini (192.168.x, 10.x) genel (public) IP'ye çevirir. IPv4 adres kıtlığının çözümü.\n\n**Türleri:**\n| Tür | Açıklama |\n|-----|----------|\n| Static NAT | 1 özel ↔ 1 genel (sunucu yayını) |\n| Dynamic NAT | Havuzdan eşleme |\n| **PAT (Overload)** | Birçok özel → tek genel IP (port ile ayırt) — en yaygın |\n\n**PAT (Port Address Translation):** Ev/ofis router'ının yaptığı budur — yüzlerce cihaz tek genel IP'den çıkar, port numaralarıyla ayrılır.\n\n**inside vs outside:**\n- **inside:** İç (özel) ağ arayüzü\n- **outside:** Dış (internet) arayüzü\n\n**NTP (Network Time Protocol):** Cihaz saatlerini senkronize eder. Loglar, sertifikalar ve Kerberos için doğru zaman kritiktir — yanlış saat güvenlik sorunları yaratır.\n\n> CCNA ipucu: PAT yapılandırmasında 'overload' anahtar kelimesi tek IP'ye çoklu eşlemeyi sağlar."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "NAT/PAT & NTP Komutları",
+          "commands": [
+            {
+              "command": "interface gigabitEthernet 0/0\n ip nat inside\ninterface gigabitEthernet 0/1\n ip nat outside",
+              "description": "İç ve dış NAT arayüzlerini belirle",
+              "tip": "NAT'ın çalışması için arayüzlerin inside/outside olarak işaretlenmesi şarttır."
+            },
+            {
+              "command": "access-list 1 permit 192.168.1.0 0.0.0.255\nip nat inside source list 1 interface gigabitEthernet 0/1 overload",
+              "description": "PAT — iç ağı tek genel IP'ye çevir (overload)",
+              "output": "(internet erişimi sağlanır)",
+              "tip": "overload = PAT (port tabanlı). ACL 1 hangi iç ağın çevrileceğini belirler.",
+              "flags": [
+                { "flag": "overload", "description": "PAT (çoklu→tek IP)" },
+                { "flag": "ip nat inside source list", "description": "Dinamik NAT kuralı" }
+              ]
+            },
+            {
+              "command": "ip nat inside source static 192.168.1.10 203.0.113.10",
+              "description": "Static NAT — iç sunucuyu dışarı yayınla",
+              "tip": "İçerideki web sunucusuna (192.168.1.10) dışarıdan erişim için genel IP eşler."
+            },
+            {
+              "command": "show ip nat translations\nntp server 129.6.15.28",
+              "description": "NAT çevirilerini gör + NTP sunucusu ayarla",
+              "tip": "show ip nat translations aktif çevirileri listeler. ntp server saat senkronizasyonu sağlar."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

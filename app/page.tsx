@@ -8,16 +8,16 @@ const sections = [
     id: "network-fundamentals",
     href: "/network-fundamentals",
     icon: Network,
-    label: "Ağ Temelleri",
-    subtitle: "Önce Temeli Kur",
-    description: "OSI & TCP/IP modelleri, TCP el sıkışması, IP adresleme/CIDR ve ARP, DNS, DHCP, HTTP/S, SMB protokollerinin güvenlik perspektifinden incelenmesi.",
-    tools: ["OSI Model", "TCP Handshake", "CIDR/Subnetting", "ARP", "DNS", "SMB"],
+    label: "Network",
+    subtitle: "Temelden CCNA'ya",
+    description: "Temelden CCNA seviyesine: OSI/TCP-IP, subnetting, Cisco IOS, VLAN/STP, OSPF routing, DHCP/NAT, ACL ve port güvenliği — uçtan uca ağ mühendisliği.",
+    tools: ["OSI/TCP-IP", "Subnetting", "Cisco IOS", "VLAN/STP", "OSPF", "ACL", "NAT/DHCP"],
     color: "emerald",
     border: "border-emerald-500/20 hover:border-emerald-500/60",
     glow: "hover:shadow-[0_0_40px_rgba(16,185,129,0.15)]",
     badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
     cta: "bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20",
-    modules: "4 Konu · Temel",
+    modules: "13 Konu · CCNA",
     recommended: true,
   },
   {
@@ -243,7 +243,7 @@ const accentMap: Record<string, { bar: string; text: string }> = {
 const groups = [
   { id: "foundation", title: "Temeller", short: "Temeller", icon: Cpu, subtitle: "İşletim sistemi ve araç hakimiyeti", accent: "orange",
     ids: ["linux-fundamentals", "windows-fundamentals", "devops-fundamentals"] },
-  { id: "network", title: "Ağ / Network", short: "Ağ", icon: Network, subtitle: "Temelden ileri seviyeye ağ bilgisi", accent: "emerald",
+  { id: "network", title: "Network", short: "Network", icon: Network, subtitle: "Temelden CCNA seviyesine ağ bilgisi", accent: "emerald",
     ids: ["network-fundamentals", "advanced-network"] },
   { id: "security", title: "Siber Güvenlik", short: "Siber Güvenlik", icon: Shield, subtitle: "Saldırı, savunma, araçlar ve web uygulama güvenliği", accent: "red",
     ids: ["red-team", "arsenal", "blue-team", "purple-team", "owasp-top10"] },
@@ -335,7 +335,7 @@ export default function HomePage() {
           </p>
           <div className="flex items-center justify-center gap-3 flex-wrap">
             <Link href="/network-fundamentals" className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 font-medium transition-all text-sm">
-              <Network className="w-4 h-4" /> Ağ Temelleri
+              <Network className="w-4 h-4" /> Network
             </Link>
             <Link href="/red-team" className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-red-500/10 text-red-300 border border-red-500/30 hover:bg-red-500/20 font-medium transition-all text-sm">
               <Shield className="w-4 h-4" /> Red Team

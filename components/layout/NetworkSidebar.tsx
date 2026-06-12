@@ -1,13 +1,13 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Layers, Network, Radio, Router, Globe, ChevronDown, ChevronRight, Lock, CheckCircle2 } from "lucide-react";
+import { Layers, Network, Radio, Router, Globe, Server, Lock as LockIcon, ChevronDown, ChevronRight, Lock, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useProgressStore } from "@/lib/progress-store";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Layers, Network, Radio, Router, Globe,
+  Layers, Network, Radio, Router, Globe, Server, Lock: LockIcon,
 };
 
 const netNav = [
@@ -37,12 +37,31 @@ const netNav = [
     ],
   },
   {
-    id: "advanced-net",
-    title: "İleri Seviye",
+    id: "cisco-switching",
+    title: "Cisco & Switching",
+    icon: "Server",
+    tools: [
+      { id: "cisco-ios", title: "Cisco IOS Temelleri", slug: "cisco-ios" },
+      { id: "vlan-stp",  title: "VLAN, Trunk & STP", slug: "vlan-stp" },
+    ],
+  },
+  {
+    id: "routing",
+    title: "Routing",
     icon: "Router",
     tools: [
-      { id: "routing-switching", title: "Routing & Switching", slug: "routing-switching" },
-      { id: "network-security",  title: "Ağ Güvenlik Cihazları", slug: "network-security" },
+      { id: "routing-switching", title: "Routing & Switching Temeli", slug: "routing-switching" },
+      { id: "routing-protocols", title: "Statik & OSPF", slug: "routing-protocols" },
+    ],
+  },
+  {
+    id: "services-security",
+    title: "Servisler & Güvenlik",
+    icon: "Lock",
+    tools: [
+      { id: "network-services", title: "DHCP, NAT, NTP", slug: "network-services" },
+      { id: "acl-security",     title: "ACL & Port Güvenliği", slug: "acl-security" },
+      { id: "network-security", title: "Ağ Güvenlik Cihazları", slug: "network-security" },
     ],
   },
   {
@@ -125,7 +144,7 @@ export default function NetworkSidebar() {
       <div className="p-4 border-t border-surface-3">
         <div className="bg-surface-2 rounded-lg p-3 text-xs text-terminal-comment font-mono space-y-1">
           <div className="flex items-center gap-2 text-emerald-400 font-semibold">
-            <Lock className="w-3 h-3" /> Neden Ağ Temelleri?
+            <Lock className="w-3 h-3" /> Neden Network?
           </div>
           <p>Protokolleri anlamadan pentest yapamazsın.</p>
         </div>

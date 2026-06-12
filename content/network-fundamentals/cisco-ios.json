@@ -1,0 +1,106 @@
+{
+  "id": "cisco-ios",
+  "slug": "cisco-ios",
+  "title": "Cisco IOS Temelleri",
+  "subtitle": "CLI, Mod Yapısı ve Cihaz Yapılandırma",
+  "description": "CCNA'nın kalbi: Cisco cihazlarının komut satırı (CLI). Mod yapısı, temel yapılandırma, parola güvenliği, arayüz ayarları ve show komutları — router/switch yönetiminin temeli.",
+  "icon": "🖧",
+  "order": 5,
+  "tags": ["cisco", "ios", "cli", "ccna", "router", "switch", "yapılandırma"],
+  "modules": [
+    {
+      "id": "ios-modes",
+      "title": "IOS Mod Yapısı ve Temel Yapılandırma",
+      "description": "CLI modları, hostname, parolalar ve config kaydetme",
+      "difficulty": "beginner",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Cisco IOS CLI Mantığı",
+          "content": "**Cisco IOS** (Internetwork Operating System), router ve switch'lerin işletim sistemidir. Yönetim komut satırından (CLI) yapılır.\n\n**Mod Hiyerarşisi (en kritik kavram):**\n| Mod | Prompt | Ne yapılır |\n|-----|--------|-----------|\n| User EXEC | `Router>` | Sınırlı görüntüleme |\n| Privileged EXEC | `Router#` | Tüm show/debug, yönetim |\n| Global Config | `Router(config)#` | Cihaz geneli ayar |\n| Interface Config | `Router(config-if)#` | Arayüz ayarı |\n| Line Config | `Router(config-line)#` | Konsol/VTY ayarı |\n\n**Geçişler:**\n```\nRouter> enable            → Router#\nRouter# configure terminal → Router(config)#\nRouter(config)# interface g0/0 → Router(config-if)#\nexit (bir üst mod) / end (privileged'a dön)\n```\n\n**Yapılandırma dosyaları:**\n- **running-config:** RAM'de, aktif (değişiklik anında uygulanır)\n- **startup-config:** NVRAM'de, açılışta yüklenir\n- Kaydetmezsen değişiklik **elektrik kesilince kaybolur!**\n\n> CCNA ipucu: Komutları kısaltabilirsin (`conf t` = `configure terminal`, `int g0/0` = `interface gigabitethernet0/0`). Tab tuşu tamamlar, `?` yardım verir."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel Yapılandırma Komutları",
+          "commands": [
+            {
+              "command": "enable\nconfigure terminal\nhostname R1",
+              "description": "Privileged moda geç, config moduna gir, cihaz adını ayarla",
+              "tip": "hostname prompt'u değiştirir (Router# → R1#). Cihazları ayırt etmek için kritik."
+            },
+            {
+              "command": "enable secret Cisco123\nservice password-encryption",
+              "description": "Privileged EXEC parolası (şifreli) ve tüm parolaları şifrele",
+              "tip": "enable secret şifrelidir (enable password değil!). service password-encryption düz metin parolaları gizler.",
+              "flags": [
+                { "flag": "enable secret", "description": "Şifreli privileged parola" },
+                { "flag": "service password-encryption", "description": "Tüm parolaları şifrele" }
+              ]
+            },
+            {
+              "command": "line console 0\n password KonsolSifre\n login\nexit\nline vty 0 4\n password TelnetSifre\n login\ntransport input ssh",
+              "description": "Konsol ve uzaktan erişim (VTY) parolaları",
+              "tip": "vty 0 4 = 5 eşzamanlı uzak oturum. transport input ssh sadece SSH'a izin verir (Telnet güvensiz)."
+            },
+            {
+              "command": "copy running-config startup-config",
+              "description": "Aktif yapılandırmayı kalıcı kaydet (NVRAM)",
+              "output": "Destination filename [startup-config]?\nBuilding configuration...\n[OK]",
+              "tip": "Kısa hali: wr veya write memory. Kaydetmezsen reboot'ta her şey silinir!"
+            },
+            {
+              "command": "show running-config",
+              "description": "Aktif yapılandırmanın tamamını gör",
+              "tip": "show startup-config kaydedilmiş halini gösterir. İkisi farklıysa kaydetmemişsin demektir."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "interfaces",
+      "title": "Arayüz Yapılandırma & Doğrulama",
+      "description": "IP atama, arayüz açma ve show komutlarıyla doğrulama",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Arayüz Komutları",
+          "commands": [
+            {
+              "command": "interface gigabitEthernet 0/0\n ip address 192.168.1.1 255.255.255.0\n description LAN-Baglantisi\n no shutdown",
+              "description": "Arayüze IP ata, açıklama ekle ve etkinleştir",
+              "tip": "no shutdown ÇOK önemli — Cisco arayüzleri varsayılan KAPALI gelir. Açmazsan çalışmaz.",
+              "flags": [
+                { "flag": "ip address", "description": "IP + subnet maskesi" },
+                { "flag": "no shutdown", "description": "Arayüzü aç (kritik!)" },
+                { "flag": "description", "description": "Belgeleme notu" }
+              ]
+            },
+            {
+              "command": "show ip interface brief",
+              "description": "Tüm arayüzlerin IP ve durum özetini gör",
+              "output": "Interface       IP-Address    Status   Protocol\nGi0/0           192.168.1.1   up       up\nGi0/1           unassigned    down     down",
+              "tip": "En çok kullanılan doğrulama komutu. 'up/up' = çalışıyor; 'down/down' = no shutdown yapılmamış."
+            },
+            {
+              "command": "show interfaces gigabitEthernet 0/0",
+              "description": "Bir arayüzün detaylı durumu (hata, hız, duplex)",
+              "tip": "CRC/collision hataları kablo/duplex sorununa işaret eder."
+            },
+            {
+              "command": "interface vlan 1\n ip address 192.168.1.2 255.255.255.0\n no shutdown\nip default-gateway 192.168.1.1",
+              "description": "Switch'e yönetim IP'si (SVI) ata",
+              "tip": "Switch'ler Layer 2'dir; uzaktan yönetim için SVI (VLAN arayüzü) + default-gateway gerekir."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

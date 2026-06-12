@@ -43,7 +43,7 @@ export const teamConfig = {
     description: "Senkronizasyon — Red ve Blue'yu birleştir, güvenlik döngüsünü kapat",
   },
   "network-fundamentals": {
-    label: "Ağ Temelleri",
+    label: "Network",
     shortLabel: "NET",
     color: "#10b981",
     bgClass: "bg-emerald-500/10",
@@ -52,7 +52,7 @@ export const teamConfig = {
     glowClass: "shadow-[0_0_20px_rgba(16,185,129,0.3)]",
     badgeClass: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
     gradient: "from-emerald-900/20 to-transparent",
-    description: "Ağ Temelleri — OSI, TCP/IP, Protokoller ve Güvenlik",
+    description: "Network — Temelden CCNA seviyesine: OSI, Cisco IOS, VLAN, Routing, Güvenlik",
   },
   "linux-fundamentals": {
     label: "Linux Eğitimi",

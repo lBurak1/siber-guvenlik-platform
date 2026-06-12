@@ -31,6 +31,41 @@ const topics = [
     level: "Orta",
   },
   {
+    slug: "cisco-ios",
+    icon: "🖧",
+    title: "Cisco IOS Temelleri",
+    desc: "CLI mod yapısı, hostname/parola, arayüz yapılandırma, show komutları — CCNA",
+    level: "Başlangıç–Orta",
+  },
+  {
+    slug: "vlan-stp",
+    icon: "🔗",
+    title: "VLAN, Trunk & STP",
+    desc: "VLAN/access/trunk (802.1Q), inter-VLAN routing, Spanning Tree, EtherChannel",
+    level: "Orta–İleri",
+  },
+  {
+    slug: "routing-protocols",
+    icon: "🧭",
+    title: "Routing: Statik & OSPF",
+    desc: "Yönlendirme tablosu, statik/default route, tek alanlı OSPF yapılandırma",
+    level: "Orta–İleri",
+  },
+  {
+    slug: "network-services",
+    icon: "⚙️",
+    title: "Ağ Servisleri: DHCP, NAT, NTP",
+    desc: "Cisco IOS'ta DHCP sunucu/relay, NAT/PAT, static NAT, NTP yapılandırma",
+    level: "Orta",
+  },
+  {
+    slug: "acl-security",
+    icon: "🔒",
+    title: "ACL & Port Güvenliği",
+    desc: "Standart/genişletilmiş ACL, port security, DHCP snooping — CCNA güvenlik",
+    level: "Orta–İleri",
+  },
+  {
     slug: "routing-switching",
     icon: "🔀",
     title: "Routing & Switching",
@@ -65,13 +100,13 @@ export default function NetworkFundamentalsPage() {
     <div className="p-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-3 mb-2">
         <Network className="w-7 h-7 text-emerald-400" />
-        <h1 className="text-2xl font-bold text-terminal-white">Ağ Temelleri</h1>
+        <h1 className="text-2xl font-bold text-terminal-white">Network</h1>
       </div>
       <p className="text-terminal-comment mb-2 ml-10">
-        Siber güvenliğin omurgası. Pentest yapabilmek için ağları içselleştirmen gerekir.
+        Temelden CCNA seviyesine ağ mühendisliği. OSI'den Cisco IOS'a, subnetting'den OSPF ve ACL'e — hem sistem/network mühendisliği hem de pentest temeli.
       </p>
       <div className="ml-10 mb-8 text-xs font-mono text-terminal-comment bg-surface-1 border border-emerald-500/20 rounded-lg px-3 py-2 inline-block">
-        <span className="text-emerald-400">önerilen sıra →</span> OSI/TCP-IP → TCP Handshake → IP/Subnetting → Protokoller → Routing & Switching → Ağ Güvenliği
+        <span className="text-emerald-400">önerilen sıra →</span> OSI/TCP-IP → Subnetting → Cisco IOS → VLAN/STP → Routing/OSPF → Servisler → ACL/Güvenlik
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">

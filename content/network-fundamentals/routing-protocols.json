@@ -1,0 +1,123 @@
+{
+  "id": "routing-protocols",
+  "slug": "routing-protocols",
+  "title": "Routing: Statik & OSPF",
+  "subtitle": "IP Bağlantısı — CCNA Routing",
+  "description": "Paketlerin ağlar arası yolculuğu: yönlendirme tablosu, statik route, default route ve dinamik routing protokolü OSPF'in tek alanlı (single-area) yapılandırması — CCNA routing çekirdeği.",
+  "icon": "🧭",
+  "order": 7,
+  "tags": ["routing", "ospf", "statik route", "default route", "ccna", "router", "yönlendirme"],
+  "modules": [
+    {
+      "id": "static-routing",
+      "title": "Statik & Default Routing",
+      "description": "Yönlendirme tablosu, statik route ve default route",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Yönlendirme Mantığı",
+          "content": "**Router'ın görevi:** Bir paketin hedef ağına nasıl ulaşacağına karar vermek. Bunu **yönlendirme tablosundan (routing table)** yapar.\n\n**Router yalnızca bildiği ağlara yönlendirir:**\n- **Doğrudan bağlı (C):** Arayüzüne bağlı ağlar — otomatik\n- **Statik (S):** Elle eklenen rotalar\n- **Dinamik (O=OSPF, D=EIGRP):** Protokollerin öğrendiği\n\n**Statik vs Dinamik:**\n| | Statik | Dinamik |\n|--|--------|---------|\n| Yapılandırma | Elle | Otomatik |\n| Ölçek | Küçük ağlar | Büyük ağlar |\n| Değişime uyum | Hayır | Evet |\n\n**Default Route (0.0.0.0/0):** 'Bilmediğim her yer için buraya gönder' — genelde internete çıkış için kullanılır. 'Gateway of last resort'.\n\n**Administrative Distance (AD):** Birden fazla kaynak aynı rotayı bilirse, AD düşük olan tercih edilir (Bağlı=0, Statik=1, OSPF=110, RIP=120).\n\n> CCNA ipucu: show ip route çıktısındaki harfler (C, S, O, *) rotanın nasıl öğrenildiğini söyler — okumayı öğren."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Statik Routing Komutları",
+          "commands": [
+            {
+              "command": "ip route 192.168.2.0 255.255.255.0 10.0.0.2",
+              "description": "192.168.2.0/24 ağına 10.0.0.2 üzerinden statik rota",
+              "tip": "Söz dizimi: ip route <hedef ağ> <maske> <sonraki hop>. Çıkış arayüzü de yazılabilir.",
+              "flags": [
+                { "flag": "ip route", "description": "Statik rota ekle" },
+                { "flag": "<next-hop>", "description": "Bir sonraki router IP'si" }
+              ]
+            },
+            {
+              "command": "ip route 0.0.0.0 0.0.0.0 10.0.0.2",
+              "description": "Default route — bilinmeyen tüm hedefler için (internet)",
+              "tip": "0.0.0.0/0 her şeyi kapsar. Genelde ISP'ye/internete çıkış için kullanılır."
+            },
+            {
+              "command": "show ip route",
+              "description": "Yönlendirme tablosunu gör",
+              "output": "C  192.168.1.0/24 is directly connected, Gi0/0\nS  192.168.2.0/24 [1/0] via 10.0.0.2\nS* 0.0.0.0/0 [1/0] via 10.0.0.2",
+              "tip": "C=bağlı, S=statik, S*=default. Köşeli parantez [AD/metric]. Sorun gidermenin ilk komutu."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ospf",
+      "title": "OSPF — Dinamik Routing + Lab",
+      "description": "Tek alanlı OSPF yapılandırma ve doğrulama",
+      "difficulty": "advanced",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "OSPF'i Anlamak",
+          "content": "**OSPF (Open Shortest Path First):** Açık standart, link-state dinamik routing protokolü. Büyük ağlarda router'lar birbirine otomatik rota öğretir.\n\n**Nasıl çalışır?**\n1. Komşularla **adjacency** (komşuluk) kurar\n2. **LSA** (Link State Advertisement) ile bağlantı bilgisini paylaşır\n3. Her router aynı topoloji haritasını (LSDB) oluşturur\n4. **Dijkstra (SPF)** algoritmasıyla en kısa yolu hesaplar\n\n**Temel kavramlar:**\n- **Area:** OSPF'i bölümlere ayırır; Area 0 = backbone (omurga)\n- **Router ID:** Her router'ın benzersiz kimliği (en yüksek IP veya loopback)\n- **Cost:** Metrik (bant genişliğine göre) — düşük cost tercih edilir\n- **Wildcard mask:** OSPF network komutunda maskenin tersi (0.0.0.255)\n\n**Neden OSPF?** Statik routing 100 router'da yönetilemez; OSPF değişikliklere saniyeler içinde otomatik uyum sağlar.\n\n> CCNA ipucu: network komutunda **wildcard mask** kullanılır (subnet maskenin tersi): 255.255.255.0 → 0.0.0.255"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "OSPF Yapılandırma",
+          "commands": [
+            {
+              "command": "router ospf 1\n router-id 1.1.1.1\n network 192.168.1.0 0.0.0.255 area 0\n network 10.0.0.0 0.0.0.3 area 0",
+              "description": "OSPF'i etkinleştir ve ağları area 0'a duyur",
+              "tip": "Wildcard mask kullan (0.0.0.255). process-id (1) yerel önemlidir, router'lar arası farklı olabilir.",
+              "flags": [
+                { "flag": "router ospf 1", "description": "OSPF process başlat" },
+                { "flag": "network ... wildcard area", "description": "Ağı duyur" },
+                { "flag": "router-id", "description": "Benzersiz kimlik" }
+              ]
+            },
+            {
+              "command": "show ip ospf neighbor",
+              "description": "OSPF komşuluklarını (adjacency) doğrula",
+              "output": "Neighbor ID  State    Address\n2.2.2.2      FULL/DR  10.0.0.2",
+              "tip": "State FULL = komşuluk tam kuruldu. FULL değilse area/maske/timer uyumsuzluğu vardır."
+            },
+            {
+              "command": "show ip route ospf",
+              "description": "OSPF'in öğrendiği rotaları gör (O ile işaretli)",
+              "tip": "'O' ile başlayan satırlar OSPF rotalarıdır. [110/...] AD=110 OSPF'i gösterir."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "Lab: İki Router OSPF Topolojisi",
+          "scenario": {
+            "title": "Packet Tracer'da OSPF Kur",
+            "objective": "İki router'ı seri/ethernet ile bağla, her birinde OSPF yapılandır ve farklı LAN'lardaki PC'lerin birbirine ping atabildiğini doğrula.",
+            "environment": "Cisco Packet Tracer veya GNS3 (ücretsiz ağ simülatörleri)",
+            "difficulty": "intermediate",
+            "steps": [
+              "İki router'a arayüz IP'leri ata (no shutdown unutma)",
+              "Aradaki bağlantı ağını ve her LAN'ı not et",
+              "R1: router ospf 1 → network komutlarıyla tüm ağları area 0'a duyur",
+              "R2: aynı şekilde OSPF yapılandır",
+              "show ip ospf neighbor ile FULL komşuluğu doğrula",
+              "show ip route ile O rotalarını gör",
+              "PC'den PC'ye ping at — uçtan uca bağlantıyı kanıtla"
+            ],
+            "hints": [
+              "Komşuluk kurulmuyorsa: aynı area'da mısınız? Maskeler uyumlu mu?",
+              "Wildcard mask'i ters yazmayı unutma (0.0.0.255)",
+              "Packet Tracer CCNA pratiği için ideal ve ücretsizdir (NetAcad)"
+            ],
+            "defenseNote": "Güvenlik notu: OSPF komşuluklarında kimlik doğrulama (message-digest/SHA) kullan, pasif arayüzlerle (passive-interface) gereksiz duyuruları engelle ve routing protokollerini yalnızca güvenilen arayüzlerde çalıştır."
+          }
+        }
+      ]
+    }
+  ]
+}

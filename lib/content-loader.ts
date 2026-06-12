@@ -62,6 +62,11 @@ const networkMap: Record<string, () => Promise<any>> = {
   "network-security":  () => import("@/content/network-fundamentals/network-security.json"),
   "web-architecture":  () => import("@/content/network-fundamentals/web-architecture.json"),
   "virtualization":    () => import("@/content/network-fundamentals/virtualization.json"),
+  "cisco-ios":         () => import("@/content/network-fundamentals/cisco-ios.json"),
+  "vlan-stp":          () => import("@/content/network-fundamentals/vlan-stp.json"),
+  "routing-protocols": () => import("@/content/network-fundamentals/routing-protocols.json"),
+  "network-services":  () => import("@/content/network-fundamentals/network-services.json"),
+  "acl-security":      () => import("@/content/network-fundamentals/acl-security.json"),
 };
 
 // ─── Linux Fundamentals ───────────────────────────────────────────────

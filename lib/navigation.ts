@@ -1,8 +1,8 @@
 export const navigation = {
   "network-fundamentals": {
-    label: "Ağ Temelleri",
+    label: "Network",
     color: "emerald",
-    description: "Siber güvenliğin temeli",
+    description: "Temelden CCNA seviyesine ağ",
     categories: [
       {
         id: "models",
@@ -30,12 +30,31 @@ export const navigation = {
         ],
       },
       {
-        id: "advanced-net",
-        title: "İleri Seviye",
+        id: "cisco-switching",
+        title: "Cisco & Switching",
+        icon: "Server",
+        tools: [
+          { id: "cisco-ios", title: "Cisco IOS Temelleri", slug: "cisco-ios" },
+          { id: "vlan-stp",  title: "VLAN, Trunk & STP", slug: "vlan-stp" },
+        ],
+      },
+      {
+        id: "routing",
+        title: "Routing",
         icon: "Router",
         tools: [
-          { id: "routing-switching", title: "Routing & Switching", slug: "routing-switching" },
-          { id: "network-security",  title: "Ağ Güvenlik Cihazları", slug: "network-security" },
+          { id: "routing-switching", title: "Routing & Switching Temeli", slug: "routing-switching" },
+          { id: "routing-protocols", title: "Statik & OSPF", slug: "routing-protocols" },
+        ],
+      },
+      {
+        id: "services-security",
+        title: "Servisler & Güvenlik",
+        icon: "Lock",
+        tools: [
+          { id: "network-services", title: "DHCP, NAT, NTP", slug: "network-services" },
+          { id: "acl-security",     title: "ACL & Port Güvenliği", slug: "acl-security" },
+          { id: "network-security", title: "Ağ Güvenlik Cihazları", slug: "network-security" },
         ],
       },
       {

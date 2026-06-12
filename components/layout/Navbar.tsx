@@ -11,7 +11,7 @@ import CommandPalette from "@/components/search/CommandPalette";
 import { useProgressStore } from "@/lib/progress-store";
 
 const navLinks = [
-  { href: "/network-fundamentals",  icon: Network,    label: "Ağ Temelleri", color: "emerald" },
+  { href: "/network-fundamentals",  icon: Network,    label: "Network",      color: "emerald" },
   { href: "/linux-fundamentals",    icon: Terminal,   label: "Linux",        color: "orange" },
   { href: "/windows-fundamentals",  icon: Monitor,    label: "Windows",      color: "sky" },
   { href: "/devops-fundamentals",   icon: Boxes,      label: "DevOps",       color: "teal" },
