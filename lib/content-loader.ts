@@ -33,6 +33,10 @@ const redTeamMap: Record<string, () => Promise<any>> = {
   "crypto-ctf":     () => import("@/content/red-team/crypto-ctf.json"),
   "binary-exploitation": () => import("@/content/red-team/binary-exploitation.json"),
   "cloud-pentest":  () => import("@/content/red-team/cloud-pentest.json"),
+  "linux-server":   () => import("@/content/red-team/linux-server.json"),
+  "windows-server": () => import("@/content/red-team/windows-server.json"),
+  "web-servers":    () => import("@/content/red-team/web-servers.json"),
+  "database-servers": () => import("@/content/red-team/database-servers.json"),
 };
 
 // ─── Blue Team Tools ─────────────────────────────────────────────────

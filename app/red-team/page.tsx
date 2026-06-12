@@ -76,6 +76,15 @@ const tools = [
     ],
   },
   {
+    category: "Sunucu Saldırıları",
+    items: [
+      { slug: "linux-server",     title: "Linux Server (Ubuntu)",   desc: "Servis keşfi, SSH/NFS/Samba sömürüsü, foothold'dan root'a yetki yükseltme", level: "Başlangıç–İleri" },
+      { slug: "windows-server",   title: "Windows Server",          desc: "RDP/WinRM/SMB erişimi, credential dumping, AD'ye geçiş ve Domain Admin", level: "Orta–İleri" },
+      { slug: "web-servers",      title: "Web Sunucuları",          desc: "Apache/Nginx/IIS — sürüm zafiyeti, path traversal, yanlış yapılandırma", level: "Orta" },
+      { slug: "database-servers", title: "Veritabanı Sunucuları",   desc: "MySQL/MSSQL/PostgreSQL — zayıf kimlik, xp_cmdshell ile RCE, hash çıkarma", level: "Orta–İleri" },
+    ],
+  },
+  {
     category: "Cloud Pentest",
     items: [
       { slug: "cloud-pentest", title: "Cloud Pentest (AWS/Azure)", desc: "S3 bucket, IAM enumeration, metadata SSRF, ScoutSuite, Pacu", level: "Orta–İleri" },

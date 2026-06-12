@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap, Globe, Router, CheckCircle2, MessageCircleQuestion, Crosshair } from "lucide-react";
+import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap, Globe, Router, CheckCircle2, MessageCircleQuestion, Crosshair, Server } from "lucide-react";
 
 const sections = [
   {
@@ -186,6 +186,21 @@ const sections = [
     modules: "10 Zafiyet · 40+ Modül",
   },
   {
+    id: "servers",
+    href: "/sunucular",
+    icon: Server,
+    label: "Sunucular",
+    subtitle: "Sunucu Türleri & Saldırılar",
+    description: "Linux/Windows Server, web (Apache/Nginx/IIS) ve veritabanı (MySQL/MSSQL) sunucuları — ne işe yararlar, saldırı yüzeyleri ve sızma testi. Her sunucu Red Team modülüne bağlı.",
+    tools: ["Ubuntu", "Windows Server", "Apache", "Nginx", "IIS", "MySQL", "MSSQL"],
+    color: "red",
+    border: "border-red-500/20 hover:border-red-500/60",
+    glow: "hover:shadow-[0_0_40px_rgba(239,68,68,0.15)]",
+    badge: "bg-red-500/10 text-red-400 border-red-500/20",
+    cta: "bg-red-500/10 text-red-300 border-red-500/30 hover:bg-red-500/20",
+    modules: "4 Tür · 11 Sunucu",
+  },
+  {
     id: "arsenal",
     href: "/araclar",
     icon: Crosshair,
@@ -245,8 +260,8 @@ const groups = [
     ids: ["linux-fundamentals", "windows-fundamentals", "devops-fundamentals"] },
   { id: "network", title: "Network", short: "Network", icon: Network, subtitle: "Temelden CCNA seviyesine ağ bilgisi", accent: "emerald",
     ids: ["network-fundamentals", "advanced-network"] },
-  { id: "security", title: "Siber Güvenlik", short: "Siber Güvenlik", icon: Shield, subtitle: "Saldırı, savunma, araçlar ve web uygulama güvenliği", accent: "red",
-    ids: ["red-team", "arsenal", "blue-team", "purple-team", "owasp-top10"] },
+  { id: "security", title: "Siber Güvenlik", short: "Siber Güvenlik", icon: Shield, subtitle: "Saldırı, savunma, araçlar, sunucular ve web güvenliği", accent: "red",
+    ids: ["red-team", "arsenal", "servers", "blue-team", "purple-team", "owasp-top10"] },
   { id: "career", title: "Kariyer & Referans", short: "Kariyer", icon: GraduationCap, subtitle: "Sertifika yolu, sektör, mülakat ve hızlı başvuru", accent: "indigo",
     ids: ["certifications", "ecosystem", "interview", "cheatsheet"] },
 ];

