@@ -1,0 +1,102 @@
+{
+  "id": "web-architecture",
+  "slug": "web-architecture",
+  "title": "Web Mimarisi & HTTP",
+  "subtitle": "Client-Server, HTTP/HTTPS ve SSL/TLS",
+  "description": "Web'in nasıl çalıştığını temelden öğren: Client-Server mimarisi, HTTP istek/yanıt döngüsü, metotlar, header'lar, status code'lar, cookie/session yönetimi ve SSL/TLS handshake.",
+  "icon": "🌐",
+  "order": 7,
+  "tags": ["http", "https", "client-server", "header", "status code", "cookie", "session", "ssl", "tls"],
+  "modules": [
+    {
+      "id": "client-server",
+      "title": "Client-Server & HTTP Temelleri",
+      "description": "Web mimarisi, istek/yanıt döngüsü ve HTTP/HTTPS",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Web Nasıl Çalışır?",
+          "content": "**Client-Server mimarisi:** İstemci (tarayıcı) bir **istek (request)** gönderir, sunucu bir **yanıt (response)** döner.\n\n```\nTarayıcı  ──── HTTP Request ───►  Sunucu\nTarayıcı  ◄─── HTTP Response ───  Sunucu\n```\n\n**HTTP (HyperText Transfer Protocol):** Web'in iletişim dili (port 80). Metin tabanlı, istek/yanıt modeli.\n\n**HTTPS:** HTTP + TLS şifreleme (port 443). Veri yolda şifreli gider — MITM'e karşı korur.\n\n**Stateless (durumsuz):** HTTP her isteği bağımsız görür; önceki isteği 'hatırlamaz'. Oturumu sürdürmek için **cookie/session** kullanılır (sonraki modül).\n\n**Bir HTTP isteğinin anatomisi:**\n```\nGET /index.html HTTP/1.1      ← metot + yol + sürüm\nHost: hedef.com               ← header'lar\nUser-Agent: Mozilla/5.0\n                              ← boş satır\n(gövde / body — POST'ta)\n```\n\n**Güvenlik açısından:** Web saldırılarının tamamı (SQLi, XSS, IDOR) bu istek/yanıt yapısını manipüle etmeye dayanır. Burp Suite tam burada devreye girer."
+        }
+      ]
+    },
+    {
+      "id": "methods-headers",
+      "title": "Metotlar, Header'lar & Status Code",
+      "description": "HTTP metotları, header yapıları ve durum kodları",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "HTTP Metotları ve Kodları",
+          "content": "**HTTP Metotları (fiiller):**\n| Metot | Görev | Güvenlik notu |\n|-------|-------|---------------|\n| GET | Veri al (URL'de parametre) | Loglara/geçmişe yazılır |\n| POST | Veri gönder (gövdede) | Login, form |\n| PUT | Kaynak oluştur/güncelle | Yanlış yapılandırmada dosya yükleme! |\n| DELETE | Kaynak sil | Yetkisizse tehlikeli |\n| OPTIONS | İzin verilen metotları sor | Enumeration |\n\n**Status Code'lar (durum kodları):**\n| Kod | Anlamı |\n|-----|--------|\n| 200 | OK (başarılı) |\n| 301/302 | Yönlendirme |\n| 401 | Kimlik doğrulama gerekli |\n| 403 | Yasak (yetki yok) |\n| 404 | Bulunamadı |\n| 500 | Sunucu hatası (bazen bilgi sızdırır) |\n\n**Önemli Header'lar:**\n- **Request:** Host, User-Agent, Cookie, Authorization, Referer\n- **Response:** Server (versiyon!), Set-Cookie, Content-Type, Location\n- **Güvenlik:** Content-Security-Policy, X-Frame-Options, Strict-Transport-Security\n\n> CTF/pentest ipucu: 403 gördüğünde farklı metot (POST yerine GET), farklı yol veya header manipülasyonu dene. Status code'lar dizin keşfinde (gobuster) filtrelemenin temelidir."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "HTTP İnceleme Komutları",
+          "commands": [
+            {
+              "command": "curl -I http://hedef.com",
+              "description": "Sadece yanıt header'larını çek (HEAD isteği)",
+              "output": "HTTP/1.1 200 OK\nServer: Apache/2.4.49\nSet-Cookie: PHPSESSID=abc123",
+              "tip": "Server header'ı versiyon sızdırır → CVE araması. Set-Cookie oturum yönetimini gösterir."
+            },
+            {
+              "command": "curl -X POST -d 'user=admin&pass=123' http://hedef.com/login -v",
+              "description": "POST isteği gönder ve tüm trafiği gör (-v verbose)",
+              "tip": "-X metot belirler, -d gövde verisi, -v isteğin ve yanıtın tamamını gösterir."
+            },
+            {
+              "command": "curl -X OPTIONS http://hedef.com -i",
+              "description": "Sunucunun hangi HTTP metotlarına izin verdiğini öğren",
+              "tip": "Allow header'ında PUT/DELETE görürsen → potansiyel dosya yükleme/silme vektörü."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cookie-ssl",
+      "title": "Cookie/Session & SSL/TLS Handshake",
+      "description": "Oturum yönetimi ve güvenli iletişimin temelleri",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Cookie, Session ve TLS",
+          "content": "**Problem:** HTTP durumsuzdur (stateless) — sunucu seni hatırlamaz. Peki giriş yapınca nasıl 'giriş yapmış' kalıyorsun?\n\n**Çözüm — Cookie & Session:**\n1. Giriş yaparsın → sunucu bir **session ID** üretir\n2. `Set-Cookie: PHPSESSID=abc123` ile tarayıcına gönderir\n3. Sonraki her istekte tarayıcı `Cookie: PHPSESSID=abc123` gönderir\n4. Sunucu bu ID'den seni tanır\n\n**Güvenlik açısından cookie:**\n- **HttpOnly:** JS okuyamaz (XSS ile cookie çalmayı engeller)\n- **Secure:** Sadece HTTPS'te gönderilir\n- **SameSite:** CSRF'i azaltır\n- Session ID tahmin edilebilirse → session hijacking\n\n**SSL/TLS Handshake (basitçe):**\n```\n1. Client Hello (desteklenen şifreler)\n2. Server Hello + sertifika (açık anahtar)\n3. Anahtar değişimi (asimetrik ile simetrik anahtar paylaşılır)\n4. Şifreli iletişim başlar (simetrik)\n```\n**Neden böyle?** Asimetrik şifreleme güvenli ama yavaştır; sadece simetrik anahtarı paylaşmak için kullanılır, sonra hızlı simetrik şifrelemeye geçilir.\n\n> Pentest ipucu: Burp Suite ile cookie'leri yakalar, session ID'leri analiz eder ve IDOR/session saldırılarını burada test edersin."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Cookie ve TLS İnceleme",
+          "commands": [
+            {
+              "command": "curl -c cookies.txt -b cookies.txt http://hedef.com/login -d 'user=admin&pass=admin'",
+              "description": "Cookie kaydet (-c) ve gönder (-b) — oturum sürdürme",
+              "tip": "Giriş sonrası alınan cookie ile korumalı sayfalara erişebilirsin."
+            },
+            {
+              "command": "curl -v https://hedef.com 2>&1 | grep -i 'SSL\\|TLS\\|subject\\|issuer'",
+              "description": "TLS sürümü ve sertifika bilgisini göster",
+              "tip": "Detaylı analiz için: testssl.sh hedef.com veya nmap --script ssl-enum-ciphers -p443."
+            },
+            {
+              "command": "openssl s_client -connect hedef.com:443",
+              "description": "TLS bağlantısını ve sertifika zincirini incele",
+              "tip": "Sertifika geçerlilik, CN/SAN (subdomain keşfi!) ve desteklenen protokoller burada görünür."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

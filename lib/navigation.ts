@@ -38,6 +38,15 @@ export const navigation = {
           { id: "network-security",  title: "Ağ Güvenlik Cihazları", slug: "network-security" },
         ],
       },
+      {
+        id: "web-virt",
+        title: "Web & Sanallaştırma",
+        icon: "Globe",
+        tools: [
+          { id: "web-architecture", title: "Web Mimarisi & HTTP", slug: "web-architecture" },
+          { id: "virtualization",   title: "Sanallaştırma & Lab", slug: "virtualization" },
+        ],
+      },
     ],
   },
   "red-team": {
@@ -61,6 +70,7 @@ export const navigation = {
         tools: [
           { id: "nmap", title: "Nmap", slug: "nmap" },
           { id: "enum4linux", title: "enum4linux (SMB)", slug: "enum4linux" },
+          { id: "nessus", title: "Nessus", slug: "nessus" },
         ],
       },
       {
@@ -358,6 +368,14 @@ export const navigation = {
         icon: "Box",
         tools: [
           { id: "docker", title: "Docker & Konteyner", slug: "docker" },
+        ],
+      },
+      {
+        id: "programming",
+        title: "Programlama",
+        icon: "Code",
+        tools: [
+          { id: "python", title: "Python ile Güvenlik", slug: "python" },
         ],
       },
     ],

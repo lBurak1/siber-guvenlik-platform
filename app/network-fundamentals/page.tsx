@@ -44,6 +44,20 @@ const topics = [
     desc: "Firewall, NAT, VPN, IDS/IPS, proxy, DMZ ve ağ segmentasyonu",
     level: "Orta–İleri",
   },
+  {
+    slug: "web-architecture",
+    icon: "🌐",
+    title: "Web Mimarisi & HTTP",
+    desc: "Client-Server, HTTP metotları, header/status code, cookie/session, SSL/TLS handshake",
+    level: "Başlangıç–Orta",
+  },
+  {
+    slug: "virtualization",
+    icon: "🖥️",
+    title: "Sanallaştırma & Lab Kurulumu",
+    desc: "VMware/VirtualBox, Kali kurulumu, ağ modları, snapshot ile izole güvenlik lab'ı",
+    level: "Başlangıç",
+  },
 ];
 
 export default function NetworkFundamentalsPage() {

@@ -1,12 +1,12 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { GitBranch, Box, Boxes, ChevronDown, ChevronRight } from "lucide-react";
+import { GitBranch, Box, Boxes, Code, ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const iconMap: Record<string, React.ElementType> = {
-  GitBranch, Box, Boxes,
+  GitBranch, Box, Boxes, Code,
 };
 
 const categories = [
@@ -24,6 +24,14 @@ const categories = [
     icon: "Box",
     tools: [
       { slug: "docker", title: "Docker & Konteyner" },
+    ],
+  },
+  {
+    id: "programming",
+    title: "Programlama",
+    icon: "Code",
+    tools: [
+      { slug: "python", title: "Python ile Güvenlik" },
     ],
   },
 ];

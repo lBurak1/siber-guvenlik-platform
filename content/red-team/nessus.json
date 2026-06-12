@@ -1,0 +1,107 @@
+{
+  "id": "nessus",
+  "slug": "nessus",
+  "title": "Nessus",
+  "subtitle": "Zafiyet Tarama (Vulnerability Scanner)",
+  "description": "Nessus, kurumsal ortamlarda en yaygın kullanılan zafiyet tarayıcısıdır. Sistemleri bilinen zafiyetler (CVE), yanlış yapılandırmalar ve uyumluluk açısından otomatik tarar ve raporlar.",
+  "team": "red-team",
+  "category": "Ağ Keşfi",
+  "phase": "Enumeration",
+  "icon": "🛡️",
+  "color": "#ef4444",
+  "tags": ["nessus", "vulnerability scanner", "cve", "tenable", "zafiyet", "tarama", "rapor"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Temeller ve Kurulum",
+      "description": "Zafiyet tarayıcı mantığı, Nessus kurulumu ve ilk tarama",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Zafiyet Tarayıcı Nedir?",
+          "content": "**Nessus** (Tenable), bir hedef sistemi binlerce bilinen zafiyet imzasıyla (plugin) otomatik tarayıp raporlayan araçtır.\n\n**Ne yapar?**\n- Açık port ve servisleri keşfeder\n- Servis sürümlerini bilinen **CVE'lerle** eşleştirir\n- Yanlış yapılandırmaları tespit eder (varsayılan parola, zayıf SSL)\n- Bulguları **risk seviyesiyle** (Kritik/Yüksek/Orta/Düşük) raporlar\n\n**Nmap'ten farkı:** Nmap port/servis keşfeder (NSE ile sınırlı zafiyet). Nessus özel olarak zafiyet tespitine ve raporlamaya odaklıdır — kurumsal denetimlerin standardıdır.\n\n**Sürümler:**\n- **Nessus Essentials:** Ücretsiz, 16 IP'ye kadar (öğrenmek için ideal)\n- **Nessus Professional:** Ticari, sınırsız\n\n**Pentest'teki yeri:** Hızlı geniş kapsamlı zafiyet görünümü sağlar. Ancak **false positive** üretebilir — her bulguyu manuel doğrulamak gerekir. OSCP gibi sınavlarda otomatik tarayıcı kullanımı kısıtlıdır; manuel beceriyi de geliştir.\n\n> ⚠️ Nessus gürültülüdür ve loglara çok iz bırakır; yalnızca yetkili taramalarda kullan."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "note": "tenable.com'dan Nessus Essentials (ücretsiz) aktivasyon kodu alınır.",
+            "linux": [
+              "# .deb paketini indir (tenable.com), sonra:",
+              "sudo dpkg -i Nessus-*.deb",
+              "sudo systemctl start nessusd",
+              "# Tarayıcıda: https://localhost:8834 (ilk kurulum + plugin indirme)"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "scanning",
+      "title": "Tarama, Politika & Raporlama + Lab",
+      "description": "Tarama oluşturma, sonuç analizi ve doğrulama",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Tarama Türleri ve Sonuç Analizi",
+          "content": "**Tarama Şablonları:**\n| Şablon | Kullanım |\n|--------|----------|\n| Basic Network Scan | Genel zafiyet taraması |\n| Advanced Scan | Özelleştirilmiş, tam kontrol |\n| Web Application Tests | Web uygulama odaklı |\n| Credentialed Patch Audit | Kimlik bilgisiyle (daha derin) |\n\n**Credentialed vs Uncredentialed:**\n- **Uncredentialed:** Dışarıdan, kimliksiz (saldırgan bakışı)\n- **Credentialed:** Sistem kimlik bilgisiyle (eksik yamaları görür, çok daha doğru) — kurumsal denetimde tercih edilir\n\n**Sonuç analizi (kritik beceri):**\n1. **Kritik/Yüksek** bulgulara öncelik ver\n2. Her bulgunun **CVE** numarasını ve **CVSS** skorunu incele\n3. **False positive** olabileceğini unutma → manuel doğrula\n4. Exploit edilebilir mi? → searchsploit / Metasploit ile kontrol et\n\n**Raporlama:** Nessus PDF/HTML/CSV rapor üretir — pentest raporunun zafiyet bölümüne temel oluşturur."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Tarama Akışı ve Doğrulama",
+          "commands": [
+            {
+              "command": "# 1. https://localhost:8834 → New Scan → Basic Network Scan\n# 2. Targets: 192.168.56.101 (veya 192.168.56.0/24)\n# 3. Launch",
+              "description": "Web arayüzünden temel tarama oluştur ve başlat",
+              "tip": "Hedef tek IP, IP aralığı veya subnet olabilir. Tarama süresi hedef sayısına bağlıdır."
+            },
+            {
+              "command": "# Nessus bulgusunu doğrula — exploit var mı?\nsearchsploit apache 2.4.49",
+              "description": "Nessus'un bulduğu zafiyet için public exploit ara",
+              "tip": "Nessus 'Apache 2.4.49 path traversal' derse, searchsploit/Metasploit ile gerçekten sömürülebilir mi doğrula."
+            },
+            {
+              "command": "# Nessus eklenti çıktısını yorumla:\n# Critical → hemen incele\n# 'Plugin Output' bölümü kanıtı gösterir\n# CVE-2021-41773 gibi → manuel test et",
+              "description": "Bulgu önceliklendirme ve manuel doğrulama mantığı",
+              "tip": "Asla ham Nessus raporunu olduğu gibi teslim etme — false positive'leri ele, gerçek riskleri doğrula."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF/Lab Senaryosu: Tara ve Doğrula",
+          "scenario": {
+            "title": "Metasploitable'ı Tara, Zafiyeti Doğrula",
+            "objective": "İzole lab'daki Metasploitable hedefini Nessus ile tara, kritik bir zafiyet seç ve searchsploit/Metasploit ile gerçekten sömürülebilir olduğunu kanıtla.",
+            "environment": "Host-Only lab: Kali + Nessus + Metasploitable 2",
+            "difficulty": "intermediate",
+            "steps": [
+              "Nessus'ta Basic Network Scan oluştur, hedef = Metasploitable IP",
+              "Taramayı başlat ve bitmesini bekle",
+              "Kritik/Yüksek bulguları listele ve birini seç (örn. vsftpd, Samba)",
+              "CVE numarasını not et",
+              "searchsploit ile public exploit ara",
+              "Metasploit veya manuel exploit ile zafiyeti doğrula",
+              "Bulgu + kanıt + çözüm önerisini raporla"
+            ],
+            "hints": [
+              "Metasploitable kasıtlı zafiyetlidir — onlarca kritik bulgu çıkar",
+              "Credentialed tarama (SSH kimlik bilgisiyle) çok daha fazla bulgu verir",
+              "Her bulguyu doğrula — pentest'te kanıtlanamayan zafiyet rapora girmez"
+            ],
+            "defenseNote": "Savunma: Düzenli zafiyet taraması (Nessus/OpenVAS) yap, yamaları önceliklendirip uygula (CVSS bazlı), gereksiz servisleri kapat, credentialed tarama ile eksik yamaları proaktif tespit et ve bulguları bir zafiyet yönetimi döngüsüyle takip et."
+          }
+        }
+      ]
+    }
+  ]
+}

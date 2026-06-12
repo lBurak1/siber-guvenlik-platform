@@ -4,6 +4,7 @@ import { Boxes, ArrowRight } from "lucide-react";
 const topics = [
   { slug: "git",    icon: "🔀", title: "Git & GitHub",        desc: "init, add, commit, branch, merge, rebase, push/pull — versiyon kontrolünü temelden ileriye öğren", level: "Başlangıç–İleri" },
   { slug: "docker", icon: "🐳", title: "Docker & Konteyner",  desc: "image, container, volume, network, Docker Compose ve konteyner güvenliği", level: "Başlangıç–İleri" },
+  { slug: "python", icon: "🐍", title: "Python ile Güvenlik", desc: "Söz diziminden ağ programlamaya; port tarayıcı, banner grabber, brute forcer yaz", level: "Başlangıç–İleri" },
 ];
 
 export default function DevopsFundamentalsPage() {
@@ -17,7 +18,7 @@ export default function DevopsFundamentalsPage() {
         Her mühendisin günlük kullandığı araçlar. Git ile kodu versiyonla, Docker ile her yerde aynı çalışan ortamlar kur — komut alışkanlığı kazan.
       </p>
       <div className="ml-10 mb-8 text-xs font-mono text-terminal-comment bg-surface-1 border border-teal-500/20 rounded-lg px-3 py-2 inline-block">
-        <span className="text-teal-400">önerilen sıra →</span> Git (versiyon kontrol) → Docker (konteyner)
+        <span className="text-teal-400">önerilen sıra →</span> Git → Docker → Python (güvenlik araçları)
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">

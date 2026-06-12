@@ -1,13 +1,13 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Layers, Network, Radio, Router, ChevronDown, ChevronRight, Lock, CheckCircle2 } from "lucide-react";
+import { Layers, Network, Radio, Router, Globe, ChevronDown, ChevronRight, Lock, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useProgressStore } from "@/lib/progress-store";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Layers, Network, Radio, Router,
+  Layers, Network, Radio, Router, Globe,
 };
 
 const netNav = [
@@ -43,6 +43,15 @@ const netNav = [
     tools: [
       { id: "routing-switching", title: "Routing & Switching", slug: "routing-switching" },
       { id: "network-security",  title: "Ağ Güvenlik Cihazları", slug: "network-security" },
+    ],
+  },
+  {
+    id: "web-virt",
+    title: "Web & Sanallaştırma",
+    icon: "Globe",
+    tools: [
+      { id: "web-architecture", title: "Web Mimarisi & HTTP", slug: "web-architecture" },
+      { id: "virtualization",   title: "Sanallaştırma & Lab", slug: "virtualization" },
     ],
   },
 ];

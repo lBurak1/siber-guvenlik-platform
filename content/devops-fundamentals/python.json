@@ -1,0 +1,194 @@
+{
+  "id": "python",
+  "slug": "python",
+  "title": "Python ile Güvenlik Programlama",
+  "subtitle": "Temelden Araç Geliştirmeye",
+  "description": "Siber güvenlikçinin en önemli dili: Python'u sıfırdan öğren ve kendi güvenlik araçlarını (port tarayıcı, banner grabber, brute forcer) yaz. Söz diziminden ağ programlamaya, anlayarak.",
+  "icon": "🐍",
+  "order": 3,
+  "tags": ["python", "scripting", "socket", "requests", "automation", "tool development", "güvenlik"],
+  "modules": [
+    {
+      "id": "python-basics",
+      "title": "Python Temelleri",
+      "description": "Kurulum, değişkenler, tipler, koşullar ve döngüler",
+      "difficulty": "beginner",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Neden Python?",
+          "content": "**Python**, siber güvenliğin fiili dilidir. Neredeyse tüm araçlar (sqlmap, Impacket, pwntools, Responder) Python ile yazılmıştır.\n\n**Neden güvenlikte bu kadar yaygın?**\n- Okunması ve yazması kolay (hızlı prototip)\n- Devasa kütüphane ekosistemi (requests, scapy, socket)\n- Otomasyon için ideal (tekrarlayan işleri scriptle)\n- Çoğu sistemde önceden yüklü\n\n**Bu bölümde hedefin:** Başkasının aracını kullanmaktan, **kendi aracını yazmaya** geçmek. Bir CTF'de hazır araç işe yaramadığında 20 satır Python ile kendi çözümünü yazabilmek.\n\n**Temel kavramlar:**\n- **Değişken:** Veriyi saklayan kutu (`x = 5`)\n- **Tip:** int, float, str, bool, list, dict\n- **Girinti (indentation):** Python blokları boşlukla belirler (süslü parantez yok!)\n\n> Python 3 kullan (Python 2 emekli oldu). Komut: `python3`"
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "note": "Çoğu Linux'ta yüklü gelir. Sürüm kontrolü yap.",
+            "linux": ["python3 --version", "sudo apt install python3 python3-pip -y"],
+            "windows": ["winget install Python.Python.3.12", "python --version"]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel Söz Dizimi",
+          "commands": [
+            {
+              "command": "# Değişkenler ve tipler\nad = \"burak\"          # str (metin)\nyas = 25               # int (tam sayı)\naktif = True           # bool\nprint(f\"{ad}, {yas} yaşında\")  # f-string ile formatlama",
+              "description": "Değişken tanımlama ve f-string ile yazdırma",
+              "tip": "f-string (f\"...\") değişkenleri metne gömmenin en pratik yoludur."
+            },
+            {
+              "command": "# Koşullar (girinti önemli!)\nport = 22\nif port == 22:\n    print(\"SSH\")\nelif port == 80:\n    print(\"HTTP\")\nelse:\n    print(\"Bilinmeyen\")",
+              "description": "if / elif / else koşul yapısı",
+              "tip": "Python blokları girinti (4 boşluk) ile belirlenir. Süslü parantez yoktur — girintiye dikkat!"
+            },
+            {
+              "command": "# Döngüler\nfor port in [21, 22, 80, 443]:\n    print(f\"Port {port} kontrol ediliyor\")\n\nsayac = 0\nwhile sayac < 3:\n    print(sayac)\n    sayac += 1",
+              "description": "for ve while döngüleri",
+              "tip": "for döngüsü bir listede gezinir; CTF'de port/IP listelerinde gezinmek için idealdir."
+            },
+            {
+              "command": "# Aralık (range) ile port listesi\nfor port in range(1, 1025):   # 1-1024 arası\n    print(port)",
+              "description": "range() ile sayı dizisi üretme",
+              "tip": "range(1, 1025) → 1'den 1024'e. Port taramada tam olarak bunu kullanacaksın."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "data-functions",
+      "title": "Veri Yapıları, Fonksiyon & Dosya",
+      "description": "Liste, sözlük, fonksiyon, dosya işlemleri ve hata yönetimi",
+      "difficulty": "beginner",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Veri Yapıları ve Fonksiyonlar",
+          "commands": [
+            {
+              "command": "# Liste ve sözlük (dict)\nportlar = [21, 22, 80]\nportlar.append(443)        # ekle\nservisler = {22: \"SSH\", 80: \"HTTP\"}\nprint(servisler[22])       # SSH\n\nfor p in portlar:\n    print(p)",
+              "description": "Liste (sıralı) ve sözlük (anahtar-değer) kullanımı",
+              "tip": "Liste sıralı veridir; sözlük anahtar→değer eşler (port→servis adı gibi)."
+            },
+            {
+              "command": "# Fonksiyon tanımlama\ndef port_kontrol(ip, port):\n    print(f\"{ip}:{port} taranıyor\")\n    return True\n\nsonuc = port_kontrol(\"10.10.10.1\", 80)",
+              "description": "def ile fonksiyon tanımlama ve çağırma",
+              "tip": "Fonksiyonlar kodu tekrar kullanılabilir yapar. return ile değer döndürür."
+            },
+            {
+              "command": "# Dosya okuma (wordlist okuma — brute force için)\nwith open(\"rockyou.txt\", \"r\", errors=\"ignore\") as f:\n    for satir in f:\n        parola = satir.strip()    # satır sonu boşluğunu temizle\n        print(parola)",
+              "description": "Dosyayı satır satır okuma (wordlist işleme)",
+              "tip": "with ... as f dosyayı otomatik kapatır. .strip() satır sonundaki \\n'i siler — brute force'ta kritik."
+            },
+            {
+              "command": "# Hata yönetimi (try/except)\ntry:\n    sayi = int(input(\"Port: \"))\nexcept ValueError:\n    print(\"Geçerli bir sayı gir!\")",
+              "description": "try/except ile hata yakalama",
+              "tip": "Ağ kodlarında bağlantı hataları kaçınılmazdır; try/except programın çökmesini önler."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "network-web",
+      "title": "Ağ & Web Programlama",
+      "description": "socket ile ağ, requests ile HTTP ve argparse",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "socket ve requests",
+          "content": "Güvenlik araçlarının kalbi iki kütüphanedir:\n\n**socket:** Ham ağ bağlantıları (TCP/UDP). Port tarayıcı, banner grabber, reverse shell hep socket ile yazılır.\n\n**requests:** HTTP istekleri için (kurulum: `pip3 install requests`). Web fuzzer, API saldırı scriptleri, oturum yönetimi.\n\n**argparse:** Aracına komut satırı parametreleri ekler (`./tool.py -t 10.10.10.1 -p 80`) — profesyonel araçların hepsi bunu kullanır.\n\n**Akış (port tarayıcı mantığı):**\n```\n1. socket oluştur\n2. hedef IP:port'a bağlanmayı dene\n3. bağlantı başarılıysa → port açık\n4. timeout/hata → port kapalı\n```\n\nBunu anlayınca Nmap'in temelde ne yaptığını da anlarsın."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Ağ ve Web Kodları",
+          "commands": [
+            {
+              "command": "import requests\n\n# Basit GET isteği\nr = requests.get(\"http://10.10.10.1\")\nprint(r.status_code)          # 200, 404, 403...\nprint(r.headers[\"Server\"])    # sunucu bilgisi\n\n# POST isteği (login denemesi)\nveri = {\"user\": \"admin\", \"pass\": \"123\"}\nr = requests.post(\"http://10.10.10.1/login\", data=veri)",
+              "description": "requests ile HTTP GET/POST istekleri",
+              "tip": "status_code 200=başarı, 403=yasak, 404=yok. Web fuzzing ve brute force'un temeli budur."
+            },
+            {
+              "command": "import socket\n\n# Tek port kontrolü\ns = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\ns.settimeout(1)\nsonuc = s.connect_ex((\"10.10.10.1\", 80))\nif sonuc == 0:\n    print(\"Port 80 AÇIK\")\ns.close()",
+              "description": "socket ile port açık mı kontrol et",
+              "tip": "connect_ex 0 dönerse port açıktır. settimeout takılmayı önler — tarama hızı için kritik."
+            },
+            {
+              "command": "import argparse\n\nparser = argparse.ArgumentParser()\nparser.add_argument(\"-t\", \"--target\", required=True, help=\"Hedef IP\")\nparser.add_argument(\"-p\", \"--port\", type=int, default=80)\nargs = parser.parse_args()\nprint(f\"{args.target}:{args.port}\")",
+              "description": "argparse ile komut satırı parametreleri",
+              "tip": "Çalıştır: python3 tool.py -t 10.10.10.1 -p 443. Aracını profesyonelleştirir."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tool-development",
+      "title": "Güvenlik Aracı Geliştirme + Lab",
+      "description": "Port tarayıcı, banner grabber ve brute forcer yazma",
+      "difficulty": "advanced",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Kendi Araçlarını Yaz",
+          "commands": [
+            {
+              "command": "#!/usr/bin/env python3\nimport socket\n\nhedef = \"10.10.10.1\"\nfor port in range(1, 1025):\n    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\n    s.settimeout(0.5)\n    if s.connect_ex((hedef, port)) == 0:\n        print(f\"[+] Port {port} AÇIK\")\n    s.close()",
+              "description": "Basit port tarayıcı (mini Nmap)",
+              "tip": "İlk gerçek aracın! Hız için threading ekleyebilirsin. CTF'de hazır araç yoksa hayat kurtarır."
+            },
+            {
+              "command": "import socket\n\n# Banner grabber — servis versiyonu öğren\ns = socket.socket()\ns.settimeout(2)\ns.connect((\"10.10.10.1\", 22))\nbanner = s.recv(1024).decode(errors=\"ignore\")\nprint(f\"Banner: {banner.strip()}\")  # OpenSSH 7.2 gibi\ns.close()",
+              "description": "Banner grabber — açık portun servis versiyonunu çek",
+              "tip": "recv ile servisin gönderdiği ilk veriyi (banner) okursun → versiyon → CVE araması."
+            },
+            {
+              "command": "import requests\n\n# Web login brute forcer\nwith open(\"rockyou.txt\", errors=\"ignore\") as f:\n    for satir in f:\n        parola = satir.strip()\n        r = requests.post(\"http://10.10.10.1/login\",\n                          data={\"user\": \"admin\", \"pass\": parola})\n        if \"Invalid\" not in r.text:\n            print(f\"[+] Parola bulundu: {parola}\")\n            break",
+              "description": "Basit web login brute forcer",
+              "tip": "'Invalid' başarısızlık mesajıdır; yoksa giriş başarılıdır. Hydra'nın yaptığını sen yazdın!",
+              "warning": "Yalnızca yetkili/lab ortamında. Brute force gürültülüdür."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "Proje: Kendi Tarayıcını Yaz",
+          "scenario": {
+            "title": "Threaded Port Tarayıcı + Banner Grabber",
+            "objective": "argparse alan, çoklu iş parçacığı (threading) ile hızlı tarayan ve açık portların banner'ını çeken bir araç yaz.",
+            "environment": "Python 3 + yetkili lab hedefi (TryHackMe/HTB)",
+            "difficulty": "intermediate",
+            "steps": [
+              "argparse ile -t (hedef) ve -p (port aralığı) parametreleri ekle",
+              "Port tarama fonksiyonunu yaz (socket connect_ex)",
+              "threading ile aynı anda çok port tara (hız 10x+)",
+              "Açık portlarda banner grabbing ekle (recv)",
+              "Sonuçları düzenli yazdır (örn: 22/tcp open OpenSSH 7.2)",
+              "Kendi aracını Nmap çıktısıyla karşılaştır"
+            ],
+            "hints": [
+              "threading.Thread veya concurrent.futures.ThreadPoolExecutor kullan",
+              "settimeout düşük tut (0.5s) ama çok düşürme (yanlış negatif)",
+              "Banner alınamayan portlarda try/except ile çökmeyi önle"
+            ],
+            "defenseNote": "Not: Bu beceri hem ofansif (özel araç) hem defansif (otomasyon, log analizi, IOC tarama scriptleri) için kritiktir. Python, mavi takımda da SIEM otomasyonu ve veri analizi için vazgeçilmezdir."
+          }
+        }
+      ]
+    }
+  ]
+}

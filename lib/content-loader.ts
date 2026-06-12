@@ -13,6 +13,7 @@ const redTeamMap: Record<string, () => Promise<any>> = {
   "mobile-pentest": () => import("@/content/red-team/mobile-pentest.json"),
   "linux-privesc":  () => import("@/content/red-team/linux-privesc.json"),
   "windows-privesc":() => import("@/content/red-team/windows-privesc.json"),
+  "nessus":         () => import("@/content/red-team/nessus.json"),
   "enum4linux":     () => import("@/content/red-team/enum4linux.json"),
   "nikto":          () => import("@/content/red-team/nikto.json"),
   "wpscan":         () => import("@/content/red-team/wpscan.json"),
@@ -59,6 +60,8 @@ const networkMap: Record<string, () => Promise<any>> = {
   "protocols-deep": () => import("@/content/network-fundamentals/protocols-deep.json"),
   "routing-switching": () => import("@/content/network-fundamentals/routing-switching.json"),
   "network-security":  () => import("@/content/network-fundamentals/network-security.json"),
+  "web-architecture":  () => import("@/content/network-fundamentals/web-architecture.json"),
+  "virtualization":    () => import("@/content/network-fundamentals/virtualization.json"),
 };
 
 // ─── Linux Fundamentals ───────────────────────────────────────────────
@@ -102,6 +105,7 @@ const owaspMap: Record<string, () => Promise<any>> = {
 const devopsMap: Record<string, () => Promise<any>> = {
   "git":    () => import("@/content/devops-fundamentals/git.json"),
   "docker": () => import("@/content/devops-fundamentals/docker.json"),
+  "python": () => import("@/content/devops-fundamentals/python.json"),
 };
 
 // ─── Certifications ──────────────────────────────────────────────────

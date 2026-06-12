@@ -14,6 +14,7 @@ const tools = [
     items: [
       { slug: "nmap", title: "Nmap", desc: "Ping sweep'ten NSE script motoruna tam ağ tarama", level: "Başlangıç–İleri" },
       { slug: "enum4linux", title: "enum4linux", desc: "SMB/Samba enumeration — kullanıcı, paylaşım, parola politikası", level: "Başlangıç–Orta" },
+      { slug: "nessus", title: "Nessus", desc: "Kurumsal zafiyet tarayıcı — CVE eşleştirme, raporlama, doğrulama", level: "Başlangıç–Orta" },
     ],
   },
   {

@@ -1,0 +1,105 @@
+{
+  "id": "virtualization",
+  "slug": "virtualization",
+  "title": "Sanallaştırma & Lab Kurulumu",
+  "subtitle": "VMware / VirtualBox ile Güvenli Lab",
+  "description": "Siber güvenlik öğrenmenin ilk adımı: kendi izole laboratuvarını kurmak. Sanal makine mantığı, VMware/VirtualBox, Kali kurulumu, ağ modları ve snapshot ile güvenli pratik ortamı.",
+  "icon": "🖥️",
+  "order": 8,
+  "tags": ["sanallaştırma", "vmware", "virtualbox", "kali", "lab", "snapshot", "vm"],
+  "modules": [
+    {
+      "id": "virt-basics",
+      "title": "Sanallaştırma Temelleri",
+      "description": "Sanal makine nedir, hipervizör türleri ve neden lab gerekir",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Neden Sanal Lab?",
+          "content": "**Sanal Makine (VM):** Fiziksel bilgisayarının içinde çalışan, yazılımla oluşturulmuş bağımsız bir bilgisayar. Kendi işletim sistemi, diski ve ağı vardır.\n\n**Neden güvenlikte şart?**\n- **İzolasyon:** Zararlı yazılımı/exploit'i ana sistemine bulaştırmadan çalıştır\n- **Güvenli pratik:** Saldırı tekniklerini yasal, izole ortamda dene\n- **Snapshot:** Bozulunca anında eski hale dön\n- **Çoklu sistem:** Kali (saldırgan) + zafiyetli hedef aynı anda\n\n**Hipervizör (VM'leri yöneten yazılım):**\n| Tür | Açıklama | Örnek |\n|-----|----------|-------|\n| Tip 2 (hosted) | İşletim sistemi üzerinde çalışır | VMware Workstation, VirtualBox |\n| Tip 1 (bare-metal) | Doğrudan donanımda | ESXi, Hyper-V, Proxmox |\n\n**Tipik güvenlik lab'ı:**\n```\n[ Kali Linux (saldırgan) ]  ←──►  [ Zafiyetli hedef (Metasploitable/DVWA) ]\n        izole ağ (Host-Only / NAT)\n```\n\n> Altın kural: Saldırı tekniklerini ASLA gerçek/izinsiz sistemlerde değil, kendi sanal lab'ında dene."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Hipervizör Kurulumu",
+          "installation": {
+            "note": "VMware Workstation Pro artık kişisel kullanımda ücretsiz. VirtualBox tamamen ücretsiz/açık kaynak.",
+            "windows": [
+              "# VMware Workstation Pro (ücretsiz kişisel):",
+              "winget install VMware.WorkstationPro",
+              "# veya VirtualBox:",
+              "winget install Oracle.VirtualBox"
+            ],
+            "linux": ["sudo apt install virtualbox -y"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "lab-setup",
+      "title": "Kali Kurulumu, Ağ Modları & Snapshot",
+      "description": "VM oluşturma, ağ modları ve güvenli yapılandırma",
+      "difficulty": "beginner",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Ağ Modları — En Kritik Ayar",
+          "content": "VM'lerin nasıl haberleştiği **ağ moduyla** belirlenir. Yanlış mod = ya lab çalışmaz ya da güvenlik riski.\n\n| Mod | Ne yapar | Ne zaman |\n|-----|----------|----------|\n| **NAT** | VM, ana makinenin IP'si üzerinden internete çıkar | İnternet gerektiğinde (güncelleme, indirme) |\n| **Host-Only** | VM'ler sadece birbirine ve ana makineye bağlanır, internet YOK | İzole saldırı lab'ı (en güvenli) |\n| **Bridged** | VM, gerçek ağda fiziksel cihaz gibi görünür | Dikkat! Gerçek ağa açılır, risklidir |\n\n**Önerilen lab kurulumu:**\n- Zafiyetli hedefleri (Metasploitable, DVWA) **Host-Only** ağa koy → izole, internete kapalı\n- Kali'yi hem NAT (araç indirme) hem Host-Only (hedeflere saldırı) ile yapılandır\n\n**Snapshot (anlık görüntü):** VM'in o anki halini kaydeder. Exploit denerken sistem bozulursa snapshot'a dönersin — temiz başlangıç. Her büyük denemeden önce snapshot al.\n\n**Pratik lab kaynakları:**\n- Kali Linux (saldırgan makine)\n- Metasploitable 2/3, DVWA, VulnHub makineleri (zafiyetli hedefler)\n- TryHackMe/HackTheBox (bulut tabanlı, VM gerektirmez)"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Lab Yapılandırma & Doğrulama",
+          "commands": [
+            {
+              "command": "# Kali'de ağ arayüzünü ve IP'yi kontrol et\nip addr show\n# Host-Only ağda hedefe ping at (izolasyonu doğrula)\nping -c 2 192.168.56.101",
+              "description": "VM ağ yapılandırmasını ve hedefe erişimi doğrula",
+              "tip": "Host-Only ağda VM'ler genelde 192.168.56.x alır. Hedefe ping gidiyorsa lab hazır."
+            },
+            {
+              "command": "# Lab hedefini keşfet (Kali'den)\nnmap -sn 192.168.56.0/24",
+              "description": "Host-Only ağdaki canlı makineleri (hedefleri) bul",
+              "tip": "Hedef VM'in IP'sini bilmiyorsan bu ping sweep ile bulursun. Sonraki adım: -sV ile servis tara."
+            },
+            {
+              "command": "# VirtualBox CLI ile snapshot al\nVBoxManage snapshot \"Kali\" take \"temiz-kurulum\"\n# Geri dön:\nVBoxManage snapshot \"Kali\" restore \"temiz-kurulum\"",
+              "description": "Komut satırından snapshot alma ve geri yükleme",
+              "tip": "GUI'de de sağ tık → Snapshot. Her riskli denemeden önce snapshot = pişmanlık yok."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "Proje: İlk Güvenlik Lab'ını Kur",
+          "scenario": {
+            "title": "Kali + Zafiyetli Hedef İzole Lab",
+            "objective": "VMware/VirtualBox ile Kali ve bir zafiyetli hedef (Metasploitable/DVWA) kur, Host-Only ağda izole et ve Kali'den hedefe ilk taramayı yap.",
+            "environment": "VMware Workstation Pro veya VirtualBox + Kali ISO + Metasploitable",
+            "difficulty": "beginner",
+            "steps": [
+              "Hipervizörü kur (VMware/VirtualBox)",
+              "Kali Linux'u kur (hazır VM imajı en kolayı)",
+              "Metasploitable 2'yi indir ve içe aktar",
+              "Her iki VM'i Host-Only ağa al (izolasyon)",
+              "Kali'de temiz snapshot al",
+              "nmap -sn ile hedefi bul, nmap -sV ile servisleri tara",
+              "DVWA/Metasploitable üzerinde öğrendiğin teknikleri güvenle dene"
+            ],
+            "hints": [
+              "Donanım sanallaştırması (VT-x/AMD-V) BIOS'ta açık olmalı",
+              "İnternet gereken anlarda Kali'yi geçici NAT'a al, hedefler hep Host-Only kalsın",
+              "Yetersiz RAM'de aynı anda 1 hedef + Kali çalıştır"
+            ],
+            "defenseNote": "Not: İzole lab, etik hacking'in temelidir. Tüm saldırı pratikleri burada yapılır — gerçek/izinsiz sistemlerde değil. Bu, hem yasal güvenliğin hem de kendi sisteminin korunması demektir."
+          }
+        }
+      ]
+    }
+  ]
+}
