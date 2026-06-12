@@ -13,6 +13,7 @@ const tools = [
     category: "Ağ Keşfi",
     items: [
       { slug: "nmap", title: "Nmap", desc: "Ping sweep'ten NSE script motoruna tam ağ tarama", level: "Başlangıç–İleri" },
+      { slug: "enum4linux", title: "enum4linux", desc: "SMB/Samba enumeration — kullanıcı, paylaşım, parola politikası", level: "Başlangıç–Orta" },
     ],
   },
   {
@@ -22,6 +23,30 @@ const tools = [
       { slug: "ffuf",      title: "ffuf",       desc: "Hızlı web fuzzer — parametre, header ve yol testi", level: "Orta" },
       { slug: "sqlmap",    title: "SQLMap",     desc: "SQL enjeksiyon tespiti ve sömürüsü — WAF atlatmaya kadar", level: "Orta–İleri" },
       { slug: "burpsuite", title: "Burp Suite", desc: "Proxy, Repeater ve Intruder ile manuel web analizi", level: "Orta" },
+      { slug: "nikto",     title: "Nikto",      desc: "Web sunucu zafiyet ve yanlış yapılandırma tarayıcısı", level: "Başlangıç" },
+      { slug: "wpscan",    title: "WPScan",     desc: "WordPress eklenti, tema, kullanıcı zafiyet taraması", level: "Orta" },
+    ],
+  },
+  {
+    category: "Parola Saldırıları",
+    items: [
+      { slug: "hydra",   title: "Hydra",            desc: "Online brute force — SSH, FTP, HTTP, SMB form saldırıları", level: "Orta" },
+      { slug: "john",    title: "John the Ripper",  desc: "Offline hash kırma, /etc/shadow ve özel format desteği", level: "Orta" },
+      { slug: "hashcat", title: "Hashcat",          desc: "GPU hızlandırmalı hash kırma — NTLM, Kerberoast, WPA", level: "Orta–İleri" },
+    ],
+  },
+  {
+    category: "Sömürü (Exploitation)",
+    items: [
+      { slug: "metasploit", title: "Metasploit Framework", desc: "Exploit, msfvenom payload üretimi ve meterpreter post-exploitation", level: "Orta–İleri" },
+    ],
+  },
+  {
+    category: "Active Directory & İç Ağ",
+    items: [
+      { slug: "bloodhound", title: "BloodHound",        desc: "AD saldırı yollarını grafiksel haritalama — DA'ya en kısa yol", level: "İleri" },
+      { slug: "responder",  title: "Responder",         desc: "LLMNR/NBT-NS zehirleme ile NetNTLMv2 hash yakalama", level: "İleri" },
+      { slug: "netexec",    title: "NetExec (CME)",      desc: "İç ağ numaralandırma, Pass-the-Hash ve yanal hareket", level: "İleri" },
     ],
   },
   {

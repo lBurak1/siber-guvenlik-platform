@@ -1,0 +1,116 @@
+{
+  "id": "nikto",
+  "slug": "nikto",
+  "title": "Nikto",
+  "subtitle": "Web Sunucu Zafiyet Tarayıcısı",
+  "description": "Nikto, web sunucularındaki bilinen zafiyetleri, eski yazılım sürümlerini, tehlikeli dosya/CGI'leri ve yanlış yapılandırmaları tarayan açık kaynaklı bir araçtır. Hızlı ilk değerlendirme için idealdir.",
+  "team": "red-team",
+  "category": "Web Uygulama",
+  "phase": "Enumeration",
+  "icon": "🌐",
+  "color": "#ef4444",
+  "tags": ["nikto", "web", "scanner", "zafiyet", "cgi", "misconfiguration"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Temeller ve Tarama",
+      "description": "Nikto ne yapar, kurulum ve ilk tarama",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Nikto'yu Anlamak",
+          "content": "**Nikto** web sunucusuna karşı 6700+ potansiyel tehlikeli dosya/program, eski sürüm ve yapılandırma sorununu test eder.\n\n**Tespit ettikleri:**\n- Eski sunucu/yazılım sürümleri (bilinen CVE'ler)\n- Tehlikeli dosyalar ve varsayılan scriptler\n- Açık directory listing, yedek dosyalar\n- Eksik güvenlik başlıkları\n- İlginç/hassas dizinler\n\n**⚠️ Önemli:** Nikto **çok gürültülüdür**. Binlerce isteği sırayla gönderir; IDS/WAF tarafından anında tespit edilir. Gizlilik gereken işlerde değil, izinli/lab testlerinde kullan.\n\n**CTF ipucu:** Bir web portu (80/443) bulunca Nikto hızlı bir genel bakış verir; ardından gobuster/ffuf ile dizin keşfine geçilir."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "note": "Kali'de yüklü gelir.",
+            "linux": ["sudo apt install nikto -y", "nikto -Version"]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel Komutlar",
+          "commands": [
+            {
+              "command": "nikto -h http://10.10.10.1",
+              "description": "Hedef web sunucusunu tarar",
+              "output": "+ Server: Apache/2.4.49\n+ /admin/: Admin login page found\n+ OSVDB-3092: /backup/: Backup directory found",
+              "tip": "Sonraki adım: bulunan ilginç dizinleri (/admin, /backup) tarayıcıda ve gobuster ile incele.",
+              "flags": [
+                { "flag": "-h", "description": "Hedef host/URL" },
+                { "flag": "-p", "description": "Port belirt (örn -p 8080)" },
+                { "flag": "-ssl", "description": "HTTPS zorla" }
+              ]
+            },
+            {
+              "command": "nikto -h https://hedef.com -o rapor.html -Format htm",
+              "description": "Sonuçları HTML rapor olarak kaydet",
+              "tip": "Raporlama için -Format csv/xml/htm desteklenir."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced",
+      "title": "İleri Kullanım ve Lab",
+      "description": "WAF atlatma denemeleri, tuning ve pratik",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "İleri Parametreler",
+          "commands": [
+            {
+              "command": "nikto -h http://10.10.10.1 -Tuning 9",
+              "description": "Belirli test kategorisine odaklan (9 = SQL injection testleri)",
+              "tip": "-Tuning ile gereksiz testleri ele; 1=dosya, 2=misconfiguration, 4=XSS, 9=SQLi.",
+              "flags": [
+                { "flag": "-Tuning x", "description": "Test kategorisi seç (hız + odak)" },
+                { "flag": "-evasion", "description": "IDS atlatma teknikleri (1-8)" }
+              ]
+            },
+            {
+              "command": "nikto -h http://10.10.10.1 -useragent 'Mozilla/5.0' -evasion 1",
+              "description": "User-Agent değiştir + URL encoding ile IDS atlatma dene",
+              "warning": "Evasion teknikleri yalnızca izinli testlerde; tespit kaçırma amaçlı kötüye kullanım yasadışıdır."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: Web Sunucu İlk Değerlendirme",
+          "scenario": {
+            "title": "Nikto ile Hızlı Web Keşfi",
+            "objective": "Hedef web sunucusunu Nikto ile tara, eski sürüm/zafiyet ve ilginç dizinleri tespit et, sonraki adım için bulguları önceliklendir.",
+            "environment": "Zafiyetli web makinesi (TryHackMe/HTB)",
+            "difficulty": "beginner",
+            "steps": [
+              "Web portunu doğrula: nmap -p80,443 -sV 10.10.10.1",
+              "Nikto tara: nikto -h http://10.10.10.1 -o nikto.txt",
+              "Sunucu sürümünü not et → searchsploit ile CVE ara",
+              "İlginç dizinleri (/admin, /backup, /uploads) tarayıcıda aç",
+              "Bulguları gobuster/ffuf ile derinleştir"
+            ],
+            "hints": [
+              "Apache/2.4.49 görürsen → CVE-2021-41773 (path traversal) araştır",
+              "Backup/yedek dosyalar genelde kaynak kodu veya kimlik bilgisi içerir",
+              "Nikto bir başlangıçtır; tek başına yeterli değil — manuel inceleme şart"
+            ],
+            "defenseNote": "Savunma: Sunucu sürüm bilgisini gizle (ServerTokens Prod), gereksiz dizin/dosyaları kaldır, güvenlik başlıklarını ekle, WAF kullan ve yazılımları güncel tut."
+          }
+        }
+      ]
+    }
+  ]
+}

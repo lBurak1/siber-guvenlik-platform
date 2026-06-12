@@ -1,0 +1,116 @@
+{
+  "id": "wpscan",
+  "slug": "wpscan",
+  "title": "WPScan",
+  "subtitle": "WordPress Zafiyet Tarayıcısı",
+  "description": "WPScan, WordPress sitelerinde sürüm, eklenti, tema ve kullanıcı zafiyetlerini tespit eden özelleşmiş bir tarayıcıdır. Bilinen zafiyet veritabanıyla eşleştirme yapar.",
+  "team": "red-team",
+  "category": "Web Uygulama",
+  "phase": "Enumeration",
+  "icon": "📝",
+  "color": "#ef4444",
+  "tags": ["wpscan", "wordpress", "cms", "eklenti", "tema", "zafiyet"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Temeller ve Enumeration",
+      "description": "WordPress saldırı yüzeyi, kurulum ve temel tarama",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "WordPress Saldırı Yüzeyi",
+          "content": "**WordPress** web'in ~%40'ını çalıştırır — bu yüzden devasa bir hedeftir. Çekirdek genelde güvenlidir ama **eklenti ve temalar** zafiyetlerin ana kaynağıdır.\n\n**WPScan'in tespit ettikleri:**\n- WordPress çekirdek sürümü ve bilinen zafiyetleri\n- Kurulu eklentiler ve sürüm zafiyetleri\n- Tema bilgisi\n- Kullanıcı adları (brute force için)\n- Zayıf yapılandırmalar (xmlrpc, dizin listeleme)\n\n**CTF ipucu:** Bir site WordPress ise (kaynak kodda /wp-content/ görürsün), WPScan ilk araçtır. Kullanıcı bul → xmlrpc veya wp-login üzerinden parola saldırısı.\n\n> Zafiyet (CVE) verisi için ücretsiz API token gerekir (wpscan.com)."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "note": "Kali'de yüklü gelir; değilse gem ile kurulur.",
+            "linux": ["sudo apt install wpscan -y", "# veya: gem install wpscan", "wpscan --version"]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel Komutlar",
+          "commands": [
+            {
+              "command": "wpscan --url https://hedef.com --enumerate u,vp,vt",
+              "description": "Kullanıcı, zafiyetli eklenti ve temaları listele",
+              "output": "[+] WordPress version 5.7.2\n[+] User(s) Identified: admin, editor\n[+] Vulnerable plugin: contact-form-7 < 5.3.2",
+              "tip": "u=kullanıcılar, vp=zafiyetli eklentiler, vt=zafiyetli temalar. Sonraki adım: bulunan kullanıcıyla parola saldırısı.",
+              "flags": [
+                { "flag": "--url", "description": "Hedef WordPress site" },
+                { "flag": "--enumerate u", "description": "Kullanıcıları listele" },
+                { "flag": "--enumerate vp", "description": "Zafiyetli eklentiler" },
+                { "flag": "--api-token", "description": "CVE verisi için token" }
+              ]
+            },
+            {
+              "command": "wpscan --url https://hedef.com --enumerate ap --plugins-detection aggressive",
+              "description": "Tüm eklentileri agresif modda tespit et",
+              "tip": "ap = tüm eklentiler. Agresif mod daha kapsamlı ama daha gürültülüdür."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced",
+      "title": "Parola Saldırısı ve Lab",
+      "description": "wp-login/xmlrpc brute force ve pratik senaryo",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Parola Saldırısı",
+          "commands": [
+            {
+              "command": "wpscan --url https://hedef.com --usernames admin --passwords /usr/share/wordlists/rockyou.txt",
+              "description": "Bulunan kullanıcıya sözlük tabanlı parola saldırısı",
+              "output": "[+] Valid Combinations Found:\n | Username: admin, Password: password123",
+              "tip": "WPScan xmlrpc'yi kullanır (varsa) — wp-login'den hızlıdır. Bulunan parolayla /wp-admin'e giriş yap.",
+              "warning": "Yalnızca izinli/lab ortamında. Brute force gürültülüdür ve hesap kilitleyebilir."
+            },
+            {
+              "command": "wpscan --url https://hedef.com --passwords rockyou.txt --usernames users.txt --max-threads 5",
+              "description": "Kullanıcı listesiyle çoklu hesap denemesi",
+              "tip": "Önce --enumerate u ile bulduğun kullanıcıları users.txt'e koy."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: WordPress Ele Geçirme",
+          "scenario": {
+            "title": "Enumeration → Parola → Admin → Shell",
+            "objective": "Bir WordPress sitesinde kullanıcı keşfet, parolasını kır, admin paneline gir ve tema editöründen PHP shell yükleyerek RCE elde et.",
+            "environment": "TryHackMe/HTB WordPress makinesi",
+            "difficulty": "intermediate",
+            "steps": [
+              "Tara: wpscan --url http://10.10.10.1 --enumerate u,vp",
+              "Kullanıcıyı kaydet (örn: admin)",
+              "Parola saldırısı: wpscan --url http://10.10.10.1 -U admin -P rockyou.txt",
+              "/wp-admin'e giriş yap",
+              "Appearance > Theme Editor'dan 404.php'ye PHP reverse shell ekle",
+              "nc ile dinle, shell'i tetikle (/wp-content/themes/TEMA/404.php)"
+            ],
+            "hints": [
+              "xmlrpc.php açıksa parola saldırısı çok daha hızlıdır",
+              "Tema editörü yazılabilir değilse, zafiyetli eklenti exploit'i dene",
+              "PHP reverse shell için pentestmonkey şablonu kullanılabilir"
+            ],
+            "defenseNote": "Savunma: WordPress ve eklentileri güncel tut, kullanılmayan eklentileri kaldır, xmlrpc.php'yi kapat, güçlü parola + MFA + login rate limiting uygula, tema/dosya editörünü devre dışı bırak (DISALLOW_FILE_EDIT)."
+          }
+        }
+      ]
+    }
+  ]
+}

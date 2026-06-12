@@ -1,0 +1,124 @@
+{
+  "id": "hashcat",
+  "slug": "hashcat",
+  "title": "Hashcat",
+  "subtitle": "GPU Hızlandırmalı Hash Kırma",
+  "description": "Hashcat, GPU gücünü kullanarak dünyanın en hızlı hash kırma işlemlerini yapan araçtır. 300+ hash modunu, çeşitli saldırı tiplerini ve güçlü kural motorunu destekler.",
+  "team": "red-team",
+  "category": "Parola Saldırıları",
+  "phase": "Post-Exploitation",
+  "icon": "⚡",
+  "color": "#ef4444",
+  "tags": ["hashcat", "hash", "gpu", "cracking", "ntlm", "kerberoasting", "wordlist"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Temeller ve Hash Modları",
+      "description": "GPU kırma mantığı, hash modları ve temel kullanım",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Hashcat'i Anlamak",
+          "content": "**Hashcat** hash kırmayı GPU (ekran kartı) üzerinde paralelleştirir — CPU'ya göre kat kat hızlıdır.\n\n**Önemli kavramlar:**\n- **Hash modu (-m):** Her hash türünün bir numarası vardır (0=MD5, 1000=NTLM, 1800=sha512crypt, 13100=Kerberoast TGS, 22000=WPA)\n- **Saldırı tipi (-a):** 0=sözlük, 1=kombinasyon, 3=brute force (mask), 6=hibrit\n- **Mask:** Brute force için karakter şablonu (?l=küçük, ?d=rakam, ?s=özel)\n\n**JtR ile fark:** Hashcat GPU'da çok daha hızlıdır; JtR daha fazla format ve esnek yardımcılar sunar. İkisi tamamlayıcıdır.\n\n**CTF/AD ipucu:** Kerberoasting (TGS) ve NTLM hash'leri Hashcat'in en sık kullanıldığı senaryolardır."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "note": "GPU sürücüleri (CUDA/OpenCL) performans için önemlidir.",
+            "linux": ["sudo apt install hashcat -y", "hashcat -I  # cihazları listele", "hashcat -b  # benchmark"]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel Komutlar",
+          "commands": [
+            {
+              "command": "hashcat -m 0 -a 0 hash.txt /usr/share/wordlists/rockyou.txt",
+              "description": "MD5 hash'leri sözlük saldırısıyla kır",
+              "output": "8743b52063cd84097a65d1633f5c74f5:hashcat",
+              "tip": "-m 0 = MD5, -a 0 = sözlük. Kırılanlar: hashcat -m 0 hash.txt --show",
+              "flags": [
+                { "flag": "-m N", "description": "Hash modu (tür)" },
+                { "flag": "-a N", "description": "Saldırı tipi (0=sözlük, 3=mask)" },
+                { "flag": "--show", "description": "Kırılanları göster" },
+                { "flag": "-O", "description": "Optimize mod (daha hızlı)" }
+              ]
+            },
+            {
+              "command": "hashcat -m 1000 -a 0 ntlm.txt rockyou.txt -r /usr/share/hashcat/rules/best64.rule",
+              "description": "NTLM hash'leri kural setiyle kır",
+              "tip": "best64.rule yaygın parola varyasyonlarını dener — kapsama ciddi artar."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced",
+      "title": "Mask Attack, Kerberoasting + Lab",
+      "description": "Brute force mask, AD hash kırma ve pratik",
+      "difficulty": "advanced",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "İleri Saldırılar",
+          "commands": [
+            {
+              "command": "hashcat -m 0 -a 3 hash.txt '?u?l?l?l?l?d?d'",
+              "description": "Mask saldırısı — büyük harf + 4 küçük + 2 rakam şablonu (örn: Admin12)",
+              "tip": "?u=büyük, ?l=küçük, ?d=rakam, ?s=özel, ?a=hepsi. Parola formatını biliyorsan çok hızlıdır.",
+              "flags": [
+                { "flag": "-a 3", "description": "Mask (brute force)" },
+                { "flag": "?l ?u ?d ?s", "description": "Karakter setleri" },
+                { "flag": "--increment", "description": "Artan uzunluk dene" }
+              ]
+            },
+            {
+              "command": "hashcat -m 13100 -a 0 tgs.txt rockyou.txt",
+              "description": "Kerberoasting — AD servis hesabı TGS biletini kır",
+              "tip": "TGS bileti GetUserSPNs.py veya Rubeus ile alınır; kırılan parola servis hesabınındır.",
+              "warning": "Yalnızca yetkili AD pentest/lab ortamında. Kerberoasting izin gerektirir."
+            },
+            {
+              "command": "hashcat -m 22000 -a 0 wifi.hc22000 rockyou.txt",
+              "description": "WPA/WPA2 el sıkışmasını kır",
+              "tip": "El sıkışması airodump-ng ile yakalanır, hcxpcapngtool ile dönüştürülür."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: NTLM Hash'ten Erişime",
+          "scenario": {
+            "title": "Hash Yakalama → GPU Kırma → Yanal Hareket",
+            "objective": "AD ortamında yakalanan bir NTLM/NetNTLMv2 hash'ini Hashcat ile kır ve elde edilen parolayla başka bir sisteme eriş.",
+            "environment": "AD lab (örn. GOAD) veya HTB AD makinesi",
+            "difficulty": "advanced",
+            "steps": [
+              "Responder ile NetNTLMv2 hash yakala (veya secretsdump ile NTLM al)",
+              "Hash türünü belirle (NetNTLMv2 = -m 5600, NTLM = -m 1000)",
+              "Kır: hashcat -m 5600 hash.txt rockyou.txt -r best64.rule",
+              "Kırılan parolayı doğrula: netexec smb HEDEF -u user -p 'parola'",
+              "Yanal hareket / privesc ile devam et"
+            ],
+            "hints": [
+              "GPU yoksa kırma çok yavaş olur — küçük/akıllı wordlist seç",
+              "Kural setleri (best64, rockyou-30000) kapsama ekler",
+              "Kırılamayan hash'ler için Pass-the-Hash alternatifini düşün"
+            ],
+            "defenseNote": "Savunma: Uzun/karmaşık parolalar (özellikle servis hesapları için gMSA), NTLM'i kısıtla, LLMNR/NBT-NS kapat, Kerberos AES kullan ve anormal kimlik doğrulamayı SIEM ile izle."
+          }
+        }
+      ]
+    }
+  ]
+}

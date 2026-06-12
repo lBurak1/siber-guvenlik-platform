@@ -1,0 +1,123 @@
+{
+  "id": "enum4linux",
+  "slug": "enum4linux",
+  "title": "enum4linux",
+  "subtitle": "SMB / Samba Enumeration",
+  "description": "enum4linux, Windows ve Samba sistemlerinden kullanıcı, grup, paylaşım ve parola politikası bilgilerini toplayan bir enumeration aracıdır. Arka planda smbclient, rpcclient, nmblookup ve net araçlarını otomatize eder.",
+  "team": "red-team",
+  "category": "Ağ Keşfi",
+  "phase": "Enumeration",
+  "icon": "🔍",
+  "color": "#ef4444",
+  "tags": ["enum4linux", "smb", "samba", "enumeration", "139", "445", "rpc"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Temeller ve İlk Tarama",
+      "description": "SMB enumeration neden önemli, enum4linux kurulumu ve temel kullanımı",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "SMB Enumeration Neden Kritik?",
+          "content": "**SMB (Server Message Block)** dosya/yazıcı paylaşımı protokolüdür (port 139/445). Kurumsal ağlarda her yerde bulunur ve genelde bilgi sızdırır.\n\n**enum4linux ile elde edilebilenler:**\n- Kullanıcı listesi (brute force / password spraying için)\n- Grup üyelikleri\n- Paylaşımlar (shares) ve erişim izinleri\n- Parola politikası (kilitlenme eşiği — spraying'i güvenli yapar)\n- OS ve domain bilgisi\n- RID cycling ile kullanıcı keşfi\n\n**CTF ipucu:** Bir kutuda 445 açıksa, ilk yapılacaklardan biri enum4linux çalıştırmaktır. Null session (kimliksiz erişim) çoğu zaman değerli bilgi verir.\n\n> enum4linux-ng, aracın daha modern ve hızlı Python versiyonudur — büyük ağlarda tercih edilir."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "note": "Kali/ParrotOS'ta yüklü gelir.",
+            "linux": [
+              "sudo apt install enum4linux -y",
+              "# Modern versiyon:",
+              "git clone https://github.com/cddmp/enum4linux-ng && cd enum4linux-ng && pip3 install -r requirements.txt"
+            ]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel Komutlar",
+          "commands": [
+            {
+              "command": "enum4linux -a 10.10.10.1",
+              "description": "Tüm temel enumeration'ı çalıştırır (kullanıcı, grup, paylaşım, politika)",
+              "output": "[+] Got domain/workgroup name: WORKGROUP\n[+] Users:\n  user:[admin] rid:[0x3e8]\n  user:[john]  rid:[0x3e9]",
+              "tip": "Sonraki adım: bulunan kullanıcı adlarını bir dosyaya kaydet → Hydra/CrackMapExec ile password spraying.",
+              "flags": [
+                { "flag": "-a", "description": "Tüm testleri çalıştır (en yaygın)" },
+                { "flag": "-U", "description": "Sadece kullanıcıları listele" },
+                { "flag": "-S", "description": "Sadece paylaşımları listele" },
+                { "flag": "-P", "description": "Parola politikasını al" }
+              ]
+            },
+            {
+              "command": "enum4linux -U 10.10.10.1 | grep 'user:'",
+              "description": "Sadece kullanıcı adlarını çıkarır",
+              "tip": "Bu listeyi users.txt'e kaydedip brute force/spraying'de kullan."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced",
+      "title": "İleri Teknikler ve Lab",
+      "description": "Null session, RID cycling ve pratik senaryo",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "İleri Enumeration",
+          "commands": [
+            {
+              "command": "enum4linux-ng -A -u '' -p '' 10.10.10.1",
+              "description": "Null session (boş kullanıcı/parola) ile tam tarama",
+              "tip": "Boş kimlik bilgisiyle erişim açıksa misconfiguration vardır — değerli bilgi sızar."
+            },
+            {
+              "command": "enum4linux -r 10.10.10.1",
+              "description": "RID cycling ile kullanıcıları keşfeder (liste kapalıysa bile)",
+              "tip": "RID cycling, kullanıcı listesi engellense bile SID'leri tek tek sorgulayarak kullanıcı bulur."
+            },
+            {
+              "command": "smbclient -L //10.10.10.1/ -N",
+              "description": "Paylaşımları kimliksiz (-N) listele — enum4linux'a tamamlayıcı",
+              "tip": "Erişilebilir paylaşım bulursan: smbclient //10.10.10.1/SHARE -N ile bağlan."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: SMB'den Kullanıcı Avı",
+          "scenario": {
+            "title": "Null Session ile Kullanıcı ve Paylaşım Keşfi",
+            "objective": "Hedef makinede SMB enumeration yaparak kullanıcı listesini çıkar, erişilebilir paylaşımları bul ve içlerindeki dosyaları incele.",
+            "environment": "HackTheBox / TryHackMe SMB makinesi (örn. 10.10.10.x)",
+            "difficulty": "beginner",
+            "steps": [
+              "Port taraması: nmap -p 139,445 -sV 10.10.10.1",
+              "Tam enumeration: enum4linux -a 10.10.10.1",
+              "Kullanıcıları kaydet: enum4linux -U 10.10.10.1 | grep 'user:' > users.txt",
+              "Paylaşımları listele: smbclient -L //10.10.10.1/ -N",
+              "Erişilebilir paylaşıma bağlan: smbclient //10.10.10.1/PAYLASIM -N",
+              "İçinde get ile dosya indir, flag veya kimlik bilgisi ara"
+            ],
+            "hints": [
+              "Boş paylaşım adı veya 'ANONYMOUS' erişimi genelde açıktır",
+              "Bulunan kullanıcı listesi sonraki adımda Hydra/NetExec için kullanılır",
+              "Parola politikasındaki kilitlenme eşiğine dikkat et (spraying öncesi)"
+            ],
+            "defenseNote": "Savunma: Null session erişimini kapat (RestrictAnonymous), gereksiz paylaşımları kaldır, SMBv1'i devre dışı bırak, paylaşım izinlerini en az yetki ile yapılandır ve SMB imzalamayı zorunlu kıl."
+          }
+        }
+      ]
+    }
+  ]
+}

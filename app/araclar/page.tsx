@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import { arsenal } from "@/lib/arsenal";
-import { Crosshair, Copy, Check, ChevronDown, Lock } from "lucide-react";
+import Link from "next/link";
+import { Crosshair, Copy, Check, ChevronDown, Lock, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const colorText: Record<string, string> = {
@@ -108,6 +109,13 @@ export default function ArsenalPage() {
                   <CommandBlock cmd={tool.cmd} />
                   {tool.tip && (
                     <p className="mt-2 text-[11px] text-terminal-comment/80 leading-relaxed">💡 {tool.tip}</p>
+                  )}
+                  {tool.href && (
+                    <Link href={tool.href}
+                      className={cn("mt-3 inline-flex items-center gap-1.5 text-xs font-semibold transition-all group/link", colorText[cat.color])}>
+                      Detaylı Eğitim
+                      <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
+                    </Link>
                   )}
                 </div>
               ))}

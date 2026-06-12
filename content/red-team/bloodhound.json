@@ -1,0 +1,107 @@
+{
+  "id": "bloodhound",
+  "slug": "bloodhound",
+  "title": "BloodHound",
+  "subtitle": "Active Directory Saldırı Yolu Analizi",
+  "description": "BloodHound, Active Directory ortamlarındaki kullanıcı, grup ve yetki ilişkilerini graf olarak haritalandırarak Domain Admin'e giden saldırı yollarını ortaya çıkarır. Hem saldırı hem savunma için kullanılır.",
+  "team": "red-team",
+  "category": "Active Directory",
+  "phase": "Post-Exploitation",
+  "icon": "🩸",
+  "color": "#ef4444",
+  "tags": ["bloodhound", "active directory", "ad", "graph", "sharphound", "lateral movement"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Temeller ve Veri Toplama",
+      "description": "BloodHound nasıl çalışır, collector ile veri toplama",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "BloodHound Mantığı",
+          "content": "**BloodHound**, AD'deki ilişkileri (kim kimin üyesi, kim nerede oturum açmış, kim neyi yönetebilir) bir graf veritabanında modelleyerek **saldırı yollarını** görselleştirir.\n\n**İki bileşen:**\n- **Collector (SharpHound / bloodhound-python):** AD'den veriyi toplar\n- **BloodHound GUI:** Veriyi yükleyip graf olarak analiz eder (Neo4j tabanlı)\n\n**Neyi bulur?**\n- 'Shortest Path to Domain Admins' — en kısa ele geçirme yolu\n- Kerberoastable/AS-REP roastable hesaplar\n- ACL kötüye kullanımları (GenericAll, WriteDacl)\n- Oturum bilgileri (hangi admin nerede oturum açmış)\n\n**Savunma değeri:** Mavi takım da BloodHound ile saldırı yollarını proaktif kapatır.\n\n**CTF/AD ipucu:** İlk domain kullanıcısını ele geçirince hemen BloodHound çalıştır — privesc yolunu sana gösterir."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "note": "BloodHound GUI + Neo4j gerekir. Collector ayrı çalışır.",
+            "linux": [
+              "pipx install bloodhound  # bloodhound-python collector",
+              "sudo apt install bloodhound neo4j -y  # GUI + veritabanı",
+              "sudo neo4j console  # veritabanını başlat"
+            ]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Veri Toplama",
+          "commands": [
+            {
+              "command": "bloodhound-python -d domain.local -u kullanici -p 'Parola1' -c All -ns 10.10.10.1",
+              "description": "Domain'den tüm verileri topla (Linux collector)",
+              "output": "INFO: Found 15 users, 8 groups, 3 computers\nINFO: Compressing output into bloodhound.zip",
+              "tip": "-c All tüm toplama yöntemlerini çalıştırır. Çıktı .json/.zip → BloodHound GUI'ye yükle.",
+              "flags": [
+                { "flag": "-d", "description": "Domain adı" },
+                { "flag": "-u / -p", "description": "Kimlik bilgileri" },
+                { "flag": "-c All", "description": "Tüm toplama metodları" },
+                { "flag": "-ns", "description": "DNS sunucusu (DC IP)" }
+              ]
+            },
+            {
+              "command": "# Windows hedefte SharpHound:\n.\\SharpHound.exe -c All",
+              "description": "Windows üzerinde çalışan resmi collector",
+              "tip": "Üretilen zip'i BloodHound GUI'ye sürükle-bırak ile yükle."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced",
+      "title": "Graf Analizi ve Lab",
+      "description": "Saldırı yolu sorguları ve pratik senaryo",
+      "difficulty": "advanced",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Saldırı Yolu Analizi",
+          "content": "BloodHound GUI'de veriyi yükledikten sonra en değerli sorgular:\n\n**Hazır sorgular (Analysis sekmesi):**\n- **Find Shortest Paths to Domain Admins** — en kritik\n- **Find Principals with DCSync Rights**\n- **Find Kerberoastable Accounts**\n- **Find AS-REP Roastable Users**\n- **Shortest Paths from Owned Principals** — ele geçirdiğin hesaptan yol\n\n**Önemli kenar (edge) türleri:**\n| Edge | Anlamı |\n|------|--------|\n| MemberOf | Grup üyeliği |\n| AdminTo | Lokal admin |\n| HasSession | Oturum açmış |\n| GenericAll | Tam kontrol (ACL abuse) |\n| WriteDacl | İzinleri değiştirebilir |\n\n**Taktik:** Ele geçirdiğin hesabı sağ tık → 'Mark as Owned'. Sonra 'Shortest Paths from Owned' ile hedefe rota çiz."
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: Kullanıcıdan Domain Admin'e",
+          "scenario": {
+            "title": "Veri Topla → Yol Bul → Yetki Yükselt",
+            "objective": "Ele geçirilen bir domain kullanıcısıyla BloodHound verisi topla, Domain Admin'e giden yolu bul ve adımları uygulayarak domain'i ele geçir.",
+            "environment": "AD lab (GOAD / HTB AD makinesi)",
+            "difficulty": "advanced",
+            "steps": [
+              "İlk kullanıcı kimlik bilgisini elde et (Responder, spraying vb.)",
+              "Veri topla: bloodhound-python -d domain.local -u user -p pass -c All -ns DC_IP",
+              "neo4j ve BloodHound GUI'yi başlat, zip'i yükle",
+              "Ele geçirilen hesabı 'Mark as Owned' yap",
+              "'Shortest Paths from Owned Principals' sorgusunu çalıştır",
+              "Yoldaki her edge'i istismar et (Kerberoast, ACL abuse, oturum) → Domain Admin"
+            ],
+            "hints": [
+              "GenericAll/WriteDacl edge'leri kolay privesc fırsatlarıdır",
+              "HasSession bir admin'in nerede oturum açtığını gösterir → o makineyi hedefle",
+              "Toplama gürültülüdür; gerçek ortamda stealth collector tercih edilir"
+            ],
+            "defenseNote": "Savunma: Aşırı yetkileri (GenericAll, nested admin) temizle, Tiered yönetim modeli uygula, ayrıcalıklı oturumları sınırla, BloodHound'u savunma amaçlı düzenli çalıştırıp saldırı yollarını kapat."
+          }
+        }
+      ]
+    }
+  ]
+}

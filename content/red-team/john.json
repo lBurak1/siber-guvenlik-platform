@@ -1,0 +1,120 @@
+{
+  "id": "john",
+  "slug": "john",
+  "title": "John the Ripper",
+  "subtitle": "Offline Parola & Hash Kırma",
+  "description": "John the Ripper (JtR), offline parola kırma ve hash analizinin sektör standardıdır. Çok sayıda hash formatını destekler, kuralları ve çeşitli kırma modlarıyla esnektir.",
+  "team": "red-team",
+  "category": "Parola Saldırıları",
+  "phase": "Post-Exploitation",
+  "icon": "🔓",
+  "color": "#ef4444",
+  "tags": ["john", "jtr", "hash", "parola", "offline", "cracking", "shadow"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Temeller ve Hash Kırma",
+      "description": "Offline kırma mantığı, kurulum ve temel kullanım",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Offline Kırma ve JtR Modları",
+          "content": "**John the Ripper**, ele geçirilmiş hash dosyaları üzerinde çalışır (offline) — hedefe trafik üretmez, hızlıdır.\n\n**Kırma Modları:**\n- **Wordlist:** Sözlük + kurallarla deneme (en yaygın)\n- **Single crack:** Kullanıcı bilgilerinden parola türetir\n- **Incremental:** Brute force (tüm kombinasyonlar — yavaş)\n\n**JtR'ın gücü:** Otomatik hash türü tespiti ve zengin kural seti (büyük harf, sayı ekleme, leetspeak vb.).\n\n**CTF akışı:** Bir hash bulunca (örn /etc/shadow, veritabanı dump) → türünü tespit et → uygun wordlist + kural ile kır → elde edilen parolayla giriş/privesc.\n\n> Çok sayıda format için *2john yardımcıları vardır: zip2john, ssh2john, keepass2john..."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "note": "Kali'de yüklü gelir; 'jumbo' sürümü daha fazla format destekler.",
+            "linux": ["sudo apt install john -y", "john --list=formats | head"]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel Komutlar",
+          "commands": [
+            {
+              "command": "john --wordlist=/usr/share/wordlists/rockyou.txt hash.txt",
+              "description": "Sözlük saldırısı ile hash'leri kır",
+              "output": "password123  (admin)\n1g 0:00:00:01 DONE",
+              "tip": "Sonraki adım: john --show hash.txt ile kırılan parolaları tekrar görüntüle.",
+              "flags": [
+                { "flag": "--wordlist=", "description": "Parola listesi" },
+                { "flag": "--format=", "description": "Hash türünü belirt (hız kazanır)" },
+                { "flag": "--rules", "description": "Kural setini uygula" },
+                { "flag": "--show", "description": "Kırılanları göster" }
+              ]
+            },
+            {
+              "command": "john --show hash.txt",
+              "description": "Daha önce kırılmış parolaları listeler",
+              "tip": "John sonuçları ~/.john/john.pot dosyasında saklar."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced",
+      "title": "Linux Shadow & Özel Formatlar + Lab",
+      "description": "unshadow, *2john yardımcıları, kurallar ve pratik",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "İleri Kullanım",
+          "commands": [
+            {
+              "command": "unshadow /etc/passwd /etc/shadow > unshadowed.txt && john unshadowed.txt --wordlist=rockyou.txt",
+              "description": "Linux /etc/shadow parolalarını kır (passwd+shadow birleştir)",
+              "tip": "unshadow iki dosyayı john'un anlayacağı formatta birleştirir. Root shadow erişimi gerekir.",
+              "warning": "shadow dosyasına erişim için root/yüksek yetki gerekir — privesc sonrası adım."
+            },
+            {
+              "command": "zip2john gizli.zip > zip.hash && john zip.hash --wordlist=rockyou.txt",
+              "description": "Parola korumalı ZIP'i kır",
+              "tip": "Benzer yardımcılar: ssh2john (özel anahtar), keepass2john, rar2john, office2john."
+            },
+            {
+              "command": "john --wordlist=rockyou.txt --rules=Jumbo hash.txt",
+              "description": "Kural setiyle (parola varyasyonları üreterek) kır",
+              "tip": "Kurallar 'password' → 'P@ssw0rd123' gibi varyasyonlar dener — kapsama büyük artar."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: Shadow'dan Root'a",
+          "scenario": {
+            "title": "Hash Bulma → Kırma → Erişim",
+            "objective": "Ele geçirdiğin bir sistemde /etc/shadow veya başka bir hash kaynağını bul, John ile kır ve elde ettiğin parolayla yetki yükselt.",
+            "environment": "TryHackMe/HTB makinesi (privesc aşaması)",
+            "difficulty": "intermediate",
+            "steps": [
+              "Düşük yetkili shell ile sisteme gir",
+              "Okunabilir hash kaynağı ara (yedek shadow, config, DB dump)",
+              "Hash türünü tespit et: hashid <hash> veya john otomatik dener",
+              "Kır: john --wordlist=rockyou.txt --rules hash.txt",
+              "Kırılan parolayı görüntüle: john --show hash.txt",
+              "Parolayla su/ssh ile yetki yükselt → root.txt"
+            ],
+            "hints": [
+              "Yanlış yapılandırılmış izinler bazen shadow dosyasını okunabilir bırakır",
+              "Kullanıcı parolaları sıkça başka servislerde tekrar kullanılır (password reuse)",
+              "Hash türünü bilmek kırmayı hızlandırır (--format)"
+            ],
+            "defenseNote": "Savunma: shadow dosyası izinlerini koru (640 root), güçlü+yavaş hash algoritmaları (yescrypt/sha512) kullan, parola tekrarını engelle ve düzenli parola rotasyonu uygula."
+          }
+        }
+      ]
+    }
+  ]
+}

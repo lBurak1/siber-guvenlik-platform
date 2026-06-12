@@ -13,6 +13,16 @@ const redTeamMap: Record<string, () => Promise<any>> = {
   "mobile-pentest": () => import("@/content/red-team/mobile-pentest.json"),
   "linux-privesc":  () => import("@/content/red-team/linux-privesc.json"),
   "windows-privesc":() => import("@/content/red-team/windows-privesc.json"),
+  "enum4linux":     () => import("@/content/red-team/enum4linux.json"),
+  "nikto":          () => import("@/content/red-team/nikto.json"),
+  "wpscan":         () => import("@/content/red-team/wpscan.json"),
+  "hydra":          () => import("@/content/red-team/hydra.json"),
+  "john":           () => import("@/content/red-team/john.json"),
+  "hashcat":        () => import("@/content/red-team/hashcat.json"),
+  "metasploit":     () => import("@/content/red-team/metasploit.json"),
+  "bloodhound":     () => import("@/content/red-team/bloodhound.json"),
+  "responder":      () => import("@/content/red-team/responder.json"),
+  "netexec":        () => import("@/content/red-team/netexec.json"),
 };
 
 // ─── Blue Team Tools ─────────────────────────────────────────────────

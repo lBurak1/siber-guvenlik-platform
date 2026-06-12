@@ -60,6 +60,7 @@ export const navigation = {
         icon: "Network",
         tools: [
           { id: "nmap", title: "Nmap", slug: "nmap" },
+          { id: "enum4linux", title: "enum4linux (SMB)", slug: "enum4linux" },
         ],
       },
       {
@@ -71,6 +72,36 @@ export const navigation = {
           { id: "ffuf", title: "ffuf", slug: "ffuf" },
           { id: "sqlmap", title: "SQLMap", slug: "sqlmap" },
           { id: "burpsuite", title: "Burp Suite", slug: "burpsuite" },
+          { id: "nikto", title: "Nikto", slug: "nikto" },
+          { id: "wpscan", title: "WPScan", slug: "wpscan" },
+        ],
+      },
+      {
+        id: "passwords",
+        title: "Parola Saldırıları",
+        icon: "KeyRound",
+        tools: [
+          { id: "hydra", title: "Hydra", slug: "hydra" },
+          { id: "john", title: "John the Ripper", slug: "john" },
+          { id: "hashcat", title: "Hashcat", slug: "hashcat" },
+        ],
+      },
+      {
+        id: "exploitation",
+        title: "Sömürü",
+        icon: "Crosshair",
+        tools: [
+          { id: "metasploit", title: "Metasploit", slug: "metasploit" },
+        ],
+      },
+      {
+        id: "active-directory",
+        title: "Active Directory",
+        icon: "Building2",
+        tools: [
+          { id: "bloodhound", title: "BloodHound", slug: "bloodhound" },
+          { id: "responder", title: "Responder", slug: "responder" },
+          { id: "netexec", title: "NetExec / CME", slug: "netexec" },
         ],
       },
       {

