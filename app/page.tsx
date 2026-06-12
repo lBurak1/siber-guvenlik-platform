@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap, Globe, Router, CheckCircle2, MessageCircleQuestion } from "lucide-react";
+import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap, Globe, Router, CheckCircle2, MessageCircleQuestion, Crosshair } from "lucide-react";
 
 const sections = [
   {
@@ -186,6 +186,21 @@ const sections = [
     modules: "10 Zafiyet · 40+ Modül",
   },
   {
+    id: "arsenal",
+    href: "/araclar",
+    icon: Crosshair,
+    label: "Araç Cephaneliği",
+    subtitle: "Pentest Araçları",
+    description: "Sızma testi ve CTF'lerde en sık kullanılan araçlar — Enumeration, Brute Force, Fuzzing, PrivEsc ve Active Directory. Her araç için pratik komut ve bölüm soruları.",
+    tools: ["Nikto", "Hydra", "Hashcat", "ffuf", "Mimikatz", "BloodHound", "NetExec"],
+    color: "red",
+    border: "border-red-500/20 hover:border-red-500/60",
+    glow: "hover:shadow-[0_0_40px_rgba(239,68,68,0.15)]",
+    badge: "bg-red-500/10 text-red-400 border-red-500/20",
+    cta: "bg-red-500/10 text-red-300 border-red-500/30 hover:bg-red-500/20",
+    modules: "5 Kategori · 15 Araç",
+  },
+  {
     id: "interview",
     href: "/mulakat",
     icon: MessageCircleQuestion,
@@ -230,8 +245,8 @@ const groups = [
     ids: ["linux-fundamentals", "windows-fundamentals", "devops-fundamentals"] },
   { id: "network", title: "Ağ / Network", short: "Ağ", icon: Network, subtitle: "Temelden ileri seviyeye ağ bilgisi", accent: "emerald",
     ids: ["network-fundamentals", "advanced-network"] },
-  { id: "security", title: "Siber Güvenlik", short: "Siber Güvenlik", icon: Shield, subtitle: "Saldırı, savunma ve web uygulama güvenliği", accent: "red",
-    ids: ["red-team", "blue-team", "purple-team", "owasp-top10"] },
+  { id: "security", title: "Siber Güvenlik", short: "Siber Güvenlik", icon: Shield, subtitle: "Saldırı, savunma, araçlar ve web uygulama güvenliği", accent: "red",
+    ids: ["red-team", "arsenal", "blue-team", "purple-team", "owasp-top10"] },
   { id: "career", title: "Kariyer & Referans", short: "Kariyer", icon: GraduationCap, subtitle: "Sertifika yolu, sektör, mülakat ve hızlı başvuru", accent: "indigo",
     ids: ["certifications", "ecosystem", "interview", "cheatsheet"] },
 ];
