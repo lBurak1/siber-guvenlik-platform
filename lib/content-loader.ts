@@ -29,6 +29,9 @@ const redTeamMap: Record<string, () => Promise<any>> = {
   "pivoting":       () => import("@/content/red-team/pivoting.json"),
   "impacket":       () => import("@/content/red-team/impacket.json"),
   "stego-forensics":() => import("@/content/red-team/stego-forensics.json"),
+  "crypto-ctf":     () => import("@/content/red-team/crypto-ctf.json"),
+  "binary-exploitation": () => import("@/content/red-team/binary-exploitation.json"),
+  "cloud-pentest":  () => import("@/content/red-team/cloud-pentest.json"),
 };
 
 // ─── Blue Team Tools ─────────────────────────────────────────────────

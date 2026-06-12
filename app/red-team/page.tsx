@@ -70,6 +70,14 @@ const tools = [
     category: "CTF Teknikleri",
     items: [
       { slug: "stego-forensics", title: "Steganografi & Adli Bilişim", desc: "binwalk, steghide, exiftool, zsteg, PCAP analizi — CTF forensics", level: "Başlangıç–Orta" },
+      { slug: "crypto-ctf", title: "Kriptografi & Encoding", desc: "Base64/hex, XOR, klasik şifreler, hash kırma, RSA saldırıları, CyberChef", level: "Başlangıç–İleri" },
+      { slug: "binary-exploitation", title: "Binary Exploitation & Reversing", desc: "Ghidra, gdb, pwntools, buffer overflow, ret2win — pwn kategorisi", level: "Orta–İleri" },
+    ],
+  },
+  {
+    category: "Cloud Pentest",
+    items: [
+      { slug: "cloud-pentest", title: "Cloud Pentest (AWS/Azure)", desc: "S3 bucket, IAM enumeration, metadata SSRF, ScoutSuite, Pacu", level: "Orta–İleri" },
     ],
   },
   {

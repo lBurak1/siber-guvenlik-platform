@@ -131,6 +131,16 @@ export const navigation = {
         icon: "Crosshair",
         tools: [
           { id: "stego-forensics", title: "Steganografi & Forensics", slug: "stego-forensics" },
+          { id: "crypto-ctf", title: "Kriptografi & Encoding", slug: "crypto-ctf" },
+          { id: "binary-exploitation", title: "Binary Exploitation (Pwn)", slug: "binary-exploitation" },
+        ],
+      },
+      {
+        id: "cloud",
+        title: "Cloud Pentest",
+        icon: "Globe",
+        tools: [
+          { id: "cloud-pentest", title: "AWS / Azure Pentest", slug: "cloud-pentest" },
         ],
       },
       {

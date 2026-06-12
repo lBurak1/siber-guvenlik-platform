@@ -1,0 +1,167 @@
+{
+  "id": "crypto-ctf",
+  "slug": "crypto-ctf",
+  "title": "Kriptografi & Encoding",
+  "subtitle": "CTF Crypto Kategorisi",
+  "description": "CTF kriptografi sorularının temelleri: encoding (base64/hex), klasik şifreler, XOR, hash tanıma ve kırma, RSA saldırılarına giriş. Her konu neden-nasıl açıklamasıyla, temelden ileriye.",
+  "team": "red-team",
+  "category": "CTF Teknikleri",
+  "phase": "Analysis",
+  "icon": "🔐",
+  "color": "#ef4444",
+  "tags": ["crypto", "encoding", "base64", "xor", "rsa", "cyberchef", "hash", "ctf"],
+  "modules": [
+    {
+      "id": "encoding-basics",
+      "title": "Encoding vs Encryption (Temel)",
+      "description": "Encoding nedir, şifrelemeden farkı, base64/hex ve CyberChef",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Önce Kavramları Anlayalım",
+          "content": "Kriptografiye başlamadan önce **üç şeyi karıştırmamak** gerekir:\n\n| Kavram | Amaç | Geri döner mi? | Örnek |\n|--------|------|----------------|-------|\n| **Encoding** | Veriyi taşınabilir biçime sokmak | Evet, anahtarsız | Base64, Hex, URL |\n| **Encryption** | Veriyi gizlemek | Evet, anahtarla | AES, RSA |\n| **Hashing** | Parmak izi/bütünlük | Hayır (tek yön) | MD5, SHA256 |\n\n**Neden önemli?** CTF'de bir metin görünce 'bu encode mu, şifreli mi, hash mi?' sorusunu doğru cevaplarsan doğru aracı seçersin.\n\n**Tanıma ipuçları:**\n- Sonu `=` veya `==` → büyük ihtimalle **Base64**\n- Sadece 0-9 a-f → **Hex** veya bir **hash**\n- Sabit uzunluk (32/40/64 karakter) → **hash** (MD5/SHA1/SHA256)\n- `\\x` veya `%` → hex/URL encoding\n\n**CyberChef:** 'Siber İsviçre çakısı' — encode/decode/şifre işlemlerini sürükle-bırak yapar. CTF crypto'da en hızlı dostundur (gchq.github.io/CyberChef)."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Encoding Komutları",
+          "commands": [
+            {
+              "command": "echo 'ZmxhZ3toZWxsb30=' | base64 -d",
+              "description": "Base64 çöz (sonu = ile bitenler genelde base64)",
+              "output": "flag{hello}",
+              "tip": "Kodlamak için: echo 'metin' | base64. Sonraki adım: çıktı hâlâ garipse tekrar decode dene (çift encode)."
+            },
+            {
+              "command": "echo '666c6167' | xxd -r -p",
+              "description": "Hex'i metne çevir",
+              "tip": "Tersi (metin→hex): echo -n 'flag' | xxd -p. Hex genelde boşluksuz harf+rakam (0-9a-f) dizisidir."
+            },
+            {
+              "command": "echo 'flag' | tr 'A-Za-z' 'N-ZA-Mn-za-m'",
+              "description": "ROT13 (Sezar şifresi, 13 kaydırma) çöz/uygula",
+              "tip": "ROT13 simetriktir (iki kez uygulayınca aslına döner). Klasik şifreler için CyberChef 'ROT13 Brute Force' kullan."
+            },
+            {
+              "command": "echo -n 'metin' | xxd -p   # hex'e\necho 'bWV0aW4=' | base64 -d   # base64'ten",
+              "description": "Hızlı dönüşüm referansı",
+              "tip": "Sıralı encode'lar: base64(hex(rot13(...))) gibi katmanlı olabilir. CyberChef 'Magic' fonksiyonu otomatik tespit eder."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "xor-classic",
+      "title": "XOR ve Klasik Şifreler (Orta)",
+      "description": "XOR mantığı, tek baytlık XOR kırma ve klasik şifreler",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "XOR'u Anlamak",
+          "content": "**XOR (⊕)** kriptografinin temel taşıdır. Kuralı basit: aynıysa 0, farklıysa 1.\n\n**Sihirli özellik:** `A ⊕ B ⊕ B = A`. Yani aynı anahtarla iki kez XOR'larsan veri geri gelir. Bu yüzden XOR hem şifreler hem çözer.\n\n```\nşifreli = düzmetin ⊕ anahtar\ndüzmetin = şifreli ⊕ anahtar\n```\n\n**Tek baytlık XOR kırma:** Anahtar tek bir bayt ise sadece 256 olasılık vardır → hepsini dene, anlamlı metni seç (brute force).\n\n**Klasik şifreler (CTF'de sık):**\n- **Sezar/ROT:** Harf kaydırma\n- **Vigenère:** Anahtar kelimeyle kaydırma\n- **Substitution:** Harf değiştirme (frekans analizi ile kırılır)\n- **Atbash, Morse, Base32/58**\n\n**Anlamak neden önemli?** XOR, AES gibi modern şifrelerin ve birçok CTF 'crypto' sorusunun çekirdeğinde vardır."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "XOR ve Çözüm Araçları",
+          "commands": [
+            {
+              "command": "python3 -c \"print(bytes([b ^ 0x42 for b in open('sifreli','rb').read()]))\"",
+              "description": "Bilinen anahtarla (0x42) tek baytlık XOR çöz",
+              "tip": "Anahtar bilinmiyorsa 0-255 arası tüm baytları dene ve 'flag' içeren çıktıyı seç."
+            },
+            {
+              "command": "python3 -c \"\nimport string\ndata=open('sifreli','rb').read()\nfor k in range(256):\n    out=bytes([b^k for b in data])\n    if b'flag' in out: print(k, out)\n\"",
+              "description": "Tek baytlık XOR brute force — flag içeren anahtarı bul",
+              "tip": "256 olasılık anında denenir. Çok baytlı XOR için xortool aracını kullan."
+            },
+            {
+              "command": "xortool -c 00 sifreli.bin",
+              "description": "Çok baytlı XOR anahtar uzunluğunu ve anahtarı tahmin et",
+              "tip": "-c en sık tekrar eden bayt (genelde boşluk 0x20 veya null 0x00). xortool anahtar uzunluğunu istatistiksel bulur."
+            },
+            {
+              "command": "# Klasik şifreler için CyberChef tarifleri:\n# ROT13 Brute Force / Vigenere Decode / Frequency Analysis",
+              "description": "CyberChef ile klasik şifre çözme",
+              "tip": "dcode.fr de klasik şifreleri otomatik tanır ve çözer (cipher identifier)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rsa-hashes",
+      "title": "RSA Saldırıları & Hash Kırma (İleri) + Lab",
+      "description": "RSA temelleri, zayıf RSA saldırıları ve hash tanıma/kırma",
+      "difficulty": "advanced",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "RSA'yı Anlamak (Basitçe)",
+          "content": "**RSA**, açık anahtarlı şifrelemenin temelidir. Güvenliği **çok büyük iki asal sayının çarpımını (n) çarpanlarına ayırmanın zorluğuna** dayanır.\n\n**Bileşenler:**\n- **n** = p × q (iki asal — gizli olmalı)\n- **e** = açık üs (genelde 65537)\n- **d** = özel üs (şifre çözmek için)\n\n**CTF'de zayıf RSA saldırıları:**\n| Zafiyet | Saldırı |\n|---------|---------|\n| n küçük | factordb.com ile çarpanlara ayır |\n| İki n ortak çarpan | GCD ile p bul |\n| e çok küçük (e=3) | Küp kök saldırısı |\n| Yakın p, q | Fermat çarpanlama |\n\n**Araç:** RsaCtfTool tüm bu saldırıları otomatik dener.\n\n**Anlamak neden önemli?** RSA'nın nasıl çalıştığını bilmeden 'n'i çarpanlara ayır' adımının neden her şeyi çözdüğünü anlayamazsın: p ve q'yu bilince d'yi hesaplayıp mesajı çözebilirsin."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "RSA & Hash Araçları",
+          "commands": [
+            {
+              "command": "python3 RsaCtfTool.py --publickey key.pub --uncipherfile flag.enc",
+              "description": "RsaCtfTool ile zayıf RSA'yı otomatik kır",
+              "tip": "Bilinen tüm zayıf RSA saldırılarını dener. n'i factordb'den çeker, küçükse çarpanlar.",
+              "flags": [
+                { "flag": "--publickey", "description": "Açık anahtar dosyası" },
+                { "flag": "--uncipherfile", "description": "Çözülecek şifreli dosya" }
+              ]
+            },
+            {
+              "command": "hashid '5f4dcc3b5aa765d61d8327deb882cf99'",
+              "description": "Bilinmeyen bir hash'in türünü tespit et",
+              "output": "[+] MD5\n[+] NTLM",
+              "tip": "Türü bilmek kırmayı hızlandırır. Sonraki adım: john veya hashcat ile uygun modda kır."
+            },
+            {
+              "command": "# Online: crackstation.net (rainbow table)\n# Komut: hashcat -m 0 hash.txt rockyou.txt",
+              "description": "Hash kırma — önce online lookup, sonra hashcat/john",
+              "tip": "Yaygın parolalar crackstation.net'te saniyede çözülür. Çıkmazsa hashcat/john'a geç."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: Katmanlı Crypto",
+          "scenario": {
+            "title": "Encode → Şifre → Flag",
+            "objective": "Verilen bir crypto sorusunda kodlama/şifre katmanlarını sırayla çöz ve flag'e ulaş.",
+            "environment": "picoCTF / CryptoHack crypto sorusu",
+            "difficulty": "intermediate",
+            "steps": [
+              "Veriyi tanı: base64? hex? hash? (sonek/karakter setine bak)",
+              "CyberChef'e yapıştır, 'Magic' ile otomatik tespit dene",
+              "Katman katman çöz (base64 → hex → ROT vb.)",
+              "Klasik şifreyse dcode.fr cipher identifier kullan",
+              "RSA ise: n'i factordb'de ara veya RsaCtfTool çalıştır",
+              "flag{...} formatını strings/grep ile doğrula"
+            ],
+            "hints": [
+              "Çıktı hâlâ anlamsızsa muhtemelen başka bir katman var",
+              "factordb.com çoğu CTF RSA n'ini zaten çarpanlara ayırmıştır",
+              "CyberChef 'Magic' fonksiyonu çoklu encode'ları otomatik çözebilir"
+            ],
+            "defenseNote": "Not: Bu teknikler CTF crypto eğitimi içindir. Gerçekte: güçlü anahtar boyutları (RSA 2048+), güvenli rastgelelik, modern algoritmalar (AES-GCM) ve asla 'kendi şifrenizi icat etmeyin' prensibi uygulanır."
+          }
+        }
+      ]
+    }
+  ]
+}
