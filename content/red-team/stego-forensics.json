@@ -1,0 +1,127 @@
+{
+  "id": "stego-forensics",
+  "slug": "stego-forensics",
+  "title": "Steganografi & Adli Bilişim",
+  "subtitle": "CTF Forensics & Stego Kategorisi",
+  "description": "CTF'lerin forensics ve steganografi kategorileri için araçlar: dosya/metadata analizi, gizlenmiş veri çıkarma, PCAP analizi ve gömülü dosya kurtarma.",
+  "team": "red-team",
+  "category": "CTF Teknikleri",
+  "phase": "Analysis",
+  "icon": "🔬",
+  "color": "#ef4444",
+  "tags": ["steganografi", "forensics", "binwalk", "steghide", "exiftool", "wireshark", "ctf"],
+  "modules": [
+    {
+      "id": "file-analysis",
+      "title": "Dosya & Metadata Analizi",
+      "description": "Dosya türü tespiti, metadata, string ve gömülü veri",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Forensics İlk Adımlar",
+          "content": "CTF'de bir dosya (resim, ses, pcap, bilinmeyen) verilir ve içine gizlenmiş **flag**'i bulman istenir.\n\n**Metodoloji:**\n1. **file** ile gerçek türünü öğren (uzantı yalan söyleyebilir)\n2. **exiftool** ile metadata'ya bak (flag genelde Comment/Author alanında)\n3. **strings** ile okunabilir metinleri tara\n4. **binwalk** ile gömülü dosyaları bul/çıkar\n5. Tür özelinde: steghide (jpg/wav), zsteg (png), stegseek (brute force)\n\n**Altın kural:** Acele etme, her aracı sırayla uygula. Flag formatını bil (örn: `flag{...}`, `HTB{...}`) ve strings/grep ile ara.\n\n**CTF ipucu:** İlk dört adım (file, exiftool, strings, binwalk) basit forensics sorularının %70'ini çözer."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Temel Analiz Komutları",
+          "commands": [
+            {
+              "command": "file gizemli_dosya",
+              "description": "Dosyanın gerçek türünü magic byte'lardan tespit et",
+              "output": "gizemli_dosya: PNG image data, 800 x 600",
+              "tip": "Uzantı .txt olsa bile file gerçek türü söyler. Yanlış uzantı bir ipucu olabilir."
+            },
+            {
+              "command": "exiftool resim.jpg",
+              "description": "Tüm metadata'yı göster (flag sıkça burada gizlidir)",
+              "tip": "Comment, Artist, Author, GPS alanlarına özellikle bak."
+            },
+            {
+              "command": "strings -n 8 dosya | grep -i 'flag\\|ctf\\|htb'",
+              "description": "Okunabilir metinleri çıkar ve flag formatını ara",
+              "tip": "-n 8 en az 8 karakterlik dizileri gösterir. base64 görürsen çöz: ... | base64 -d"
+            },
+            {
+              "command": "binwalk -e dosya",
+              "description": "Gömülü dosyaları tespit et ve çıkar (-e = extract)",
+              "tip": "Bir resmin içine ZIP/dosya gizlenmiş olabilir. Çıkan dosyalar _dosya.extracted/ klasörüne gider.",
+              "flags": [
+                { "flag": "-e", "description": "Gömülü dosyaları çıkar" },
+                { "flag": "--dd='.*'", "description": "Tüm türleri çıkar" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stego-pcap",
+      "title": "Steganografi & PCAP Analizi + Lab",
+      "description": "Gizli veri çıkarma araçları ve ağ trafiği analizi",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Stego ve Network Forensics",
+          "commands": [
+            {
+              "command": "steghide extract -sf resim.jpg",
+              "description": "JPG/WAV içine steghide ile gizlenmiş veriyi çıkar",
+              "tip": "Parola sorar. Parola bilinmiyorsa: stegseek resim.jpg rockyou.txt ile brute force.",
+              "flags": [
+                { "flag": "extract -sf", "description": "Dosyadan veri çıkar" },
+                { "flag": "-p parola", "description": "Parola belirt" }
+              ]
+            },
+            {
+              "command": "stegseek resim.jpg /usr/share/wordlists/rockyou.txt",
+              "description": "steghide parolasını çok hızlı brute force et",
+              "tip": "stegseek dünyanın en hızlı steghide kırıcısıdır — saniyeler içinde sonuç verir."
+            },
+            {
+              "command": "zsteg -a resim.png",
+              "description": "PNG/BMP içindeki LSB steganografisini tara (-a = tüm yöntemler)",
+              "tip": "PNG için steghide çalışmaz; zsteg LSB tabanlı gizlemeyi bulur."
+            },
+            {
+              "command": "tshark -r capture.pcap -Y 'http.request' -T fields -e http.host -e http.request.uri",
+              "description": "PCAP'tan HTTP isteklerini çıkar (network forensics)",
+              "tip": "Wireshark GUI'de: File > Export Objects > HTTP ile transfer edilen dosyaları çıkar. 'Follow TCP Stream' ile akışı oku."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: Gizli Flag Avı",
+          "scenario": {
+            "title": "Dosyadan Flag Çıkarma",
+            "objective": "Verilen bir medya dosyasından gizlenmiş flag'i, forensics metodolojisini sırayla uygulayarak bul.",
+            "environment": "CTF forensics/stego sorusu (picoCTF, HTB)",
+            "difficulty": "beginner",
+            "steps": [
+              "file ile gerçek türü doğrula",
+              "exiftool ile metadata'da flag ara",
+              "strings -n 8 dosya | grep flag ile metin ara",
+              "binwalk -e ile gömülü dosya çıkar",
+              "Resimse: steghide extract / stegseek (jpg) veya zsteg (png)",
+              "PCAP ise: Wireshark 'Follow TCP Stream' + Export Objects"
+            ],
+            "hints": [
+              "Flag base64/hex olabilir — CyberChef ile çöz",
+              "Parola gereken steghide için stegseek + rockyou kullan",
+              "Hiçbir şey çıkmazsa dosyanın hex'ine bak (xxd) — bozuk header olabilir"
+            ],
+            "defenseNote": "Not: Bu teknikler CTF forensics/stego kategorisi ve adli bilişim (DFIR) analistleri içindir — zararlı dosyalardan IOC çıkarma ve veri sızıntısı tespitinde de aynı araçlar kullanılır."
+          }
+        }
+      ]
+    }
+  ]
+}

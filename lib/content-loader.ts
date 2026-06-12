@@ -23,6 +23,12 @@ const redTeamMap: Record<string, () => Promise<any>> = {
   "bloodhound":     () => import("@/content/red-team/bloodhound.json"),
   "responder":      () => import("@/content/red-team/responder.json"),
   "netexec":        () => import("@/content/red-team/netexec.json"),
+  "reverse-shells": () => import("@/content/red-team/reverse-shells.json"),
+  "file-transfer":  () => import("@/content/red-team/file-transfer.json"),
+  "web-exploitation":() => import("@/content/red-team/web-exploitation.json"),
+  "pivoting":       () => import("@/content/red-team/pivoting.json"),
+  "impacket":       () => import("@/content/red-team/impacket.json"),
+  "stego-forensics":() => import("@/content/red-team/stego-forensics.json"),
 };
 
 // ─── Blue Team Tools ─────────────────────────────────────────────────

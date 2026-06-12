@@ -25,6 +25,14 @@ const tools = [
       { slug: "burpsuite", title: "Burp Suite", desc: "Proxy, Repeater ve Intruder ile manuel web analizi", level: "Orta" },
       { slug: "nikto",     title: "Nikto",      desc: "Web sunucu zafiyet ve yanlış yapılandırma tarayıcısı", level: "Başlangıç" },
       { slug: "wpscan",    title: "WPScan",     desc: "WordPress eklenti, tema, kullanıcı zafiyet taraması", level: "Orta" },
+      { slug: "web-exploitation", title: "Web Sömürü Teknikleri", desc: "LFI/RFI, dosya yükleme bypass, log poisoning, command injection", level: "Orta–İleri" },
+    ],
+  },
+  {
+    category: "Shell & Erişim",
+    items: [
+      { slug: "reverse-shells", title: "Reverse Shell & TTY", desc: "Bash/Python/PHP/PowerShell reverse shell ve tam etkileşimli TTY yükseltme", level: "Başlangıç–Orta" },
+      { slug: "file-transfer",  title: "Dosya Transferi",     desc: "HTTP, certutil, SMB, scp ile hedefe/hedeften dosya aktarma", level: "Başlangıç–Orta" },
     ],
   },
   {
@@ -47,6 +55,7 @@ const tools = [
       { slug: "bloodhound", title: "BloodHound",        desc: "AD saldırı yollarını grafiksel haritalama — DA'ya en kısa yol", level: "İleri" },
       { slug: "responder",  title: "Responder",         desc: "LLMNR/NBT-NS zehirleme ile NetNTLMv2 hash yakalama", level: "İleri" },
       { slug: "netexec",    title: "NetExec (CME)",      desc: "İç ağ numaralandırma, Pass-the-Hash ve yanal hareket", level: "İleri" },
+      { slug: "impacket",   title: "Impacket & Kerberos", desc: "secretsdump, psexec, Kerberoasting, AS-REP Roasting", level: "İleri" },
     ],
   },
   {
@@ -54,6 +63,13 @@ const tools = [
     items: [
       { slug: "linux-privesc",   title: "Linux Privilege Escalation",   desc: "Bash revshell, TTY upgrade, LinPEAS, SUID, Sudo & Cron istismarı", level: "Orta–İleri" },
       { slug: "windows-privesc", title: "Windows Privilege Escalation", desc: "PowerShell, Nishang, Metasploit payload, WinPEAS, token impersonation", level: "Orta–İleri" },
+      { slug: "pivoting",        title: "Pivoting & Tunneling",         desc: "SSH tünelleme, proxychains, chisel, ligolo ile iç ağa sıçrama", level: "İleri" },
+    ],
+  },
+  {
+    category: "CTF Teknikleri",
+    items: [
+      { slug: "stego-forensics", title: "Steganografi & Adli Bilişim", desc: "binwalk, steghide, exiftool, zsteg, PCAP analizi — CTF forensics", level: "Başlangıç–Orta" },
     ],
   },
   {

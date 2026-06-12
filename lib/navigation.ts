@@ -74,6 +74,16 @@ export const navigation = {
           { id: "burpsuite", title: "Burp Suite", slug: "burpsuite" },
           { id: "nikto", title: "Nikto", slug: "nikto" },
           { id: "wpscan", title: "WPScan", slug: "wpscan" },
+          { id: "web-exploitation", title: "Web Sömürü (LFI/Upload)", slug: "web-exploitation" },
+        ],
+      },
+      {
+        id: "shell-access",
+        title: "Shell & Erişim",
+        icon: "Terminal",
+        tools: [
+          { id: "reverse-shells", title: "Reverse Shell & TTY", slug: "reverse-shells" },
+          { id: "file-transfer", title: "Dosya Transferi", slug: "file-transfer" },
         ],
       },
       {
@@ -102,6 +112,7 @@ export const navigation = {
           { id: "bloodhound", title: "BloodHound", slug: "bloodhound" },
           { id: "responder", title: "Responder", slug: "responder" },
           { id: "netexec", title: "NetExec / CME", slug: "netexec" },
+          { id: "impacket", title: "Impacket & Kerberos", slug: "impacket" },
         ],
       },
       {
@@ -111,6 +122,15 @@ export const navigation = {
         tools: [
           { id: "linux-privesc", title: "Linux PrivEsc", slug: "linux-privesc" },
           { id: "windows-privesc", title: "Windows PrivEsc", slug: "windows-privesc" },
+          { id: "pivoting", title: "Pivoting & Tunneling", slug: "pivoting" },
+        ],
+      },
+      {
+        id: "ctf-techniques",
+        title: "CTF Teknikleri",
+        icon: "Crosshair",
+        tools: [
+          { id: "stego-forensics", title: "Steganografi & Forensics", slug: "stego-forensics" },
         ],
       },
       {

