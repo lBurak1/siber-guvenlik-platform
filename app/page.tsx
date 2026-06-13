@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap, Globe, Router, CheckCircle2, MessageCircleQuestion, Crosshair, Server, Database } from "lucide-react";
+import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap, Globe, Router, CheckCircle2, MessageCircleQuestion, Crosshair, Server, Database, GitBranch } from "lucide-react";
 
 const sections = [
   {
@@ -79,6 +79,21 @@ const sections = [
     badge: "bg-teal-500/10 text-teal-400 border-teal-500/20",
     cta: "bg-teal-500/10 text-teal-300 border-teal-500/30 hover:bg-teal-500/20",
     modules: "2 Konu · 50+ Komut",
+  },
+  {
+    id: "metodoloji",
+    href: "/metodoloji",
+    icon: GitBranch,
+    label: "Metodoloji",
+    subtitle: "Düşünme Biçimi",
+    description: "Araçları değil, onları birbirine bağlayan omurgayı öğren: pentest sürecinin 7 fazı, PTES/Kill Chain/MITRE ATT&CK, 'foothold aldım şimdi ne?' triyajı, kapsam/yetki ve raporlama. Junior'ı senior'dan ayıran şey.",
+    tools: ["PTES", "Kill Chain", "MITRE ATT&CK", "Scope/RoE", "Triyaj", "CVSS", "Rapor"],
+    color: "fuchsia",
+    border: "border-fuchsia-500/20 hover:border-fuchsia-500/60",
+    glow: "hover:shadow-[0_0_40px_rgba(217,70,239,0.15)]",
+    badge: "bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20",
+    cta: "bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/30 hover:bg-fuchsia-500/20",
+    modules: "2 Konu · 7 Modül",
   },
   {
     id: "red-team",
@@ -284,6 +299,7 @@ const accentMap: Record<string, { bar: string; text: string }> = {
   yellow:  { bar: "from-yellow-500/0 via-yellow-400 to-yellow-500/0",   text: "text-yellow-300" },
   cyan:    { bar: "from-cyan-500/0 via-cyan-400 to-cyan-500/0",          text: "text-cyan-300" },
   lime:    { bar: "from-lime-500/0 via-lime-400 to-lime-500/0",          text: "text-lime-300" },
+  fuchsia: { bar: "from-fuchsia-500/0 via-fuchsia-400 to-fuchsia-500/0", text: "text-fuchsia-300" },
 };
 
 // Ana sayfa kategorileri (kartları gruplar)
@@ -295,7 +311,7 @@ const groups = [
   { id: "infra", title: "Sunucu & Veritabanı", short: "Altyapı", icon: Server, subtitle: "Sunucu ve veritabanı: nedir, yönetim ve nasıl sızılır", accent: "cyan",
     ids: ["servers-fundamentals", "database-fundamentals"] },
   { id: "security", title: "Siber Güvenlik", short: "Siber Güvenlik", icon: Shield, subtitle: "Saldırı, savunma, araçlar, sunucular ve web güvenliği", accent: "red",
-    ids: ["red-team", "arsenal", "servers", "blue-team", "purple-team", "owasp-top10"] },
+    ids: ["metodoloji", "red-team", "arsenal", "servers", "blue-team", "purple-team", "owasp-top10"] },
   { id: "career", title: "Kariyer & Referans", short: "Kariyer", icon: GraduationCap, subtitle: "Sertifika yolu, sektör, mülakat ve hızlı başvuru", accent: "indigo",
     ids: ["certifications", "ecosystem", "interview", "cheatsheet"] },
 ];

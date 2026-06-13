@@ -1,0 +1,60 @@
+{
+  "id": "kapsam-yetki",
+  "slug": "kapsam-yetki",
+  "title": "Kapsam, Yetki & Yasal Çerçeve",
+  "subtitle": "İzin olmadan dokunulmaz — işin görünmez ama en kritik kısmı",
+  "description": "Pre-engagement: bir testin yasal ve sözleşmesel temeli. Kapsam belirleme, Rules of Engagement, yetkilendirme yazısı ve etik sınırlar. Junior'ın en çok eksik bıraktığı, işe alımda en çok sorulan konu.",
+  "icon": "ScrollText",
+  "order": 2,
+  "tags": ["kapsam", "scope", "rules of engagement", "roe", "yetki", "yasal", "etik", "pre-engagement", "sozlesme", "authorization"],
+  "modules": [
+    {
+      "id": "yetki-yasal",
+      "title": "Yetkilendirme ve Yasal Temel",
+      "description": "Neden yazılı izin olmadan tek paket bile gönderilmez; yetkilendirme yazısı, ilgili yasalar ve 'get out of jail' mektubu.",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "neden-izin",
+          "type": "theory",
+          "title": "İzin Olmadan Pentest = Suç",
+          "content": "Bir sızma testini sıradan bir saldırıdan ayıran **tek** şey vardır: **yazılı yetki.** Teknikler aynıdır; fark niyet ve izindir.\n\nYetkisiz erişim çoğu ülkede suçtur:\n- **Türkiye:** TCK 243–246 (bilişim sistemine girme, engelleme, veri bozma).\n- **ABD:** CFAA (Computer Fraud and Abuse Act).\n- **İngiltere:** Computer Misuse Act 1990.\n- **AB:** NIS2 / ilgili ulusal yasalar.\n\n> **Altın kural:** Yazılı, imzalı yetki elinde olmadan **tek bir port bile taramazsın.** 'Müşteri sözlü onay verdi' yetmez — iş kötüye giderse sözlü onay seni korumaz.\n\nBu yüzden bu modül, tüm saldırı modüllerinden **önce** gelir. Platformdaki her saldırı içeriği yalnızca **yetkili pentest veya izole lab (CTF/HTB/THM)** içindir. [[user-goal-jr-to-senior]]"
+        },
+        {
+          "id": "yetki-yazisi",
+          "type": "theory",
+          "title": "Yetkilendirme Yazısı (Authorization Letter)",
+          "content": "Teste başlamadan önce elinde olması gerekenler:\n\n| Belge | Ne işe yarar |\n|-------|--------------|\n| **Sözleşme (SOW)** | Statement of Work — iş kapsamı, süre, ücret, sorumluluklar |\n| **Yetkilendirme Yazısı** | Hedef sistemin **sahibinin** imzalı izni — 'şu IP'lere şu tarihlerde test yapılabilir' |\n| **NDA** | Gizlilik — bulguları kimseyle paylaşmama |\n| **'Get Out of Jail' Mektubu** | Test sırasında yanında taşıdığın, 'ben yetkili pentester'ım, işte imza' diyen belge (özellikle fiziksel/sosyal mühendislik testlerinde gözaltına alınırsan) |\n\n**Kritik noktalar:**\n- İzni veren kişi gerçekten **yetkilendirme makamında** mı? (Bulut/SaaS kullanıyorsa hedefin sahibi müşteri olmayabilir — örn. AWS'de barındırılan sistem için bazı testler AWS politikasına da tabidir.)\n- Üçüncü taraf sistemler kapsamda mı? (Müşterinin kullandığı dış servis sağlayıcısına test = ayrı izin gerekir.)\n- Tarih ve saat aralığı net mi?\n\n> Sahibi senden olmayan bir sistemi, müşteri 'bizim' dese bile test etmeden önce sahipliği doğrula. Yanlış hedefe yapılan test ciddi hukuki sonuç doğurur."
+        }
+      ]
+    },
+    {
+      "id": "scope-roe",
+      "title": "Kapsam (Scope) ve Rules of Engagement",
+      "description": "Neyin test edileceği, neyin edilmeyeceği ve testin nasıl yürütüleceğini belirleyen kurallar — sahada seni hem korur hem yönlendirir.",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "scope",
+          "type": "theory",
+          "title": "Kapsam Belirleme (Scoping)",
+          "content": "**Kapsam**, testin sınırlarını çizer: neyin **içinde**, neyin **dışında** olduğunu netleştirir.\n\n**In-scope / Out-of-scope:**\n- **In-scope:** test edilecek IP aralıkları, domain'ler, uygulamalar, API'ler.\n- **Out-of-scope:** dokunulmayacaklar — örn. üretim ödeme sistemi, üçüncü taraf servisler, belirli kritik sunucular.\n\n**Kapsamı netleştiren sorular (scoping call):**\n- Hangi IP/domain/uygulama? Kaç host?\n- Black/grey/white box? Hesap verilecek mi?\n- Üretim mi test ortamı mı? (Üretimse DoS yasak, dikkatli ol.)\n- Test penceresi: hangi gün/saatler? (İş saatleri dışı mı?)\n- Sosyal mühendislik / fiziksel dahil mi?\n- DoS/DDoS testi izinli mi? (Genelde **hayır**.)\n- Veri bulunursa ne yapılacak? (Exfil simülasyonu nereye kadar?)\n\n> **Scope creep'e dikkat:** İlginç bir sistem kapsam dışındaysa, ne kadar cazip olsa da **dokunma**. Bulduğun yolu rapora 'kapsam genişletilirse şuraya gidilebilir' diye not et — ama izinsiz girme."
+        },
+        {
+          "id": "roe",
+          "type": "theory",
+          "title": "Rules of Engagement (RoE)",
+          "content": "**RoE**, testin *nasıl* yürütüleceğinin kural kitabıdır. Kapsam 'neyi', RoE 'nasıl'ı tanımlar.\n\nTipik RoE maddeleri:\n- **Zaman penceresi:** Testler yalnızca 22:00–06:00 arası (iş etkisini azaltmak için).\n- **İzinli teknikler:** Exploitation evet, DoS hayır, sosyal mühendislik sadece e-posta.\n- **Veri muamelesi:** Gerçek müşteri verisi çekilmez; erişim kanıtlanır, kayıt maskelenir.\n- **İletişim & eskalasyon:** Acil durumda aranacak kişi + telefon. Kritik açık bulununca derhal bildirim.\n- **'Stop' koşulu:** Sistem kararsızlaşırsa/çökerse testi durdur, haber ver.\n- **Kanıt toplama:** Ekran görüntüsü/log nasıl saklanacak.\n\n### Emergency / Eskalasyon Kontağı\nTest sırasında bir şey ters giderse (üretim sistemi yavaşladı, yanlışlıkla bir servis düştü) **kimi, nasıl** arayacağını önceden bil. Bu bilgi RoE'de yazılıdır ve hayat kurtarır.\n\n> **Senior refleksi:** Teste başlamadan RoE'yi ezberle. 'Bu makineyi reboot etsem mi?' diye düşündüğün an cevap RoE'dedir. Kurallar seni yavaşlatmaz — **arkanı sağlama alır.**"
+        },
+        {
+          "id": "etik-opsec-disiplin",
+          "type": "advanced",
+          "title": "Etik Disiplin ve Profesyonel Sınırlar",
+          "content": "Yetenek kadar **disiplin** de seni profesyonel yapar:\n\n### Yapılmaması Gerekenler\n- Kapsam dışına çıkmak (tek bir IP bile).\n- Gereksiz hasar: veri silme, sistem çökertme, üretimde yıkıcı exploit.\n- Gerçek müşteri verisini indirme/saklama (erişimi **kanıtla**, çalma).\n- Bulunan açığı kapanmadan üçüncü kişilerle paylaşma.\n- Arka kapı/kalıcılık bırakıp temizlememe.\n\n### Sorumlu Açıklama (Responsible Disclosure)\nKapsam içi olmayan ama tesadüfen bir açık fark edersen (örn. bir bug bounty'de scope dışı kritik açık): sömürme, sahibine sorumlu şekilde bildir. Önce izin, sonra eylem.\n\n### Mavi takımı düşün (Purple bakış)\nGürültülü mü çalışıyorsun? Klasik pentest'te sorun değil; ama Red Team'de tespit edilmemek hedefse OPSEC önemlidir. Yine de **her zaman** loglarına saygı duy — sildiğin log müşterinin adli inceleme yeteneğini bozar, bunu yalnızca RoE açıkça izin veriyorsa yap.\n\n> Etik, kuralların listesi değil; **'bunu yapma yetkim var mı?'** sorusunu her adımda kendine sorma alışkanlığıdır. Bu alışkanlık, seni sektörde uzun ömürlü kılan şeydir. Tüm platform içeriği bu ilkeye bağlıdır: yalnızca yetkili test ve izole lab."
+        }
+      ]
+    }
+  ]
+}

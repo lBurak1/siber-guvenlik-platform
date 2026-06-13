@@ -29,6 +29,7 @@ const badgeColor: Record<string, string> = {
   pink:    "bg-pink-500/10 text-pink-400 border-pink-500/20",
   cyan:    "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
   lime:    "bg-lime-500/10 text-lime-400 border-lime-500/20",
+  fuchsia: "bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20",
 };
 
 const MAX_RESULTS = 50;

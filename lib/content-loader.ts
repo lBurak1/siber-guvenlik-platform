@@ -143,6 +143,12 @@ const serversMap: Record<string, () => Promise<any>> = {
   "web-sunucu":     () => import("@/content/servers-fundamentals/web-sunucu.json"),
 };
 
+// ─── Metodoloji ──────────────────────────────────────────────────────
+const metodolojiMap: Record<string, () => Promise<any>> = {
+  "saldiri-zinciri": () => import("@/content/metodoloji/saldiri-zinciri.json"),
+  "kapsam-yetki":    () => import("@/content/metodoloji/kapsam-yetki.json"),
+};
+
 // ─── Database Fundamentals ───────────────────────────────────────────
 const databaseMap: Record<string, () => Promise<any>> = {
   "veritabani-nedir": () => import("@/content/database-fundamentals/veritabani-nedir.json"),
@@ -219,6 +225,10 @@ export async function getServersTopic(slug: string): Promise<NetworkTopic | null
 
 export async function getDatabaseTopic(slug: string): Promise<NetworkTopic | null> {
   return load<NetworkTopic>(databaseMap, slug);
+}
+
+export async function getMetodolojiTopic(slug: string): Promise<NetworkTopic | null> {
+  return load<NetworkTopic>(metodolojiMap, slug);
 }
 
 export async function getCheatSheet(slug: string): Promise<PortCheatSheet | null> {

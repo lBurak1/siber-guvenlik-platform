@@ -1,4 +1,27 @@
 export const navigation = {
+  "metodoloji": {
+    label: "Metodoloji",
+    color: "fuchsia",
+    description: "Pentest sürecinin omurgası: düşünme biçimi",
+    categories: [
+      {
+        id: "omurga",
+        title: "Saldırı Zinciri",
+        icon: "GitBranch",
+        tools: [
+          { id: "saldiri-zinciri", title: "Pentest Metodolojisi & Saldırı Zinciri", slug: "saldiri-zinciri" },
+        ],
+      },
+      {
+        id: "pre-engagement",
+        title: "Pre-Engagement",
+        icon: "ScrollText",
+        tools: [
+          { id: "kapsam-yetki", title: "Kapsam, Yetki & Yasal Çerçeve", slug: "kapsam-yetki" },
+        ],
+      },
+    ],
+  },
   "network-fundamentals": {
     label: "Network",
     color: "emerald",

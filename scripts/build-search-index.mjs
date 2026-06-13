@@ -11,6 +11,7 @@ const CONTENT = join(ROOT, "content");
 
 // Klasör → kategori meta bilgisi
 const CATEGORIES = {
+  "metodoloji":           { label: "Metodoloji",   color: "fuchsia", kind: "modules" },
   "red-team":             { label: "Red Team",     color: "red",     kind: "modules" },
   "blue-team":            { label: "Blue Team",    color: "blue",    kind: "modules" },
   "purple-team":          { label: "Purple Team",  color: "purple",  kind: "modules" },

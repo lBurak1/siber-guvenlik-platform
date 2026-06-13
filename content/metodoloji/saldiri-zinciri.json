@@ -1,0 +1,232 @@
+{
+  "id": "saldiri-zinciri",
+  "slug": "saldiri-zinciri",
+  "title": "Pentest Metodolojisi & Saldırı Zinciri",
+  "subtitle": "Araçları değil, düşünme biçimini öğren",
+  "description": "Bir sızma testinin baştan sona akışı: hangi fazda ne yapılır, neden yapılır ve 'shell aldım, şimdi ne?' anında nasıl karar verilir. Tek tek araçları birbirine bağlayan omurga.",
+  "icon": "GitBranch",
+  "order": 1,
+  "tags": ["metodoloji", "ptes", "kill chain", "mitre att&ck", "saldiri zinciri", "pentest sureci", "karar agaci", "methodology"],
+  "modules": [
+    {
+      "id": "pentest-nedir-zihniyet",
+      "title": "Pentest Nedir, Türleri ve Saldırgan Zihniyeti",
+      "description": "Sızma testinin tanımı, kutu modelleri (black/grey/white box), angajman türleri ve bir junior'ı senior'dan ayıran düşünme biçimi.",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "tanim",
+          "type": "theory",
+          "title": "Sızma Testi (Penetration Test) Nedir?",
+          "content": "**Sızma testi**, bir sistemin/uygulamanın/ağın güvenliğini, gerçek bir saldırganın kullanacağı teknikleri **yetkili ve kontrollü** şekilde taklit ederek ölçme işidir. Amaç sistemi kırmak değil; **kırılabilir noktaları kanıtlamak, etkisini göstermek ve düzeltilmesini sağlamaktır.**\n\n### Pentest ≠ Zafiyet Taraması\nİkisi sık karıştırılır ama farklıdır:\n\n| Özellik | Zafiyet Taraması (Vuln Scan) | Sızma Testi (Pentest) |\n|---------|------------------------------|------------------------|\n| Kim yapar | Otomatik araç (Nessus, OpenVAS) | İnsan + araç |\n| Çıktı | Olası zafiyet listesi | Kanıtlanmış, sömürülmüş zafiyet |\n| Yanlış pozitif | Çok | Az (manuel doğrulama) |\n| Zincirleme | Yok | Var (küçük açıklar → tam ele geçirme) |\n| Maliyet/süre | Düşük | Yüksek |\n\n> **Senior farkı:** Bir tarayıcı 'şu port açık, şu sürüm eski' der. Pentester ise o üç küçük bulguyu birleştirip Domain Admin olur. Değer, **zincirlemededir.**\n\n### Neden Yapılır?\n- **Risk kanıtı:** 'Bu açık varsa şirket ne kaybeder?' sorusunu somut gösterir.\n- **Uyumluluk:** PCI-DSS, ISO 27001, KVKK/GDPR, HIPAA gibi standartlar düzenli pentest ister.\n- **Savunmayı sınama:** SOC/Blue Team gerçekten alarm üretiyor mu? (Purple Team köprüsü.)\n- **Önceliklendirme:** Sınırlı bütçeyle önce neyin düzeltileceğini belirler."
+        },
+        {
+          "id": "kutu-modelleri",
+          "type": "theory",
+          "title": "Bilgi Seviyesi: Black / Grey / White Box",
+          "content": "Teste başlarken sana **ne kadar bilgi verildiği** tüm yaklaşımını belirler:\n\n| Model | Sana verilen | Taklit ettiği saldırgan | Tipik kullanım |\n|-------|--------------|--------------------------|----------------|\n| **Black Box** | Hiçbir şey (sadece hedef adı/IP) | Dışarıdan, sıfır bilgili saldırgan | Dış ağ, gerçekçilik testi |\n| **Grey Box** | Kısmi (bir kullanıcı hesabı, ağ şeması) | İçeriden gelen / phishing kurbanı | En yaygın — verimli + gerçekçi |\n| **White Box** | Tam (kaynak kod, mimari, admin) | Kötü niyetli yönetici / kod denetimi | Derin denetim, maks kapsam |\n\n**Karar mantığı:** Black box gerçekçidir ama zaman bütçesinin çoğunu keşfe harcar — gerçek saldırganın aksine senin takvimin var. Bu yüzden kurumlar genelde **grey box** seçer: bir standart kullanıcı verir, sen de 'phishing'le bu noktaya gelindi' varsayımıyla içeriden yetki yükseltmeye odaklanırsın. Daha çok bulgu, daha az boşa harcanan saat.\n\n> İpucu: Hangi modelde olduğunu **angajman başında netleştir**. 'Bana hiçbir şey vermeyin' demek havalı durur ama müşterinin parasını keşifte yakar."
+        },
+        {
+          "id": "angajman-turleri",
+          "type": "theory",
+          "title": "Angajman Türleri",
+          "content": "Pentest tek bir şey değil; kapsamı ve hedefi farklı türleri var:\n\n- **External (Dış) Ağ Pentest:** İnternete bakan varlıklar (web, VPN, mail, DNS). 'Dışarıdan içeri girilebilir mi?'\n- **Internal (İç) Ağ Pentest:** Saldırgan zaten içeride varsayımı (phishing başarılı oldu). Active Directory, lateral movement, Domain Admin yolu.\n- **Web Application Pentest:** Tek bir uygulamanın derin testi (OWASP WSTG / Top 10).\n- **Wireless:** Kablosuz ağ, rogue AP, WPA2/WPA3.\n- **Social Engineering:** Phishing, vishing, fiziksel — insan katmanı.\n- **Red Team Engagement:** Belirli bir hedef ('müşteri veritabanını çal'), **tespit edilmeden**, uzun süreli, gerçek APT taklidi. Pentest 'tüm açıkları bul'dur; Red Team 'amaca ulaş + yakalanma'dır.\n- **Assumed Breach:** 'Zaten içerideler' varsayımıyla başlanır — zaman external keşifte yanmaz.\n\n| | Klasik Pentest | Red Team |\n|---|----------------|----------|\n| Hedef | Mümkün olan tüm açıklar | Tek belirli hedef (crown jewel) |\n| Gizlilik | Önemsiz, gürültü serbest | Kritik — tespit edilmemek |\n| Kapsam | Geniş | Dar ama derin |\n| Blue Team haberli mi | Genelde evet | Hayır (sadece üst yönetim) |"
+        },
+        {
+          "id": "zihniyet",
+          "type": "advanced",
+          "title": "Junior'ı Senior'dan Ayıran Zihniyet",
+          "content": "Araçları herkes öğrenir. Fark, **araç çalışmadığında ne yaptığında** ortaya çıkar.\n\n### 1. Her şey bir giriş noktasıdır\nAcemi 'açık port arar'. Usta **saldırı yüzeyi** düşünür: her açık port, her input alanı, her dosya yükleme, her hata mesajı, her e-posta adresi bir kapıdır.\n\n### 2. 'Neden' sorusu\n`nmap -sV` çalıştırıp sürümü görmek yetmez. **'Bu sürüm neden burada? Eski mi? Bilinen CVE'si var mı? Default config mi?'** Komutu çalıştırmak 10 saniye; çıktıyı yorumlamak işin kendisi.\n\n### 3. Zincirleme (chaining) refleksi\nTek başına zararsız 3 bulgu:\n- Bilgi sızıntısı: bir kullanıcı adı\n- Zayıf parola politikası\n- Açık SMB\n→ Birleşince: password spray → geçerli hesap → SMB üzerinden lateral. **Senior her bulguyu 'bunu başka neyle birleştirebilirim?' diye düşünür.**\n\n### 4. Notlar ve metodik olmak\nKaos = kaçırılan açık. Her host için: portlar, sürümler, denenenler, işe yarayanlar, credential'lar. Düzenli not = rapor da yarı yazılmış olur.\n\n### 5. Sabır ve enumeration\n> **'Enumeration is the key.'** OSCP'nin altın kuralı. Çoğu takılma noktası, yeterince enumere etmemekten kaynaklanır. 'Açık yok' demeden önce: tüm portları mı taradın? UDP'yi? Vhost'ları? Alt dizinleri? Farklı wordlist'leri?\n\n### 6. Etik sınır her zaman açık\nYetkin olmayan yere dokunmazsın, kapsam dışına çıkmazsın, üretim verisini sızdırmazsın. **İzin = işin temeli.** [[user-goal-jr-to-senior]]"
+        }
+      ]
+    },
+    {
+      "id": "metodoloji-cerceveleri",
+      "title": "Metodoloji Çerçeveleri: PTES, Kill Chain, MITRE ATT&CK",
+      "description": "Sahada kullanılan standart metodolojiler — neyi ne zaman referans alırsın, hangisi rapor için, hangisi saha için.",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "neden-cerceve",
+          "type": "theory",
+          "title": "Neden Bir Çerçeveye İhtiyaç Var?",
+          "content": "Çerçeve (framework), testi **tekrarlanabilir, eksiksiz ve savunulabilir** kılar. Çerçevesiz çalışırsan:\n- Bir fazı atlarsın (örn. post-exploitation'ı unutursun),\n- İki testin sonucu kıyaslanamaz,\n- Müşteriye 'neyi test ettin?' sorusuna net cevap veremezsin.\n\nÇerçeveler birbirinin rakibi değil, **farklı işler için farklı haritalar**. Usta hepsini bilir, duruma göre çeker."
+        },
+        {
+          "id": "cerceveler-tablo",
+          "type": "theory",
+          "title": "Başlıca Çerçeveler ve Ne İşe Yararlar",
+          "content": "### PTES — Penetration Testing Execution Standard\nBir pentest'in uçtan uca **7 aşaması**. Saha akışın için ana iskelet:\n1. Pre-engagement (kapsam, yetki, sözleşme)\n2. Intelligence Gathering (keşif/OSINT)\n3. Threat Modeling (hedef değerli varlıkları belirleme)\n4. Vulnerability Analysis (zafiyet tespiti)\n5. Exploitation (sömürü)\n6. Post-Exploitation (yetki yükseltme, lateral, veri)\n7. Reporting (raporlama)\n\n### Cyber Kill Chain (Lockheed Martin)\nSaldırının 7 halkası — daha çok **savunma/tespit** dili: Recon → Weaponization → Delivery → Exploitation → Installation → Command & Control (C2) → Actions on Objectives. Blue Team'le konuşurken ortak dil.\n\n### MITRE ATT&CK\nGerçek saldırganların **taktik ve teknikleri** (TTP) kataloğu. Her teknik bir ID'ye sahip (örn. **T1059** Command Scripting, **T1078** Valid Accounts, **T1003** Credential Dumping). Bulgularını ATT&CK ID'lerine map'lemek raporu profesyonel ve Blue Team için aksiyon alınabilir yapar. Purple Team'in ortak dili.\n\n### OWASP WSTG & Top 10\nWeb uygulaması testinin İncil'i. Web kapsamı varsa WSTG kontrol listesi, raporlamada Top 10 kategorileri.\n\n### OSSTMM / NIST 800-115\nDaha akademik/resmi; uyumluluk ve metodoloji savunması gerektiğinde referans.\n\n| Çerçeve | En iyi olduğu iş |\n|---------|------------------|\n| PTES | Genel saha akışı (omurga) |\n| Cyber Kill Chain | Blue Team ile ortak dil, tespit |\n| MITRE ATT&CK | Teknik etiketleme, Purple Team, rapor |\n| OWASP WSTG | Web uygulaması derin testi |\n| NIST 800-115 | Resmî/uyumluluk gereksinimi |"
+        },
+        {
+          "id": "pratik-kullanim",
+          "type": "advanced",
+          "title": "Pratikte Hangisini Ne Zaman?",
+          "content": "Gerçekte tek çerçeveye körü körüne bağlı kalmazsın; **PTES'i omurga, ATT&CK'i etiket dili** olarak kullanırsın:\n\n- **Saha akışını** PTES'e göre yürüt (keşiften raporlamaya sırayla ilerle, faz atlama).\n- **Her tekniği** MITRE ATT&CK ID'siyle not al → rapor hem teknik hem savunma için değerli olur.\n- **Web'e girince** OWASP WSTG kontrol listesine geç.\n- **Blue Team'e brief** verirken Kill Chain dilini kullan ('Delivery aşamasında yakalanmadık çünkü...').\n\n> **Mini örnek map:** 'Kerberoasting ile servis hesabı parolası kırdım' →\n> - PTES fazı: Post-Exploitation / Credential Access\n> - ATT&CK: **T1558.003** (Kerberoasting)\n> - Kill Chain: Actions on Objectives\n> - Savunma önerisi: Güçlü servis hesabı parolaları + AES + tDdetection.\n\nBu dört dili aynı bulgu için konuşabilmek, seni 'tool çalıştıran' olmaktan çıkarıp 'danışman' yapar."
+        }
+      ]
+    },
+    {
+      "id": "yedi-faz",
+      "title": "Saldırı Zincirinin 7 Fazı — Faz Faz Karar Haritası",
+      "description": "Her fazın amacı, o fazda kullanılan araçlar (platformdaki modüllere bağlı) ve bir sonraki faza nasıl geçileceğinin karar mantığı.",
+      "difficulty": "intermediate",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "faz1-2-recon-enum",
+          "type": "theory",
+          "title": "Faz 1–2: Keşif (Recon) ve Enumerasyon",
+          "content": "### Faz 1 — Keşif (Reconnaissance)\n**Amaç:** Hedef hakkında saldırmadan önce bilgi toplamak. Saldırı yüzeyini çıkarmak.\n- **Pasif** (hedefe dokunmadan): OSINT, Google dorking, DNS, sosyal medya, sızmış veri. → Platformda: **OSINT**, **Google Dorking** modülleri.\n- **Aktif** (hedefe paket gönderir): port tarama, servis tespiti. → **Nmap** modülü.\n\n**Karar:** Önce pasif (gürültüsüz), sonra aktif. External işte pasif keşif altın değerinde.\n\n### Faz 2 — Enumerasyon\n**Amaç:** Bulunan her servisi derinlemesine kazımak. **Burada vakit harcanır.**\n\n| Bulduğun port/servis | Sıradaki adım | Platform modülü |\n|----------------------|---------------|------------------|\n| 21 FTP | anon login, sürüm CVE | Cheat Sheet / Nmap NSE |\n| 22 SSH | sürüm, kullanıcı enum, key | Hydra (dikkatli) |\n| 80/443 HTTP | dizin/vhost fuzz, teknoloji | **Gobuster, ffuf, Nikto, WPScan** |\n| 139/445 SMB | share enum, null session | **enum4linux, NetExec** |\n| 88/389/636 | Active Directory! | **BloodHound, Responder, Impacket** |\n| 3306/1433/5432 | DB enum | **Database Servers** modülü |\n\n> **Altın kural:** 'Açık bir şey yok' demeden önce — full port scan (`-p-`), UDP, vhost'lar, farklı wordlist'ler denendi mi?"
+        },
+        {
+          "id": "faz3-4-exploit",
+          "type": "theory",
+          "title": "Faz 3–4: Zafiyet Analizi ve Sömürü (Exploitation)",
+          "content": "### Faz 3 — Zafiyet Analizi\nEnumerasyon bulgularını **sömürülebilir açıklara** çevir:\n- Sürüm → bilinen CVE (searchsploit, exploit-db, NVD).\n- Yanlış yapılandırma (default cred, açık panel, dizin listeleme).\n- Web zafiyetleri (SQLi, XSS, SSRF, LFI/RFI, upload). → **OWASP Top 10**, **Web Exploitation** modülleri.\n\n### Faz 4 — Sömürü (Initial Access / Foothold)\n**Amaç:** İlk ayak izini elde et — bir shell, bir oturum, bir geçerli hesap.\n\n**Initial access karar ağacı:**\n```\nWeb açığı mı?  → SQLi (sqlmap) / upload→webshell / RCE\nKimlik mi?     → password spray / default cred / Hydra\nServis CVE mi? → public exploit / Metasploit modülü\nAD/SMB mi?     → Responder→hash→crack / NTLM relay\nPhishing mi?   → makro/HTA (yetki dahilinde)\n```\n→ Platform: **Metasploit, SQLMap, reverse-shells, Hydra, Responder, Impacket**.\n\n> **Senior notu:** Önce **manuel** dene, otomatik araç en son. Metasploit'in `exploit` dediği yeri elle anlamadan geçme — sınavda/gerçekte araç çökerse elin boş kalmasın. İlk shell genelde **stabil değildir** (sonraki modül)."
+        },
+        {
+          "id": "faz5-6-post",
+          "type": "theory",
+          "title": "Faz 5–6: Post-Exploitation (PrivEsc + Lateral)",
+          "content": "Foothold aldın — asıl iş şimdi başlıyor.\n\n### Yetki Yükseltme (Privilege Escalation)\nDüşük yetkili kullanıcı → root/SYSTEM/Administrator.\n- **Linux:** SUID, sudo -l, cron, kernel, capabilities, yazılabilir PATH. → **Linux PrivEsc** modülü (`linpeas`).\n- **Windows:** servis izinleri, unquoted path, token, AlwaysInstallElevated, AD yanlış yapılandırma. → **Windows PrivEsc** modülü (`winpeas`).\n\n### Yanal Hareket (Lateral Movement) & Pivoting\nBir makineden ağdaki diğerlerine yayıl.\n- Credential reuse (aynı parola başka yerde), pass-the-hash. → **NetExec, Impacket**.\n- Ağ pivot (erişemediğin segmente erişme). → **Pivoting** modülü (chisel, ligolo, ssh tunnel).\n- Active Directory yolu: hash → Kerberoast → DCSync → Domain Admin. → **BloodHound** ile yol bulma.\n\n### Kalıcılık (Persistence) & C2\nErişimi koru (yetki dahilinde): yeni kullanıcı, ssh key, scheduled task, registry. Red Team'de C2 (Command & Control) kanalı. **Pentest'te kalıcılık eklediysen raporda belirt ve temizle.**\n\n> **Karar mantığı:** Her yeni makinede döngü tekrar başlar → enumere et → privesc → credential topla → bir sonraki hedefi seç. Buna **'attack loop'** denir."
+        },
+        {
+          "id": "faz7-rapor",
+          "type": "theory",
+          "title": "Faz 7: Raporlama ve Temizlik",
+          "content": "**En önemli ve en çok atlanan faz.** Müşteri shell'ini değil, **raporu** satın aldı.\n\n- **Bulgular:** her açık için — açıklama, kanıt (ekran görüntüsü/çıktı), etki, CVSS skoru, **yeniden üretim adımları**, düzeltme önerisi. (Detay: sonraki modül.)\n- **Executive Summary:** teknik olmayan yönetici için risk dili.\n- **Temizlik (cleanup):** eklediğin kullanıcılar, web shell'ler, dosyalar, kalıcılık → **hepsini geri al**. Müşteri ortamını bıraktığın gibi temiz teslim et.\n- **Retest:** düzeltmelerden sonra tekrar doğrula.\n\n> **Profesyonellik:** Test sırasında **kritik** bir açık bulursan (örn. internete açık RCE, müşteri verisi sızıntısı) raporu bekleme — **hemen** müşteriyi ara. Buna 'out-of-band notification' denir."
+        }
+      ]
+    },
+    {
+      "id": "karar-agaclari",
+      "title": "\"Foothold Aldım, Şimdi Ne?\" — Pratik Triyaj",
+      "description": "İlk shell'i aldıktan sonraki ilk 10 dakika: shell'i stabilize et, hızlı durum tespiti yap, yetki yükseltme yoluna karar ver. Komutlar + lab senaryosu.",
+      "difficulty": "advanced",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "shell-stabilize",
+          "type": "commands",
+          "title": "İlk 60 Saniye: Shell'i Stabilize Et",
+          "content": "Ham reverse shell çoğu zaman 'dumb'dır — Ctrl+C oturumu öldürür, tab-complete yok, `sudo` çalışmaz. Önce **TTY upgrade**:",
+          "commands": [
+            {
+              "command": "python3 -c 'import pty; pty.spawn(\"/bin/bash\")'",
+              "description": "Ham shell'i etkileşimli bir bash TTY'ye yükseltir (en yaygın ilk adım).",
+              "tip": "python3 yoksa: python, script -qc /bin/bash /dev/null, ya da /usr/bin/script dene."
+            },
+            {
+              "command": "export TERM=xterm; export SHELL=/bin/bash",
+              "description": "Terminal tipini ayarlar — clear, less, nano gibi tam-ekran araçlar çalışır."
+            },
+            {
+              "command": "stty raw -echo; fg",
+              "description": "Yerel terminalde çalıştır (Ctrl+Z ile shell'i arka plana attıktan sonra). Ctrl+C ve ok tuşlarını shell'e geçirir — tam etkileşim.",
+              "warning": "Sıralama önemli: shell içinde python pty → Ctrl+Z → yerelde stty raw -echo; fg → shell içinde export TERM=xterm."
+            },
+            {
+              "command": "whoami; id; hostname; uname -a",
+              "description": "Kim olduğunu, hangi grupları, hangi makinede ve hangi kernel'de olduğunu tek bakışta gör — privesc yönünü belirler."
+            }
+          ]
+        },
+        {
+          "id": "hizli-triyaj",
+          "type": "commands",
+          "title": "Hızlı Durum Tespiti (Situational Awareness)",
+          "content": "Otomatik privesc aracını (linpeas) çalıştırmadan önce **30 saniyelik manuel bakış** çoğu zaman cevabı verir:",
+          "commands": [
+            {
+              "command": "sudo -l",
+              "description": "Bu kullanıcı parolasız/parolayla hangi komutları root olarak çalıştırabilir? Privesc'in 1 numaralı hızlı kazancı.",
+              "tip": "GTFOBins'te çıkan bir binary varsa (örn. sudo vim, sudo find) genelde anında root."
+            },
+            {
+              "command": "find / -perm -4000 -type f 2>/dev/null",
+              "description": "SUID bit'li dosyalar — root yetkisiyle çalışan binary'ler. Sıra dışı olanı GTFOBins'te ara."
+            },
+            {
+              "command": "cat /etc/crontab; ls -la /etc/cron.*",
+              "description": "Zamanlanmış görevler — root'un çalıştırdığı, senin yazabildiğin bir script var mı?"
+            },
+            {
+              "command": "netstat -tulpn 2>/dev/null || ss -tulpn",
+              "description": "Sadece localhost'ta dinleyen servisler (127.0.0.1) — dışarıdan görünmeyen, pivot/privesc için açık olabilen iç servisler."
+            },
+            {
+              "command": "ls -la /home/*; cat ~/.bash_history; env",
+              "description": "Diğer kullanıcılar, geçmiş komutlar ve ortam değişkenleri — sık sık credential burada sızar."
+            }
+          ]
+        },
+        {
+          "id": "privesc-karar",
+          "type": "advanced",
+          "title": "Yetki Yükseltme Karar Ağacı",
+          "content": "Manuel bakış sonrası yön seç (Linux örneği):\n\n```\nsudo -l çıktısı var mı?\n ├─ Evet → GTFOBins'te eşleşme? → EVET: anında root\n │                              → HAYIR: argüman/wildcard injection dene\n └─ Hayır\n     │\n     ├─ İlginç SUID binary? → GTFOBins → exploit\n     ├─ Yazılabilir cron/script? → payload yerleştir, bekle\n     ├─ İç servis (localhost)? → port forward + o servisi sömür\n     ├─ Credential bulundu (history/config/.env)? → su / ssh / reuse\n     └─ Hiçbiri yok → linpeas.sh çalıştır → kernel exploit (son çare)\n```\n\n**Neden bu sıra?** Üsttekiler **hızlı, güvenilir ve sessiz**; kernel exploit en altta çünkü **makineyi çökertebilir** (üretimde felaket) ve gürültülüdür. Senior, kernel exploit'e ancak başka yol kalmadığında ve riski müşteriyle konuşarak gider.\n\n> Windows tarafında aynı mantık: önce `whoami /priv` (SeImpersonate → Potato), servis izinleri, unquoted path, AlwaysInstallElevated → en son kernel. → **Windows PrivEsc** modülü."
+        },
+        {
+          "id": "lab-triyaj",
+          "type": "lab",
+          "title": "Lab: İlk Shell'den Root'a Triyaj",
+          "scenario": {
+            "title": "Foothold Triyaj Senaryosu",
+            "objective": "Düşük yetkili bir www-data shell'i aldın. Stabilize et, manuel triyaj yap ve doğru privesc yolunu otomatik araç çalıştırmadan bul.",
+            "environment": "İzole lab — TryHackMe 'Linux PrivEsc' / HackTheBox başlangıç makineleri veya kendi kurduğun bir Ubuntu VM. SADECE yetkili/lab ortamı.",
+            "difficulty": "intermediate",
+            "steps": [
+              "Reverse shell'i al (nc dinleyici + hedeften bağlantı).",
+              "TTY upgrade uygula: python3 pty → Ctrl+Z → stty raw -echo; fg → export TERM=xterm.",
+              "whoami; id; uname -a ile durumu tespit et ve not al.",
+              "sudo -l çalıştır — parolasız çalıştırılabilen komut var mı?",
+              "find / -perm -4000 -type f 2>/dev/null ile SUID listesini çıkar, sıra dışı binary'i GTFOBins'te ara.",
+              "Bir credential ara: ~/.bash_history, /var/www içindeki config dosyaları, .env.",
+              "Karar ağacına göre EN HIZLI ve EN SESSİZ yolu seç, root ol.",
+              "Root olduktan sonra: ilk yaptığın işi (id, /root/root.txt) kanıt olarak kaydet."
+            ],
+            "hints": [
+              "Shell stabilize olmadan less/nano/su düzgün çalışmaz — önce TTY.",
+              "sudo -l çoğu kolay makinede tek başına cevaptır. GTFOBins sekmeni açık tut.",
+              "linpeas'ı en son çalıştır — önce kendi gözünle bak, refleksin gelişsin.",
+              "Her denediğini not et: rapor ve tekrar-üretim için lazım olacak."
+            ],
+            "expectedOutput": "uid=0(root) gid=0(root) ve /root dizinine erişim.",
+            "flag": "Lab makinesindeki /root/root.txt içeriği (CTF formatında).",
+            "defenseNote": "Savunma: en az yetki ilkesi (gereksiz SUID/sudo verme), cron script'lerini world-writable bırakma, parolaları config/.env içinde düz metin tutmama (vault kullan), kernel'i güncel tutma. EDR/auditd ile pty spawn, SUID kötüye kullanımı ve anormal sudo çağrılarını alarmla. Bu davranışları Blue Team tarafında tespit kuralına çevirmek = Purple Team."
+          }
+        }
+      ]
+    },
+    {
+      "id": "bulgu-cvss-rapor",
+      "title": "Bulgu Yönetimi, CVSS ve Raporlama Temeli",
+      "description": "Senior'ı junior'dan ayıran görünmez beceri: bulguyu doğru skorlamak, etkisini iş diline çevirmek ve düzeltilecek şekilde yazmak.",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "iyi-bulgu",
+          "type": "theory",
+          "title": "İyi Bir Bulgu Neyden Oluşur?",
+          "content": "Müşteri 'SQLi var' yazısını değil, **düzeltebileceği bir bulgu** satın aldı. İyi bulgunun anatomisi:\n\n| Bölüm | İçerik |\n|-------|--------|\n| **Başlık** | Net ve spesifik: 'login.php parametresi id'de hata-tabanlı SQL Injection' |\n| **Önem (Severity)** | CVSS skoru + Kritik/Yüksek/Orta/Düşük |\n| **Etki (Impact)** | İş diliyle: 'tüm müşteri veritabanı okunabilir' |\n| **Kanıt (PoC)** | Ekran görüntüsü, istek/yanıt, çıkarılan veri (maskelenmiş) |\n| **Yeniden Üretim** | Adım adım — müşteri kendi tekrarlayabilmeli |\n| **Düzeltme (Remediation)** | Somut: 'parametreli sorgu/prepared statement kullanın' |\n| **Referans** | CWE, OWASP, ATT&CK ID, CVE |\n\n> **Acemi hatası:** 30 sayfa ham `nmap`/`nikto` çıktısı yapıştırmak. **Senior:** her bulgu yöneticinin de geliştiricinin de aksiyon alabileceği netlikte."
+        },
+        {
+          "id": "cvss",
+          "type": "theory",
+          "title": "CVSS ile Önem Skorlama",
+          "content": "**CVSS (Common Vulnerability Scoring System)** bir açığın ciddiyetini 0–10 arası standart skora çevirir. Müşteri 'önce neyi düzeltelim?' diye sorduğunda cevabın budur.\n\n| Skor | Seviye |\n|------|--------|\n| 9.0–10.0 | Kritik (Critical) |\n| 7.0–8.9 | Yüksek (High) |\n| 4.0–6.9 | Orta (Medium) |\n| 0.1–3.9 | Düşük (Low) |\n\n**Base metrikleri (kabaca):**\n- **Attack Vector:** Network / Adjacent / Local / Physical (internetten mi, fiziksel mi?)\n- **Attack Complexity:** Low / High\n- **Privileges Required:** None / Low / High\n- **User Interaction:** None / Required\n- **CIA Impact:** Confidentiality / Integrity / Availability\n\n> Skoru kafadan atma — resmî **CVSS calculator** (FIRST.org) ile metrikleri seç, vektör string'ini (örn. `CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H`) rapora ekle. Bu, skorunun **savunulabilir** olduğunu gösterir.\n\n**Senior nüansı:** CVSS base skoru bağlamı bilmez. İnternete açık bir sistemdeki 'Orta' açık, izole bir iç sistemdeki 'Yüksek'ten daha acil olabilir. Skoru **iş bağlamıyla** yorumla — environmental metrikler tam bunun içindir."
+        },
+        {
+          "id": "rapor-akis",
+          "type": "advanced",
+          "title": "Rapor İskeleti ve Kapanış",
+          "content": "Standart bir pentest raporunun bölümleri:\n\n1. **Executive Summary** — teknik olmayan yönetici için: ne test edildi, genel risk durumu, en kritik 3 bulgu, iş etkisi. (CISO bunu okur.)\n2. **Scope & Methodology** — neyin test edildiği, hangi çerçeve (PTES), tarih/kapsam.\n3. **Findings** — her bulgu yukarıdaki anatomiye göre, önem sırasına dizili.\n4. **Attack Narrative** (Red Team) — saldırı zincirinin hikâyesi: girişten Domain Admin'e adım adım.\n5. **Remediation Roadmap** — önceliklendirilmiş düzeltme planı (quick win → uzun vade).\n6. **Appendix** — ham çıktılar, araç versiyonları, tam komut listesi.\n\n**Kapanış disiplini:**\n- **Temizlik:** eklenen her artefakt (kullanıcı, shell, dosya, kalıcılık) geri alındı mı?\n- **Veri imhası:** test sırasında çekilen müşteri verisi güvenli silindi mi?\n- **Debrief toplantısı:** bulguları canlı anlat, soruları yanıtla.\n- **Retest:** düzeltmeler sonrası doğrula, 'kapandı' de.\n\n> Bir pentest'in çıktısı shell değil, **müşterinin daha güvenli olması**dır. Rapor ve retest olmadan iş yarım. Bu disiplin, seni 'CTF çözen' biri olmaktan 'işe alınan danışman' yapar. [[user-goal-jr-to-senior]]"
+        }
+      ]
+    }
+  ]
+}

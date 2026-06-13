@@ -150,6 +150,18 @@ export const teamConfig = {
     gradient: "from-lime-900/20 to-transparent",
     description: "Veritabanları — SQL/NoSQL, komutlar, yönetim ve nasıl sızılır",
   },
+  "metodoloji": {
+    label: "Metodoloji",
+    shortLabel: "METOD",
+    color: "#d946ef",
+    bgClass: "bg-fuchsia-500/10",
+    borderClass: "border-fuchsia-500/30",
+    textClass: "text-fuchsia-400",
+    glowClass: "shadow-[0_0_20px_rgba(217,70,239,0.3)]",
+    badgeClass: "bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/30",
+    gradient: "from-fuchsia-900/20 to-transparent",
+    description: "Metodoloji — Pentest sürecinin omurgası: araçları değil, düşünme biçimini öğren",
+  },
 } as const;
 
 export const riskConfig = {

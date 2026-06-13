@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Shield, Terminal, Eye, GitMerge,
-  Network, BookOpen, Menu, X, Zap, Monitor, Cpu, AlertTriangle, Search, Boxes, GraduationCap, Globe, LayoutDashboard, Server, Database
+  Network, BookOpen, Menu, X, Zap, Monitor, Cpu, AlertTriangle, Search, Boxes, GraduationCap, Globe, LayoutDashboard, Server, Database, GitBranch
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn, teamConfig } from "@/lib/utils";
@@ -17,6 +17,7 @@ const navLinks = [
   { href: "/devops-fundamentals",   icon: Boxes,      label: "DevOps",       color: "teal" },
   { href: "/servers-fundamentals",  icon: Server,     label: "Sunucular",    color: "cyan" },
   { href: "/database-fundamentals", icon: Database,   label: "Veritabanları", color: "lime" },
+  { href: "/metodoloji",            icon: GitBranch,  label: "Metodoloji",   color: "fuchsia" },
   { href: "/red-team",              icon: Shield,     label: "Red Team",     color: "red" },
   { href: "/blue-team",             icon: Eye,        label: "Blue Team",    color: "blue" },
   { href: "/purple-team",           icon: GitMerge,   label: "Purple Team",  color: "purple" },
@@ -40,6 +41,7 @@ const colorMap: Record<string, { active: string; hover: string }> = {
   pink:    { active: "bg-pink-500/10 text-pink-400 border border-pink-500/30",          hover: "hover:text-pink-300 hover:bg-pink-500/5" },
   cyan:    { active: "bg-cyan-500/10 text-cyan-400 border border-cyan-500/30",          hover: "hover:text-cyan-300 hover:bg-cyan-500/5" },
   lime:    { active: "bg-lime-500/10 text-lime-400 border border-lime-500/30",          hover: "hover:text-lime-300 hover:bg-lime-500/5" },
+  fuchsia: { active: "bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/30", hover: "hover:text-fuchsia-300 hover:bg-fuchsia-500/5" },
 };
 
 export default function Navbar() {
