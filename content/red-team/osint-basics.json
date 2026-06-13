@@ -9,93 +9,287 @@
   "phase": "Reconnaissance",
   "icon": "🔍",
   "color": "#8b5cf6",
-  "tags": ["osint", "reconnaissance", "passive", "information-gathering", "whois", "shodan"],
+  "tags": ["osint", "reconnaissance", "passive", "information-gathering", "whois", "shodan", "theHarvester", "maltego", "recon-ng", "censys"],
   "modules": [
     {
       "id": "basics",
-      "title": "Pasif Keşif Teknikleri",
-      "description": "Hedefe hiç dokunmadan kamuya açık kaynaklardan bilgi toplama yöntemleri.",
+      "title": "Pasif Keşif Temelleri",
+      "description": "Hedefe hiç dokunmadan kamuya açık kaynaklardan bilgi toplama — DNS, WHOIS, crt.sh, Wayback Machine.",
       "difficulty": "beginner",
-      "duration": "60 dk",
+      "duration": "45 dk",
       "sections": [
         {
           "id": "theory",
           "type": "theory",
           "title": "OSINT Nedir ve Neden Önemlidir?",
-          "content": "OSINT, pasif keşif aşamasının temelidir. Hedef sisteme hiç paket göndermeden — dolayısıyla iz bırakmadan — olabildiğince çok bilgi toplamayı amaçlar.\n\nBilgi toplama kaynakları: Web sitesi ve kaynak kodu, WHOIS kayıtları, DNS kayıtları, Shodan/Censys (IoT ve servis veritabanları), Google/Bing arama motorları, LinkedIn/sosyal medya, GitHub/GitLab (sızdırılmış credential'lar), Wayback Machine (eski site versiyonları), Certificate Transparency logları.\n\nBilgi toplama -> Tarama -> Zafiyet analizi -> Sömürü -> Yetki yükseltme -> Yanal hareket zincirinde ilk halka OSINT'tir. Ne kadar fazla bilgi, o kadar dar ve etkili saldırı vektörü."
+          "content": "OSINT, pasif keşif aşamasının temelidir. Hedef sisteme hiç paket göndermeden — dolayısıyla iz bırakmadan — olabildiğince çok bilgi toplamayı amaçlar.\n\nBilgi toplama kaynakları: Web sitesi ve kaynak kodu, WHOIS kayıtları, DNS kayıtları, Shodan/Censys, Google/Bing, LinkedIn/sosyal medya, GitHub/GitLab (sızdırılmış credential'lar), Wayback Machine, Certificate Transparency logları.\n\n**Pentest kill chain'deki yeri:** OSINT → Aktif Tarama → Zafiyet Analizi → Sömürü. Ne kadar fazla bilgi, o kadar dar ve etkili saldırı vektörü.\n\n**Pasif vs Aktif fark:** Pasif OSINT hedefe paket göndermez (iz bırakmaz). Aktif OSINT doğrudan sorgu gönderir (DNS sorgusu, web crawl). Fark log'larda görünürlüktür."
         },
         {
           "id": "commands",
           "type": "commands",
-          "title": "OSINT Araçları ve Komutları",
+          "title": "DNS, WHOIS ve Sertifika Keşfi",
           "commands": [
             {
               "command": "whois hedef.com",
-              "description": "Domain kayıt bilgileri — kayıt sahibi, tarih, nameservers",
-              "output": "Domain Name: HEDEF.COM\nRegistrar: GoDaddy.com, LLC\nCreated Date: 2018-03-15\nExpiry Date: 2025-03-15\nName Server: NS1.HEDEF.COM\nRegistrant Email: admin@hedef.com"
+              "description": "Domain kayıt bilgileri — sahibi, tarih, nameservers, tescil e-postası.",
+              "output": "Domain Name: HEDEF.COM\nRegistrar: GoDaddy.com, LLC\nCreated Date: 2018-03-15\nExpiry Date: 2025-03-15\nName Server: NS1.HEDEF.COM\nRegistrant Email: admin@hedef.com",
+              "tip": "Registrant Email sosyal mühendislik hedefi olabilir. Expiry yakınsa domain korsanlığı riski var."
             },
             {
               "command": "dig hedef.com ANY",
-              "description": "Tüm DNS kayıtlarını sorgula",
+              "description": "Tüm DNS kayıtlarını sorgula — A, MX, TXT, NS.",
               "output": "hedef.com.    IN A     203.0.113.1\nhedef.com.    IN MX    mail.hedef.com.\nhedef.com.    IN TXT   v=spf1 include:...\nhedef.com.    IN NS    ns1.hedef.com.",
               "flags": [
                 { "flag": "dig A hedef.com", "description": "IPv4 adresi" },
                 { "flag": "dig MX hedef.com", "description": "Mail server" },
-                { "flag": "dig TXT hedef.com", "description": "SPF, DKIM, Google site doğrulama vb." },
-                { "flag": "dig axfr hedef.com @ns1.hedef.com", "description": "Zone transfer denemesi (yanlış yapılandırılmış DNS'lerde)" }
+                { "flag": "dig TXT hedef.com", "description": "SPF, DKIM, Google doğrulama" },
+                { "flag": "dig axfr hedef.com @ns1.hedef.com", "description": "Zone transfer denemesi — yanlış yapılandırılmış DNS'lerde tüm kayıtları döker", "example": "Başarılıysa: tüm subdomain listesi elimize geçer." }
               ]
             },
             {
-              "command": "theHarvester -d hedef.com -b google,bing,linkedin -l 500",
-              "description": "E-posta, subdomain ve çalışan bilgisi toplama",
-              "output": "[*] Emails found: 3\nadmin@hedef.com\nit@hedef.com\ninfo@hedef.com\n\n[*] Hosts found: 5\nmail.hedef.com:203.0.113.2\ndev.hedef.com:203.0.113.3",
-              "flags": [
-                { "flag": "-d DOMAIN", "description": "Hedef domain" },
-                { "flag": "-b KAYNAK", "description": "Arama motoru/kaynak (all, google, bing, linkedin, hunter)" },
-                { "flag": "-l LIMIT", "description": "Maksimum sonuç sayısı" }
-              ]
+              "command": "curl -s 'https://crt.sh/?q=%.hedef.com&output=json' | python3 -c \"import sys,json; [print(x['name_value']) for x in json.load(sys.stdin)]\" | sort -u",
+              "description": "Certificate Transparency logları — SSL sertifikası verilen tüm subdomain'leri listele.",
+              "output": "admin.hedef.com\napi.hedef.com\ndev.hedef.com\nstaging.hedef.com\nvpn.hedef.com",
+              "tip": "Brute force gerektirmez. Genellikle gizlenmeye çalışılan dev/staging subdomain'leri burada görünür."
             },
             {
-              "command": "shodan search hostname:hedef.com",
-              "description": "Shodan — internete açık servis ve cihaz tespiti",
-              "output": "203.0.113.1:80    Apache/2.4.18\n203.0.113.1:22    OpenSSH 7.2\n203.0.113.1:3389  Windows RDP",
-              "tip": "shodan.io üzerinde ücretsiz hesap oluşturarak API key alabilirsiniz.",
-              "flags": [
-                { "flag": "shodan host IP", "description": "Belirli IP'deki açık servisleri göster" },
-                { "flag": "org:\"Hedef Şirket\"", "description": "Şirkete ait IP aralıklarını bul" }
-              ]
-            },
-            {
-              "command": "curl -s https://crt.sh/?q=%.hedef.com&output=json | python3 -m json.tool | grep name_value | sort -u",
-              "description": "Certificate Transparency — tüm alt alan adlarını listele",
-              "output": "\"name_value\": \"admin.hedef.com\"\n\"name_value\": \"api.hedef.com\"\n\"name_value\": \"dev.hedef.com\"\n\"name_value\": \"staging.hedef.com\"",
-              "tip": "Bu yöntem subdomain brute force'a gerek kalmadan SSL sertifika loglarından keşif yapar."
+              "command": "waybackurls hedef.com | grep -E '\\.(php|asp|aspx|jsp)' | sort -u",
+              "description": "Wayback Machine'den eski URL'leri çek — kaldırılmış sayfalar ve endpoint'ler.",
+              "tip": "curl https://web.archive.org/cdx/search/cdx?url=*.hedef.com/*&output=text ile de yapılabilir."
             }
           ]
         },
         {
           "id": "lab",
           "type": "lab",
-          "title": "CTF Senaryosu: Hedef Şirket Keşfi",
+          "title": "Lab: Pasif OSINT ile Hedef Profili",
           "scenario": {
             "title": "Pasif OSINT ile Hedef Profili Oluşturma",
-            "objective": "Verilen bir domain hakkında WHOIS, DNS, Shodan ve Certificate Transparency kullanarak kapsamlı bir bilgi profili oluştur.",
-            "environment": "TryHackMe — Passive Reconnaissance Room",
+            "objective": "Verilen bir domain hakkında WHOIS, DNS, crt.sh ve Wayback Machine kullanarak kapsamlı bilgi profili oluştur. Hiç aktif tarama yapma.",
+            "environment": "TryHackMe — Passive Reconnaissance Room (izole, yetkili lab)",
             "difficulty": "beginner",
             "steps": [
-              "whois hedefsite.com ile domain sahibini ve kayıt tarihini bul",
-              "dig ANY ile tüm DNS kayıtlarını topla",
-              "crt.sh ile alt alan adlarını listele",
-              "Shodan'da domain için açık servisleri araştır",
-              "theHarvester ile e-posta adreslerini topla",
-              "Wayback Machine'de (web.archive.org) eski versiyonlara bak"
+              "whois hedefsite.com ile domain sahibini, kayıt tarihi ve nameserver'ları bul.",
+              "dig ANY ile tüm DNS kayıtlarını topla, MX ve TXT kayıtlarını not al.",
+              "dig axfr @nameserver domain ile zone transfer dene (genelde engellenir ama az sayıda açık kalır).",
+              "crt.sh ile SSL sertifika loglarından gizli subdomain'leri çıkar.",
+              "web.archive.org'da eski sayfalara bak — kaldırılmış login panelleri, API endpoint'leri."
             ],
             "hints": [
-              "Zone Transfer: dig axfr @nameserver domain — çoğu sistem bunu engeller ama bazıları açık bırakır",
-              "GitHub'da domain adını aratın — credential sızıntıları sıkça burada bulunur",
-              "LinkedIn'de şirket çalışanları IT personel yapısını ortaya koyar"
+              "Zone Transfer başarılıysa: tüm iç ağ subdomain haritası elimizde.",
+              "GitHub'da domain adını aratın — credential sızıntıları burada sık görülür.",
+              "LinkedIn'de şirket çalışanları IT yapısını ortaya koyar (teknoloji stack'i bile anlaşılabilir)."
             ],
-            "defenseNote": "Savunma: WHOIS privacy servisi kullanın. DNS zone transfer'ı kısıtlayın (bind9: allow-transfer { none; }). Gereksiz subdomain ve servis kaydı oluşturmayın. Çalışanları OSINT farkındalığı konusunda eğitin. GitHub'da pre-commit hook ile credential sızıntısını önleyin (truffleHog, git-secrets)."
+            "defenseNote": "Savunma: WHOIS privacy kullan. DNS zone transfer kısıtla (BIND9: allow-transfer { none; }). Gereksiz subdomain kaydetme. GitHub'da pre-commit hook ile credential sızıntısını engelle (truffleHog, git-secrets)."
+          }
+        }
+      ]
+    },
+    {
+      "id": "shodan-ileri",
+      "title": "Shodan — İnternete Açık Her Şeyi Bul",
+      "description": "Shodan, internete bağlı cihaz ve servislerin arama motorudur. Açık portlar, servis banner'ları, SSL sertifikaları, ICS/SCADA, kameralar — her şey indekslenir.",
+      "difficulty": "intermediate",
+      "duration": "40 dk",
+      "sections": [
+        {
+          "id": "shodan-theory",
+          "type": "theory",
+          "title": "Shodan Nedir ve Neden Güçlüdür?",
+          "content": "**Shodan**, düzenli aralıklarla interneti tarayarak açık port ve servislerin banner bilgilerini indeksleyen bir arama motorudur. Google web sayfalarını indeksler; Shodan **açık servisleri** indeksler.\n\n### Neden kritik?\n- Hedef şirketin IP aralığındaki **tüm açık servisleri** aktif tarama yapmadan görürsün → iz bırakmadan keşif.\n- Eski/güncel olmayan yazılım sürümleri, default credential'lar, açıkta kalmış admin panel'ler.\n- Kameralar, router'lar, PLC/SCADA sistemleri, sağlık cihazları — güncellenmemiş her şey burada.\n- SSL sertifika bilgisinden organizasyona ait subdomain'ler.\n\n### Shodan vs Censys\n| Özellik | Shodan | Censys |\n|---------|--------|--------|\n| Odak | Servis banner'ları, genel internet | TLS/SSL, daha yapılandırılmış veri |\n| Ücretsiz limit | Sınırlı | Sınırlı |\n| ICS/SCADA | Güçlü (özel filtreler) | Daha zayıf |\n| API | Evet | Evet |\n| En iyi olduğu | Hızlı keşif, banner analizi | Sertifika zinciri, ASN haritalama |"
+        },
+        {
+          "id": "shodan-komutlar",
+          "type": "commands",
+          "title": "Shodan Arama Filtreleri ve CLI",
+          "commands": [
+            {
+              "command": "shodan search 'org:\"Hedef Şirket\"'",
+              "description": "Şirkete ait IP aralığındaki tüm indekslenmiş servisleri listele.",
+              "output": "203.0.113.1:80  Apache/2.4.18 Ubuntu\n203.0.113.1:22  OpenSSH 7.2p2\n203.0.113.2:3389  Windows RDP\n203.0.113.3:5900  VNC — authentication: none",
+              "tip": "VNC without auth → doğrudan ekran erişimi. Raporlarda kritik bulgu.",
+              "flags": [
+                { "flag": "org:\"ŞİRKET\"", "description": "Şirket adıyla filtre" },
+                { "flag": "hostname:hedef.com", "description": "Domain adıyla filtre" },
+                { "flag": "ssl:hedef.com", "description": "SSL sertifikasında domain geçen IP'ler" },
+                { "flag": "asn:AS12345", "description": "Belirli ASN numarasına ait IP'ler" }
+              ]
+            },
+            {
+              "command": "shodan host 203.0.113.1",
+              "description": "Belirli bir IP'nin tüm açık port ve banner bilgilerini göster.",
+              "output": "203.0.113.1\nOrganization: Hedef Şirket\nOperating System: Ubuntu 18.04\n\nPort 22/tcp:\nOpenSSH 7.2p2 Ubuntu 4ubuntu2.10\n\nPort 80/tcp:\nHTTP/1.1 200 OK\nServer: Apache/2.4.18\nX-Powered-By: PHP/7.0.30\n\nPort 6379/tcp:\nRedis 4.0.9 — authentication: disabled"
+            },
+            {
+              "command": "shodan search 'product:\"Apache\" version:\"2.4.49\"'",
+              "description": "CVE-2021-41773 (Path Traversal/RCE) açığına sahip Apache 2.4.49 sürümlerini bul.",
+              "output": "15,432 results found\n...",
+              "warning": "Bu sorgu gerçek dünyada yetkisiz hedefleri tespit etmek için kullanılmamalıdır. Sadece yetkili test veya kendi altyapınız için."
+            },
+            {
+              "command": "shodan search 'port:6379 -auth' country:TR",
+              "description": "Türkiye'deki authentication olmayan açık Redis sunucuları — veri sızıntısı riski.",
+              "flags": [
+                { "flag": "country:TR", "description": "Ülke filtresi (2 harfli ISO kodu)" },
+                { "flag": "city:Istanbul", "description": "Şehir filtresi" },
+                { "flag": "port:PORT", "description": "Belirli port" },
+                { "flag": "before:01/01/2023", "description": "Belirli tarihten önce indekslenmiş" }
+              ]
+            },
+            {
+              "command": "shodan search 'http.title:\"admin\" http.status:200 org:\"Hedef Şirket\"'",
+              "description": "Hedef şirkete ait internete açık admin panel'leri bul.",
+              "tip": "http.title filtresi sayfa başlığında arama yapar — 'dashboard', 'login', 'control panel' dene."
+            },
+            {
+              "command": "shodan init API_KEY && shodan search 'hostname:hedef.com' --fields ip_str,port,org,product --separator ','",
+              "description": "CLI ile CSV formatında çıktı al — raporlama için kullanışlı.",
+              "flags": [
+                { "flag": "shodan init KEY", "description": "API key kaydet" },
+                { "flag": "shodan count SORGU", "description": "Kaç sonuç var, göster (sorgu harcamadan)" },
+                { "flag": "--fields", "description": "Hangi alanlar gösterilsin" },
+                { "flag": "shodan scan submit IP", "description": "Manuel tarama tetikle (ücretli)" }
+              ]
+            },
+            {
+              "command": "shodan search 'ssl.cert.subject.cn:\"*.hedef.com\"'",
+              "description": "Wildcard SSL sertifikasına sahip subdomain'leri ve IP'leri bul — crt.sh'e alternatif.",
+              "tip": "ssl.cert.issuer.cn ve ssl.cert.expired:true filtreleri de çok kullanılır."
+            }
+          ]
+        },
+        {
+          "id": "shodan-dorklar",
+          "type": "advanced",
+          "title": "Güçlü Shodan Dork'ları",
+          "content": "Shodan dork'ları belirli zafiyet kategorilerini hızlıca taramak için hazır sorgulardır.\n\n### Açık/Zayıf Servisler\n```\nport:5900 authentication disabled          # VNC auth yok\nport:27017                                  # MongoDB, auth yok\nport:6379 -auth                             # Redis, auth yok\nport:9200 elastic                           # ElasticSearch, auth yok\nport:2375 product:\"Docker\"                  # Docker API açık (RCE riski)\n```\n\n### Yönetim Panelleri\n```\nhttp.title:\"Cisco\" port:443                 # Cisco yönetim arayüzleri\nhttp.title:\"pfSense\" port:443               # pfSense firewall\nhttp.title:\"phpMyAdmin\" port:80             # DB yönetim paneli\nhttp.favicon.hash:1278323681                # Shodan favicon hash — spesifik ürün\n```\n\n### Belirli CVE'lere Göre\n```\nproduct:\"Apache\" version:\"2.4.49\"           # CVE-2021-41773\nproduct:\"Exchange\" port:443                 # ProxyLogon\nhttp.html:\"/dana-na/auth/url_default\" port:443  # Pulse Secure VPN\n```\n\n### Endüstriyel Sistemler (ICS/SCADA)\n```\nport:502 Modbus                             # PLC, endüstriyel kontrol\nport:102 Siemens                            # S7comm\ntag:ics                                     # ICS/SCADA cihazları\n```\n\n> **Etik not:** Bu dork'lar yalnızca yetkili pentest kapsamındaki hedefler veya kendi altyapın için kullanılabilir. Kapsam dışı sistemlere uygulamak yasal değildir. [[user-goal-jr-to-senior]]"
+        },
+        {
+          "id": "lab-shodan",
+          "type": "lab",
+          "title": "Lab: Shodan ile Kurumsal Keşif",
+          "scenario": {
+            "title": "Shodan Kurumsal Keşif Senaryosu",
+            "objective": "Hedef şirkete ait IP bloğundaki açık servisleri, zayıf yapılandırmaları ve yönetim panellerini Shodan'da aktif tarama yapmadan tespit et.",
+            "environment": "Shodan.io ücretsiz hesap (kendi hedef altyapın) veya OWASP WebGoat/HackTheBox gibi yetkili test ortamı.",
+            "difficulty": "intermediate",
+            "steps": [
+              "Şirket adıyla org: filtresi uygula, toplam IP sayısını ve servisleri listele.",
+              "ASN numarasını tespit et: shodan search 'org:...' ile çıkan IP'den ipinfo.io/IP ile ASN'yi bul.",
+              "ASN'ye göre tekrar filtrele: asn:AS12345 — tüm IP bloğu kapsamı.",
+              "Açık RDP (port:3389), VNC (port:5900), Redis (port:6379), Mongo (port:27017) sorgula.",
+              "ssl.cert.subject.cn:\"*.hedef.com\" ile sertifikalardan subdomain listesi çıkar.",
+              "http.title:\"admin\" ile açıkta kalmış yönetim panel varsa tespit et.",
+              "Bulguları bir tablo halinde belgele: IP, port, servis, sürüm, zafiyet notu."
+            ],
+            "hints": [
+              "Shodan ücretsiz hesapta sayfalama ve bazı filtreler kısıtlı — API key olmadan ilk 2 sayfa.",
+              "shodan count SORGU ile ücretli sorgu harcamadan sonuç sayısını öğren.",
+              "Banner içindeki yazılım sürümünü NVD veya searchsploit ile CVE listesine çapraz kontrol et."
+            ],
+            "defenseNote": "Savunma: Gereksiz servisleri internete açma. Default port'ları değiştir (gizlilik değil, noise azaltma için). Redis/MongoDB/Elastic'e public IP verme, VPN arkasına al. Shodan Monitör ile kendi IP'lerini izle — saldırganlar görmeden önce sen gör."
+          }
+        }
+      ]
+    },
+    {
+      "id": "theharvester-maltego",
+      "title": "theHarvester, Recon-ng & Maltego",
+      "description": "E-posta, subdomain, çalışan ve ilişki haritası çıkarmak için araç üçlüsü — pasif keşifin profesyonel katmanı.",
+      "difficulty": "intermediate",
+      "duration": "35 dk",
+      "sections": [
+        {
+          "id": "theharvester-theory",
+          "type": "theory",
+          "title": "Araçların Rolü",
+          "content": "Pasif keşifte farklı araçlar farklı veri katmanlarını açar:\n\n| Araç | Topladığı | En iyi olduğu |\n|------|-----------|----------------|\n| **theHarvester** | E-posta, subdomain, IP, URL | Hızlı toplu veri çekme |\n| **Recon-ng** | Modüler — her şey | Büyük angajmanlar, otomasyon |\n| **Maltego** | İlişki grafiği | Görsel analiz, bağlantı haritalama |\n| **SpiderFoot** | Tam otomasyon OSINT | Hepsi bir arada platform |\n\n**Neden birden fazla araç?** Her araç farklı kaynaklara (Google, Bing, LinkedIn, Hunter, VirusTotal, HaveIBeenPwned) sorgu atar. Çakıştırarak daha kapsamlı profil çıkar."
+        },
+        {
+          "id": "theharvester-komutlar",
+          "type": "commands",
+          "title": "theHarvester Komutları",
+          "commands": [
+            {
+              "command": "theHarvester -d hedef.com -b all -l 500 -f rapor",
+              "description": "Tüm kaynaklarda (Google, Bing, LinkedIn, CertSpotter, Hunter vb.) hedef domain'i ara, 500 sonuç, HTML rapor üret.",
+              "output": "[*] Emails found: 12\nadmin@hedef.com\nit@hedef.com\njohn.doe@hedef.com\n\n[*] Hosts found: 8\nmail.hedef.com:203.0.113.2\ndev.hedef.com:203.0.113.3\nvpn.hedef.com:203.0.113.4\n\n[*] IPs found:\n203.0.113.0/24",
+              "flags": [
+                { "flag": "-d DOMAIN", "description": "Hedef domain" },
+                { "flag": "-b KAYNAK", "description": "google, bing, linkedin, hunter, certspotter, all" },
+                { "flag": "-l LIMIT", "description": "Maksimum sonuç sayısı" },
+                { "flag": "-f DOSYA", "description": "HTML/XML rapor dosyası" },
+                { "flag": "-s", "description": "Shodan'dan bulunan IP'leri sorgula" }
+              ]
+            },
+            {
+              "command": "theHarvester -d hedef.com -b linkedin -l 200",
+              "description": "LinkedIn'den şirkete ait çalışanları çek — isimler kullanıcı adı tahminine dönüşür.",
+              "tip": "john.doe → jdoe, j.doe, john.doe — bu pattern'leri Hydra veya spray saldırısında kullan."
+            },
+            {
+              "command": "theHarvester -d hedef.com -b hunter -l 100",
+              "description": "Hunter.io'dan doğrulanmış kurumsal e-posta adresleri çek.",
+              "tip": "Hunter.io ayrıca e-posta formatını tahmin eder: {ad}.{soyad}@hedef.com"
+            }
+          ]
+        },
+        {
+          "id": "reconng-komutlar",
+          "type": "commands",
+          "title": "Recon-ng Temel Kullanım",
+          "commands": [
+            {
+              "command": "recon-ng",
+              "description": "Recon-ng başlatır — Metasploit benzeri modüler yapı.",
+              "flags": [
+                { "flag": "workspaces create PROJE", "description": "Yeni workspace oluştur" },
+                { "flag": "db insert domains hedef.com", "description": "Hedef domain ekle" },
+                { "flag": "marketplace search", "description": "Kullanılabilir modülleri listele" },
+                { "flag": "marketplace install recon/domains-hosts/brute_hosts", "description": "Modül yükle" },
+                { "flag": "modules load recon/domains-hosts/brute_hosts", "description": "Modülü yükle ve çalıştır" },
+                { "flag": "run", "description": "Aktif modülü çalıştır" },
+                { "flag": "show hosts", "description": "Bulunan tüm host'ları listele" }
+              ]
+            },
+            {
+              "command": "recon-ng -w proje -r script.rc",
+              "description": "Kaydedilmiş resource script ile otomatik çalıştır — büyük angajmanlarda zaman kazandırır.",
+              "tip": "recon/domains-contacts/whois_pocs: WHOIS'ten kişi bilgisi. recon/hosts-hosts/resolve: DNS çözümleme."
+            }
+          ]
+        },
+        {
+          "id": "maltego-ileri",
+          "type": "advanced",
+          "title": "Maltego ile İlişki Haritası",
+          "content": "**Maltego**, OSINT verilerini **görsel ilişki grafiği** olarak sunar. Bir domain'den başlayarak e-posta → kişi → şirket → IP → subdomain → sosyal medya bağlantılarını grafikte gösterir.\n\n### Maltego'da tipik bir keşif akışı\n1. Yeni graf oluştur.\n2. Domain entity ekle: `hedef.com`\n3. Transform çalıştır: **To DNS Name [All]** → tüm subdomain'ler grafiğe eklenir.\n4. IP entity'leri üzerinde **To Domains [Shodan]** → aynı IP'de başka domain var mı?\n5. E-posta entity'leri üzerinde **HaveIBeenPwned** → sızdırılmış hesap var mı?\n6. İsim entity'leri üzerinde **To Social Network Profiles** → LinkedIn, Twitter bağlantıları.\n\n### Ücretsiz vs Pro\n- **Community Edition:** Transform sınırı var, kayıt gerektirir. Çoğu CTF için yeterli.\n- **Pro:** Sınırsız transform, kurumsal angajmanlar için.\n\n### SpiderFoot alternatifi\n```bash\nspiderfoot -s hedef.com -l 127.0.0.1:5001   # Web arayüzünde çalıştır\nspiderfoot-cli -s hedef.com -m sfp_shodan,sfp_dns,sfp_whois  # CLI\n```\nSpiderFoot, Maltego'nun kurulum gerektirmeyen, CLI + web UI alternatifi. Kali'de varsayılan gelir.\n\n> **Senior kullanımı:** Büyük angajmanlarda Maltego ile 'beklenmedik bağlantılar' çıkar — örneğin şirketin CEO'sunun kişisel domain'i aynı IP'de host ediliyor, ya da subsidiaries (bağlı şirket) scope'a dahil değildi ama aynı altyapıyı paylaşıyor. Bu bulgular raporun 'ekstra değeri' olur."
+        },
+        {
+          "id": "lab-harvester",
+          "type": "lab",
+          "title": "Lab: Çalışan → Kullanıcı Adı → Spray Zinciri",
+          "scenario": {
+            "title": "OSINT → Password Spray Zinciri",
+            "objective": "theHarvester ile çalışan listesi çıkar, e-posta formatından kullanıcı adlarını türet, Active Directory veya VPN login'e karşı düşük hızlı spray dene.",
+            "environment": "HackTheBox — AD lab'ları (Sauna, Forest, Active makineleri) — YALNIZCA yetkili lab.",
+            "difficulty": "intermediate",
+            "steps": [
+              "theHarvester ile domain'den e-posta listesi çıkar.",
+              "E-posta formatını belirle: john.doe@hedef.com → format: {ad}.{soyad}",
+              "LinkedIn çalışan listesini theHarvester -b linkedin ile çek, isimleri not al.",
+              "Username wordlist oluştur: ad.soyad, jsoyad, adsoyad formatlarında.",
+              "kerbrute userenum ile AD'de geçerli kullanıcıları doğrula (0 parola denemesi — kilitlenme yok).",
+              "AS-REP Roasting dene: pre-auth gerektirmeyen hesaplar → hash → offline kırma.",
+              "Bulduğun geçerli kullanıcılarla Password Spray: netexec smb IP -u users.txt -p 'Şirket2024!'"
+            ],
+            "hints": [
+              "Spray'de dikkat: yanlış parola denemesi → hesap kilitleme. Önce politikayı öğren (netexec smb IP --pass-pol).",
+              "kerbrute userenum hızlı ve sessizdir — Kerberos pre-auth hatasını kullanır, parola denemesi yapmaz.",
+              "LinkedIn'den çekilen isimlerde Türkçe karakter sorunu olabilir — normalize et."
+            ],
+            "flag": "Geçerli domain hesabı elde et.",
+            "defenseNote": "Savunma: LinkedIn'de çalışanların e-posta adresini gizleyin. Güçlü, tahmin edilemez parola politikası (isim+yıl kombinasyonunu yasakla). MFA zorunlu kıl. Başarısız Kerberos pre-auth denemelerini SIEM'de izle (Event ID 4768). LAPS ile local admin parolalarını farklılaştır."
           }
         }
       ]

@@ -103,6 +103,8 @@ export const navigation = {
         tools: [
           { id: "osint-basics", title: "OSINT Temelleri", slug: "osint-basics" },
           { id: "google-dorking", title: "Google Dorking", slug: "google-dorking" },
+          { id: "osint-shodan", title: "Shodan — İleri Keşif", slug: "osint-basics/shodan-ileri" },
+          { id: "osint-harvester", title: "theHarvester & Maltego", slug: "osint-basics/theharvester-maltego" },
         ],
       },
       {
