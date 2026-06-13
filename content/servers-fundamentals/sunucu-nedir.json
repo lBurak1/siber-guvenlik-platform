@@ -1,0 +1,42 @@
+{
+  "id": "sunucu-nedir",
+  "slug": "sunucu-nedir",
+  "title": "Sunucu Nedir?",
+  "subtitle": "Temel Kavramlar ve Türler",
+  "description": "Sunucu nedir, nasıl çalışır, hangi türleri vardır ve neden siber güvenliğin merkezindedir? Client-server mimarisi, sunucu rolleri ve barındırma modelleri.",
+  "icon": "🖥️",
+  "order": 1,
+  "tags": ["sunucu", "server", "client-server", "rol", "barındırma", "temel"],
+  "modules": [
+    {
+      "id": "intro",
+      "title": "Sunucu Kavramı ve Mimari",
+      "description": "Sunucu nedir, client-server modeli ve donanım/yazılım ayrımı",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Sunucu Nedir?",
+          "content": "**Sunucu (Server):** Diğer cihazlara (istemcilere) bir **hizmet** sunan bilgisayar/yazılımdır. Web sayfası sunmak, dosya paylaşmak, e-posta yönetmek veya veri saklamak için sürekli çalışır.\n\n**Client-Server modeli:**\n```\nİstemci (telefon/PC) ──istek──► Sunucu\nİstemci             ◄─yanıt── Sunucu\n```\n\n**İki anlamı vardır:**\n- **Donanım:** 7/24 çalışmak için tasarlanmış güçlü bilgisayar (çok RAM, yedekli disk/güç)\n- **Yazılım:** Hizmet veren program (Apache = web sunucusu yazılımı)\n\n**Sunucuyu sıradan bilgisayardan ayıran:**\n- Sürekli çalışır (uptime kritik)\n- Aynı anda binlerce isteğe cevap verir\n- Yedeklilik (RAID, çift güç kaynağı)\n- Genelde ekran/klavye yok — uzaktan yönetilir (SSH/RDP)\n\n**Neden güvenlik açısından kritik?** Sunucular değerli veriyi ve hizmeti barındırır → saldırganların #1 hedefi. Bir sunucu ele geçirilirse tüm kurum etkilenebilir."
+        }
+      ]
+    },
+    {
+      "id": "types-hosting",
+      "title": "Sunucu Türleri ve Barındırma",
+      "description": "Rollerine göre sunucu türleri ve fiziksel/sanal/bulut modelleri",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Sunucu Türleri",
+          "content": "**Role göre sunucu türleri:**\n| Tür | Görevi | Yazılım örneği |\n|-----|--------|----------------|\n| Web sunucusu | Web sitesi sunar | Apache, Nginx, IIS |\n| Veritabanı sunucusu | Veri saklar | MySQL, MSSQL, PostgreSQL |\n| Dosya sunucusu | Dosya paylaşır | Samba, NFS, Windows Share |\n| Mail sunucusu | E-posta yönetir | Postfix, Exchange |\n| DNS sunucusu | Alan adı çözer | BIND, Windows DNS |\n| Uygulama sunucusu | İş mantığı çalıştırır | Tomcat, Node.js |\n| Domain Controller | Kimlik/AD yönetir | Windows Server AD |\n\n**Barındırma (hosting) modelleri:**\n- **Fiziksel (bare-metal):** Gerçek donanım, tek müşteri\n- **Sanal (VM):** Bir fiziksel sunucuda birden çok izole sanal sunucu\n- **Konteyner:** Daha hafif izolasyon (Docker)\n- **Bulut (Cloud):** AWS/Azure/GCP — kiralık, ölçeklenebilir\n\n**Yaygın işletim sistemleri:**\n- **Linux** (Ubuntu Server, CentOS, Debian) — web/uygulama sunucularının çoğu\n- **Windows Server** — kurumsal, AD, .NET uygulamaları\n\n> Bu bölümün sonraki konularında Linux ve Windows sunucu yönetimini, web sunucularını öğrenecek; her birinin **nasıl sızıldığını** ilgili Red Team modülüne bağlayacağız."
+        }
+      ]
+    }
+  ]
+}

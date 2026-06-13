@@ -1,0 +1,70 @@
+{
+  "id": "db-cesitleri",
+  "slug": "db-cesitleri",
+  "title": "MSSQL, PostgreSQL & NoSQL",
+  "subtitle": "Diğer Veritabanları ve Komutları",
+  "description": "MySQL dışındaki önemli veritabanları: MSSQL, PostgreSQL ve NoSQL (MongoDB, Redis) — temel komutları, kullanım alanları ve her birinin nasıl sızıldığı.",
+  "icon": "🧩",
+  "order": 4,
+  "tags": ["mssql", "postgresql", "mongodb", "redis", "nosql", "veritabanı"],
+  "modules": [
+    {
+      "id": "mssql-postgres",
+      "title": "MSSQL & PostgreSQL",
+      "description": "İlişkisel veritabanı alternatifleri ve komutları",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "MSSQL ve PostgreSQL",
+          "content": "**Microsoft SQL Server (MSSQL):** Windows kurumsal veritabanı, AD ile entegre, .NET uygulamalarıyla yaygın. Port 1433. Yönetim: SSMS / sqlcmd. Admin hesabı: **sa**.\n\n**PostgreSQL:** Güçlü, açık kaynak, standartlara uyumlu ilişkisel veritabanı. Port 5432. Yönetim: psql. Süper kullanıcı: **postgres**.\n\n**Komut karşılaştırması (çoğu SQL ortak):**\n| İşlem | MSSQL | PostgreSQL |\n|-------|-------|------------|\n| Bağlan | sqlcmd -S host -U sa | psql -h host -U postgres |\n| DB listele | SELECT name FROM sys.databases | \\l |\n| Tablolar | (information_schema) | \\dt |\n| Kullanıcılar | sys.sql_logins | \\du |\n\n**Güvenlik açısından özel riskler:**\n- **MSSQL:** xp_cmdshell ile OS komut çalıştırma (sa yetkisiyle) — RCE\n- **PostgreSQL:** COPY ... FROM PROGRAM ile komut çalıştırma\n\n> Bu 'komut çalıştırma' yetenekleri, veritabanını ele geçiren saldırganın tüm sunucuyu ele geçirmesini sağlar."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "MSSQL & PostgreSQL Komutları",
+          "commands": [
+            {
+              "command": "sqlcmd -S 10.10.10.1 -U sa -P 'Parola1'\n-- içeride:\nSELECT name FROM sys.databases;\nGO",
+              "description": "MSSQL'e bağlan ve veritabanlarını listele",
+              "tip": "MSSQL'de komutlar GO ile çalıştırılır. sa hesabı en yüksek yetkidir."
+            },
+            {
+              "command": "psql -h 10.10.10.1 -U postgres -d postgres\n-- içeride:\n\\l          -- veritabanları\n\\dt         -- tablolar\n\\du         -- kullanıcılar",
+              "description": "PostgreSQL'e bağlan ve keşif yap",
+              "tip": "psql'de ters slash komutları (\\l, \\dt) meta-komutlardır. \\q ile çıkılır."
+            },
+            {
+              "command": "-- MSSQL kullanıcı yönetimi:\nCREATE LOGIN webuser WITH PASSWORD = 'GucluParola1!';\nUSE webapp;\nCREATE USER webuser FOR LOGIN webuser;\nGRANT SELECT ON SCHEMA::dbo TO webuser;",
+              "description": "MSSQL'de login/kullanıcı oluştur ve yetki ver",
+              "tip": "MSSQL'de login (sunucu) ve user (veritabanı) ayrıdır. En az yetki prensibini burada da uygula."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nosql-attack",
+      "title": "NoSQL (MongoDB, Redis) & Nasıl Sızılır",
+      "description": "NoSQL temelleri ve veritabanı saldırı bağlantısı",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "NoSQL Veritabanları",
+          "content": "**MongoDB (doküman):** Veriyi JSON benzeri dokümanlarda saklar. Esnek şema. Port 27017.\n```\ndb.users.find()              // tüm kayıtlar\ndb.users.find({role:'admin'}) // filtreli\ndb.users.insertOne({name:'ahmet'})\n```\n\n**Redis (anahtar-değer):** Bellekte çalışan ultra hızlı cache/veri deposu. Port 6379.\n```\nSET kullanici:1 'ahmet'\nGET kullanici:1\nKEYS *                       // tüm anahtarlar\n```\n\n**Güvenlik açısından NoSQL'in en büyük riski:** Varsayılan olarak **kimlik doğrulamasız** gelmeleri. İnternete açık binlerce MongoDB/Redis kimliksiz erişilebilir durumda (Shodan'da görünür)."
+        },
+        {
+          "id": "defense",
+          "type": "defense",
+          "title": "Veritabanlarına Nasıl Sızılır? (Özet)",
+          "content": "**Tür bazlı saldırı vektörleri:**\n| DB | Ana risk | Sonuç |\n|----|----------|-------|\n| MSSQL | sa zayıf parola + xp_cmdshell | SYSTEM RCE |\n| PostgreSQL | COPY FROM PROGRAM | RCE |\n| MongoDB | Kimliksiz erişim | Tüm veri ifşası |\n| Redis | Kimliksiz erişim | Veri + bazen RCE (module/cron) |\n| Hepsi | SQL/NoSQL Injection | Veri çıkarma |\n\n**Genel sertleştirme:**\n- ✅ Kimlik doğrulamayı ETKİNLEŞTİR (özellikle MongoDB/Redis)\n- ✅ Veritabanını internete AÇMA — yalnızca uygulama sunucusuna (bind/firewall)\n- ✅ Güçlü parolalar, varsayılan hesapları kaldır\n- ✅ En az yetki (xp_cmdshell kapat, FILE/SUPER verme)\n- ✅ Şifreleme (at-rest + in-transit/TLS)\n- ✅ Denetim loglama + düzenli yedek\n\n**Keşif:** Saldırgan açık DB portlarını `nmap -p1433,3306,5432,6379,27017` ile tarar.\n\n> 🔗 Detaylı saldırı teknikleri: **Red Team → Veritabanı Sunucuları** modülü (xp_cmdshell, UDF, hash çıkarma + lab) ve **SQLMap**."
+        }
+      ]
+    }
+  ]
+}

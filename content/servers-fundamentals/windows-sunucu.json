@@ -1,0 +1,91 @@
+{
+  "id": "windows-sunucu",
+  "slug": "windows-sunucu",
+  "title": "Windows Server Yönetimi",
+  "subtitle": "Roller, AD ve PowerShell ile Yönetim",
+  "description": "Windows Server'ı yönetmeyi öğren: sunucu rolleri, Active Directory Domain Services, PowerShell ile yönetim, RDP/WinRM ve temel sertleştirme. Sonunda nasıl sızıldığına bağlantı.",
+  "icon": "🪟",
+  "order": 3,
+  "tags": ["windows server", "active directory", "powershell", "rdp", "winrm", "yönetim"],
+  "modules": [
+    {
+      "id": "roles-mgmt",
+      "title": "Roller ve PowerShell ile Yönetim",
+      "description": "Sunucu rolleri, AD DS ve PowerShell yönetimi",
+      "difficulty": "beginner",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Windows Server'ı Anlamak",
+          "content": "**Windows Server**, kurumsal ortamların belkemiğidir. İşlevler **rol (role)** ve **özellik (feature)** olarak eklenir.\n\n**En önemli roller:**\n| Rol | Görevi |\n|-----|--------|\n| **AD DS** | Active Directory — kimlik/yetki merkezi (Domain Controller) |\n| **DNS** | Ad çözümleme (AD ile birlikte) |\n| **DHCP** | Otomatik IP dağıtımı |\n| **IIS** | Web sunucusu |\n| **File Services** | Dosya paylaşımı |\n| **Hyper-V** | Sanallaştırma |\n\n**Active Directory (AD):** Bir domain'deki tüm kullanıcı, bilgisayar ve kaynakları merkezi yönetir. Domain Controller (DC) AD'yi barındırır → **en kritik sunucu**.\n\n**Yönetim yolları:**\n- **Server Manager** (GUI)\n- **PowerShell** (otomasyon — profesyonel tercih)\n- **RDP** (uzak masaüstü), **WinRM** (uzak PowerShell)\n\n> Güvenlik: DC ele geçirilirse tüm domain düşer. Windows Server güvenliği = AD güvenliği."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "PowerShell Yönetim Komutları",
+          "commands": [
+            {
+              "command": "Get-Service | Where-Object {$_.Status -eq 'Running'}",
+              "description": "Çalışan servisleri listele",
+              "tip": "Linux'taki systemctl list-units karşılığı. Servisleri Start-Service/Stop-Service ile yönetirsin."
+            },
+            {
+              "command": "Install-WindowsFeature -Name AD-Domain-Services -IncludeManagementTools",
+              "description": "Active Directory Domain Services rolünü kur",
+              "tip": "Sonra Install-ADDSForest ile domain oluşturulur. Rol kurmanın PowerShell yolu."
+            },
+            {
+              "command": "New-ADUser -Name 'Ahmet Yilmaz' -SamAccountName ahmet -Enabled $true -AccountPassword (Read-Host -AsSecureString)\nAdd-ADGroupMember -Identity 'Domain Admins' -Members ahmet",
+              "description": "AD kullanıcısı oluştur ve gruba ekle",
+              "tip": "Domain Admins'e ekleme dikkatli yapılmalı — en yüksek yetki. En az yetki prensibi uygula."
+            },
+            {
+              "command": "Get-NetTCPConnection -State Listen | Select LocalPort, OwningProcess",
+              "description": "Dinlenen portları gör (Linux ss karşılığı)",
+              "tip": "Açık portlar = saldırı yüzeyi. 3389(RDP), 5985(WinRM), 445(SMB), 88(Kerberos=DC)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "remote-attack",
+      "title": "Uzak Erişim, Sertleştirme & Nasıl Sızılır",
+      "description": "RDP/WinRM, sertleştirme ve saldırı bağlantısı",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Uzak Erişim & Sertleştirme",
+          "commands": [
+            {
+              "command": "Enable-PSRemoting -Force",
+              "description": "WinRM'i (uzak PowerShell) etkinleştir",
+              "tip": "Yönetim için pratik ama 5985 portunu açar — erişimi güvenlik duvarıyla kısıtla."
+            },
+            {
+              "command": "# RDP'yi etkinleştir (registry):\nSet-ItemProperty 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name fDenyTSConnections -Value 0\nEnable-NetFirewallRule -DisplayGroup 'Remote Desktop'",
+              "description": "RDP'yi (3389) etkinleştir",
+              "tip": "RDP yaygın saldırı hedefidir (brute force, BlueKeep). NLA zorunlu kıl, erişimi VPN'le sınırla."
+            },
+            {
+              "command": "Get-ADUser -Filter * -Properties LastLogonDate | Select Name, Enabled, LastLogonDate",
+              "description": "AD kullanıcılarını denetle (pasif/şüpheli hesaplar)",
+              "tip": "Kullanılmayan/etkin hesaplar risk. Düzenli denetim güvenliğin parçası."
+            }
+          ]
+        },
+        {
+          "id": "defense",
+          "type": "defense",
+          "title": "Bu Sunucuya Nasıl Sızılır? (Saldırgan Bakışı)",
+          "content": "**Saldırı yüzeyi:**\n- SMB (445) → null session, EternalBlue, NTLM relay\n- RDP (3389) → brute force, BlueKeep\n- WinRM (5985) → kimlik bilgisiyle uzak shell\n- Kerberos (88) → Kerberoasting, AS-REP Roasting\n- LDAP (389) → AD enumeration\n\n**Saldırı zinciri:** Enumeration → kimlik bilgisi → erişim (evil-winrm/psexec) → credential dumping (Mimikatz/secretsdump) → BloodHound → Domain Admin → DCSync.\n\n**Sertleştirme özeti:**\n- ✅ LAPS (benzersiz yerel admin parolaları)\n- ✅ Tiered yönetim modeli\n- ✅ RDP/WinRM erişimini kısıtla + MFA\n- ✅ SMB imzalama, NTLM kısıtlama, Credential Guard\n- ✅ Yamalar (EternalBlue/BlueKeep), gMSA servis hesapları\n- ✅ AD olaylarını SIEM ile izle\n\n> 🔗 Detaylı saldırı için: **Red Team → Windows Server Saldırıları**, **BloodHound**, **Impacket & Kerberos**, **NetExec**, **Windows PrivEsc** modülleri."
+        }
+      ]
+    }
+  ]
+}

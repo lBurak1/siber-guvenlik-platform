@@ -126,6 +126,30 @@ export const teamConfig = {
     gradient: "from-pink-900/20 to-transparent",
     description: "Sektör & Ekosistem — Ürünler, şirketler, önemli kişiler ve kavramlar",
   },
+  "servers-fundamentals": {
+    label: "Sunucular",
+    shortLabel: "SRV",
+    color: "#06b6d4",
+    bgClass: "bg-cyan-500/10",
+    borderClass: "border-cyan-500/30",
+    textClass: "text-cyan-400",
+    glowClass: "shadow-[0_0_20px_rgba(6,182,212,0.3)]",
+    badgeClass: "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
+    gradient: "from-cyan-900/20 to-transparent",
+    description: "Sunucular — Nedir, nasıl yönetilir ve nasıl sızılır (Linux/Windows/Web)",
+  },
+  "database-fundamentals": {
+    label: "Veritabanları",
+    shortLabel: "DB",
+    color: "#84cc16",
+    bgClass: "bg-lime-500/10",
+    borderClass: "border-lime-500/30",
+    textClass: "text-lime-400",
+    glowClass: "shadow-[0_0_20px_rgba(132,204,22,0.3)]",
+    badgeClass: "bg-lime-500/20 text-lime-300 border-lime-500/30",
+    gradient: "from-lime-900/20 to-transparent",
+    description: "Veritabanları — SQL/NoSQL, komutlar, yönetim ve nasıl sızılır",
+  },
 } as const;
 
 export const riskConfig = {

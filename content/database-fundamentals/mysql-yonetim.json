@@ -1,0 +1,73 @@
+{
+  "id": "mysql-yonetim",
+  "slug": "mysql-yonetim",
+  "title": "MySQL Yönetimi",
+  "subtitle": "Kurulum, Kullanıcı, Yetki ve Yedek",
+  "description": "MySQL/MariaDB sunucusunu yönetmeyi öğren: kurulum, kullanıcı ve yetki (GRANT) yönetimi, veritabanı işlemleri, yedekleme ve güvenli yapılandırma. Sonunda nasıl sızıldığına bağlantı.",
+  "icon": "🐬",
+  "order": 3,
+  "tags": ["mysql", "mariadb", "grant", "yedek", "yönetim", "dump"],
+  "modules": [
+    {
+      "id": "admin",
+      "title": "Kullanıcı, Yetki ve Veritabanı Yönetimi",
+      "description": "MySQL'de kullanıcı, GRANT ve veritabanı işlemleri",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "MySQL Yönetiminin Temeli",
+          "content": "**MySQL/MariaDB**, web dünyasının en yaygın veritabanıdır (WordPress, çoğu PHP uygulaması).\n\n**Yönetim alanları:**\n1. **Kullanıcılar & yetkiler:** Kim hangi veritabanına ne yapabilir (GRANT)\n2. **Veritabanları & tablolar:** Oluştur, sil, yedekle\n3. **Bağlantı & güvenlik:** Hangi host'tan erişim, parola politikası\n\n**En az yetki prensibi (kritik):** Bir web uygulaması veritabanı kullanıcısına yalnızca ihtiyacı olan yetki verilmeli (SELECT/INSERT/UPDATE). Asla 'root' veya 'ALL PRIVILEGES' ile bağlanmamalı — SQL Injection olursa hasar sınırlı kalır.\n\n> Bağlanma: mysql -u root -p (yerel) veya mysql -h host -u kullanıcı -p (uzak)."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "MySQL Yönetim Komutları",
+          "commands": [
+            {
+              "command": "CREATE DATABASE webapp;\nSHOW DATABASES;\nUSE webapp;\nSHOW TABLES;",
+              "description": "Veritabanı oluştur, listele ve içine gir",
+              "tip": "USE ile aktif veritabanını seçersin. SHOW TABLES o veritabanındaki tabloları listeler."
+            },
+            {
+              "command": "CREATE USER 'webuser'@'localhost' IDENTIFIED BY 'GucluParola123!';\nGRANT SELECT, INSERT, UPDATE ON webapp.* TO 'webuser'@'localhost';\nFLUSH PRIVILEGES;",
+              "description": "Kullanıcı oluştur ve sınırlı yetki ver (en az yetki!)",
+              "tip": "webapp.* = sadece webapp veritabanı. ALL PRIVILEGES VERME. FLUSH PRIVILEGES değişiklikleri uygular.",
+              "flags": [
+                { "flag": "GRANT ... ON db.*", "description": "Belirli DB'ye yetki" },
+                { "flag": "'user'@'localhost'", "description": "Yalnızca yerel erişim" }
+              ]
+            },
+            {
+              "command": "SELECT user, host FROM mysql.user;\nSHOW GRANTS FOR 'webuser'@'localhost';",
+              "description": "Kullanıcıları ve yetkilerini denetle",
+              "tip": "host '%' ise her yerden erişim demektir (risk). Yetki denetimi güvenliğin parçası."
+            },
+            {
+              "command": "mysqldump -u root -p webapp > webapp_yedek.sql\nmysql -u root -p webapp < webapp_yedek.sql",
+              "description": "Veritabanı yedekle (dump) ve geri yükle",
+              "tip": "mysqldump düzenli yedek için. Tüm DB'ler: mysqldump --all-databases. Yedek = felaket kurtarma."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "harden-attack",
+      "title": "Güvenli Yapılandırma & Nasıl Sızılır",
+      "description": "Sertleştirme ve saldırı bağlantısı",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "defense",
+          "type": "defense",
+          "title": "MySQL'e Nasıl Sızılır? (Saldırgan Bakışı)",
+          "content": "**Saldırı yüzeyi:**\n- **Zayıf/boş root parolası** → doğrudan giriş\n- **3306 portu internete açık** → uzak brute force\n- **SQL Injection** (web uygulamasından) → veri çıkarma, hatta RCE\n- **FILE yetkisi** → INTO OUTFILE ile web shell yazma, LOAD_FILE ile dosya okuma\n- **UDF (User Defined Functions)** → OS komut çalıştırma\n\n**Saldırı sonrası:** Kullanıcı tablosundaki parola hash'leri çıkarılır → Hashcat ile kırılır → password reuse ile başka servislere geçilir.\n\n**Sertleştirme kontrol listesi:**\n- ✅ mysql_secure_installation çalıştır\n- ✅ Güçlü root parolası, anonim kullanıcıları sil\n- ✅ 3306'yı yalnızca uygulama sunucusuna aç (bind-address, firewall)\n- ✅ Uygulama kullanıcısına en az yetki (FILE/SUPER verme)\n- ✅ secure_file_priv ayarla (INTO OUTFILE'ı sınırla)\n- ✅ Parolaları güçlü hash + salt ile sakla (uygulama tarafında)\n- ✅ Düzenli yedek + güncelleme\n\n> 🔗 Detaylı saldırı için: **Red Team → Veritabanı Sunucuları**, **SQLMap** ve **OWASP Injection** modülleri."
+        }
+      ]
+    }
+  ]
+}

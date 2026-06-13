@@ -1,0 +1,96 @@
+{
+  "id": "linux-sunucu",
+  "slug": "linux-sunucu",
+  "title": "Linux Sunucu Yönetimi (Ubuntu)",
+  "subtitle": "Kurulum, Servisler ve Yönetim",
+  "description": "Ubuntu Server'ı yönetmeyi öğren: servis kontrolü (systemctl), kullanıcı yönetimi, SSH, web/veritabanı kurulumu ve temel sertleştirme. Sonunda nasıl sızıldığına bağlantı.",
+  "icon": "🐧",
+  "order": 2,
+  "tags": ["ubuntu", "linux server", "systemctl", "ssh", "yönetim", "lamp"],
+  "modules": [
+    {
+      "id": "services-users",
+      "title": "Servis ve Kullanıcı Yönetimi",
+      "description": "systemctl ile servisler, kullanıcı/grup yönetimi",
+      "difficulty": "beginner",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Linux Sunucu Yönetiminin Temeli",
+          "content": "Linux sunucular **ekransız (headless)** çalışır; her şey komut satırından, çoğunlukla SSH üzerinden yönetilir.\n\n**Yönetimin üç temel direği:**\n1. **Servisler (daemon):** Arka planda çalışan hizmetler (web, db, ssh) — **systemctl** ile yönetilir\n2. **Kullanıcılar & izinler:** Kim neye erişebilir\n3. **Paketler:** Yazılım kurulumu (apt)\n\n**systemd:** Modern Linux'ta servisleri yöneten sistem. Bir servisi başlatma/durdurma/açılışta etkinleştirme hep systemctl ile yapılır.\n\n> Güvenlik açısından: Çalışan her servis bir saldırı yüzeyidir. 'En az hizmet' prensibi — gereksiz servisleri kapat."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Servis & Kullanıcı Komutları",
+          "commands": [
+            {
+              "command": "sudo systemctl status ssh\nsudo systemctl start nginx\nsudo systemctl enable nginx\nsudo systemctl restart mysql",
+              "description": "Servis durumu, başlatma, açılışta etkinleştirme",
+              "tip": "status=durum, start=başlat, enable=açılışta başlat, restart=yeniden başlat. En çok kullanacağın komutlar.",
+              "flags": [
+                { "flag": "status", "description": "Servis çalışıyor mu" },
+                { "flag": "enable", "description": "Açılışta otomatik başlat" }
+              ]
+            },
+            {
+              "command": "sudo systemctl list-units --type=service --state=running",
+              "description": "Çalışan tüm servisleri listele",
+              "tip": "Saldırı yüzeyini görmek için: hangi servisler çalışıyor? Gereksizleri disable/stop yap."
+            },
+            {
+              "command": "sudo adduser ahmet\nsudo usermod -aG sudo ahmet\nsudo passwd ahmet",
+              "description": "Kullanıcı oluştur, sudo grubuna ekle, parola ayarla",
+              "tip": "usermod -aG sudo kullanıcıya yönetici yetkisi verir. -aG: gruba ekle (mevcut grupları silmeden)."
+            },
+            {
+              "command": "sudo ss -tulnp",
+              "description": "Açık portları ve onları dinleyen servisleri gör",
+              "output": "tcp LISTEN 0.0.0.0:22  users:((\"sshd\"))\ntcp LISTEN 0.0.0.0:80  users:((\"nginx\"))",
+              "tip": "Hangi servis hangi portu dinliyor — hem yönetim hem güvenlik denetimi için kritik."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "web-stack-attack",
+      "title": "Web/DB Kurulumu, SSH & Nasıl Sızılır",
+      "description": "LAMP/LEMP kurulumu, SSH sertleştirme ve saldırı bağlantısı",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Web Stack & SSH Yönetimi",
+          "commands": [
+            {
+              "command": "sudo apt update && sudo apt install nginx mysql-server php-fpm -y",
+              "description": "LEMP yığını (Nginx + MySQL + PHP) kur",
+              "tip": "LAMP = Apache, LEMP = Nginx. Web uygulamalarının çalıştığı klasik sunucu yığını."
+            },
+            {
+              "command": "sudo mysql_secure_installation",
+              "description": "MySQL'i güvenli yapılandır (root parola, anonim kullanıcı sil)",
+              "tip": "Kurulumdan sonra MUTLAKA çalıştır — varsayılan/zayıf yapılandırma en büyük sızma sebebidir."
+            },
+            {
+              "command": "# /etc/ssh/sshd_config sertleştirme:\nPermitRootLogin no\nPasswordAuthentication no\nsudo systemctl restart ssh",
+              "description": "SSH'ı sertleştir — root girişini ve parola auth'u kapat",
+              "tip": "Anahtar tabanlı kimlik doğrulamaya geç (ssh-keygen + ssh-copy-id). Brute force'u büyük ölçüde engeller."
+            }
+          ]
+        },
+        {
+          "id": "defense",
+          "type": "defense",
+          "title": "Bu Sunucuya Nasıl Sızılır? (Saldırgan Bakışı)",
+          "content": "Yönettiğin sunucuyu korumak için saldırganın nasıl düşündüğünü bilmelisin:\n\n**Saldırı yüzeyi:**\n- Açık SSH (22) → brute force / zayıf parola\n- Web uygulaması → OWASP zafiyetleri, dosya yükleme\n- Açık veritabanı (3306) → zayıf parola, SQLi\n- NFS/Samba → yanlış paylaşım izinleri\n- Yamasız servis → bilinen CVE\n\n**Foothold sonrası:** sudo yanlış yapılandırma, SUID binary, cron job, kernel exploit ile **root**.\n\n**Sertleştirme özeti:**\n- ✅ Gereksiz servisleri kapat\n- ✅ SSH anahtar + MFA, fail2ban\n- ✅ Güçlü parolalar, düzenli yama\n- ✅ Firewall (ufw) ile yalnızca gerekli portlar\n- ✅ SUID denetimi, dosya bütünlüğü (AIDE)\n\n> 🔗 Detaylı saldırı teknikleri için: **Red Team → Linux Server Saldırıları** ve **Linux PrivEsc** modülleri."
+        }
+      ]
+    }
+  ]
+}

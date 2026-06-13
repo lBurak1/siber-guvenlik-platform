@@ -1,0 +1,104 @@
+{
+  "id": "sql-temelleri",
+  "slug": "sql-temelleri",
+  "title": "SQL Temelleri",
+  "subtitle": "Sorgu Dili: SELECT'ten JOIN'e",
+  "description": "Veritabanı sorgulama dili SQL'i temelden öğren: veri çekme (SELECT), filtreleme (WHERE), ekleme/güncelleme/silme, sıralama, gruplama ve tablo birleştirme (JOIN).",
+  "icon": "📊",
+  "order": 2,
+  "tags": ["sql", "select", "where", "join", "insert", "update", "sorgu"],
+  "modules": [
+    {
+      "id": "crud",
+      "title": "Temel Sorgular (SELECT, INSERT, UPDATE, DELETE)",
+      "description": "Veri çekme, ekleme, güncelleme ve silme",
+      "difficulty": "beginner",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "SQL ve CRUD",
+          "content": "**SQL (Structured Query Language):** İlişkisel veritabanlarını sorgulama ve yönetme dili. Neredeyse tüm SQL veritabanlarında ortaktır.\n\n**CRUD — temel 4 işlem:**\n| İşlem | SQL komutu | Anlamı |\n|-------|-----------|--------|\n| Create | INSERT | Yeni kayıt ekle |\n| Read | SELECT | Veri oku |\n| Update | UPDATE | Kayıt güncelle |\n| Delete | DELETE | Kayıt sil |\n\n**Neden güvenlikçi SQL bilmeli?** SQL Injection'ı anlamak için önce SQL'i bilmen gerekir. `' OR 1=1--` payload'ının neden çalıştığını ancak SQL mantığını bilince kavrarsın.\n\n> Önemli: Komutlar genelde `;` ile biter. SQL büyük/küçük harfe duyarsızdır (SELECT = select) ama anahtar kelimeler genelde BÜYÜK yazılır."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "CRUD Komutları",
+          "commands": [
+            {
+              "command": "SELECT * FROM users;\nSELECT username, email FROM users;",
+              "description": "Tablodan veri çek (* = tüm sütunlar)",
+              "tip": "* tüm sütunları getirir; belirli sütun için adlarını yaz. En çok kullanılan SQL komutu.",
+              "flags": [
+                { "flag": "SELECT *", "description": "Tüm sütunlar" },
+                { "flag": "FROM tablo", "description": "Kaynak tablo" }
+              ]
+            },
+            {
+              "command": "SELECT * FROM users WHERE username = 'admin';\nSELECT * FROM users WHERE id > 5;",
+              "description": "WHERE ile filtreleme",
+              "tip": "WHERE koşulu eşleşen satırları getirir. SQL Injection tam burada (WHERE'e müdahale) gerçekleşir."
+            },
+            {
+              "command": "INSERT INTO users (username, email) VALUES ('ahmet', 'ahmet@site.com');",
+              "description": "Yeni kayıt ekle",
+              "tip": "Sütunlar ve değerler sırayla eşleşir."
+            },
+            {
+              "command": "UPDATE users SET email = 'yeni@site.com' WHERE id = 2;\nDELETE FROM users WHERE id = 2;",
+              "description": "Kayıt güncelle ve sil",
+              "warning": "UPDATE/DELETE'te WHERE'i UNUTMA — yoksa tüm tablo etkilenir! (DELETE FROM users = herkesi siler)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "advanced-queries",
+      "title": "Sıralama, Gruplama & JOIN",
+      "description": "ORDER BY, GROUP BY, JOIN ve alt sorgular",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "İleri Sorgular",
+          "commands": [
+            {
+              "command": "SELECT * FROM users ORDER BY created_at DESC LIMIT 10;",
+              "description": "Sırala (ORDER BY) ve sınırla (LIMIT)",
+              "tip": "DESC azalan, ASC artan. LIMIT sonuç sayısını sınırlar. SQLi'de UNION SELECT ile birlikte kullanılır."
+            },
+            {
+              "command": "SELECT role, COUNT(*) FROM users GROUP BY role;",
+              "description": "Grupla ve say (GROUP BY + COUNT)",
+              "tip": "Her rolde kaç kullanıcı olduğunu sayar. Toplama fonksiyonları: COUNT, SUM, AVG, MAX, MIN."
+            },
+            {
+              "command": "SELECT users.username, orders.total\nFROM users\nJOIN orders ON users.id = orders.user_id;",
+              "description": "İki tabloyu birleştir (JOIN)",
+              "tip": "JOIN ilişkili tabloları birleştirir (foreign key üzerinden). Kullanıcı + siparişlerini birlikte getirir.",
+              "flags": [
+                { "flag": "JOIN ... ON", "description": "Tablo birleştirme koşulu" },
+                { "flag": "LEFT JOIN", "description": "Sol tablodaki tümünü getir" }
+              ]
+            },
+            {
+              "command": "SELECT table_name FROM information_schema.tables;\nSELECT column_name FROM information_schema.columns WHERE table_name='users';",
+              "description": "information_schema — veritabanı yapısını keşfet",
+              "tip": "Bu sistem tablosu tüm tablo/sütun adlarını verir. SQL Injection ile veritabanı yapısını çıkarmanın anahtarıdır!"
+            }
+          ]
+        },
+        {
+          "id": "defense",
+          "type": "defense",
+          "title": "SQL → SQL Injection Bağlantısı",
+          "content": "SQL'i öğrendiğine göre, **SQL Injection'ın** neden bu kadar güçlü olduğunu artık anlayabilirsin.\n\n**Örnek zafiyetli kod:**\n```\nquery = \"SELECT * FROM users WHERE name = '\" + girdi + \"'\"\n```\nKullanıcı `girdi` yerine `' OR '1'='1` yazarsa:\n```\nSELECT * FROM users WHERE name = '' OR '1'='1'\n```\n→ Koşul her zaman doğru → tüm kullanıcılar döner / kimlik doğrulama atlanır.\n\n**UNION ile veri çıkarma:**\n```\n' UNION SELECT username, password FROM users--\n```\n→ information_schema ile öğrenilen tablolardan veri çekilir.\n\n**Savunma (kritik):**\n- ✅ **Parametreli sorgular (prepared statements)** — girdi asla sorguya yapışmaz\n- ✅ ORM kullan, girdi doğrula\n- ✅ DB kullanıcısına en az yetki (SELECT yeter, DROP verme)\n\n> 🔗 Detaylı saldırı için: **Red Team → SQLMap**, **OWASP Injection** ve **Veritabanı Sunucuları** modülleri."
+        }
+      ]
+    }
+  ]
+}

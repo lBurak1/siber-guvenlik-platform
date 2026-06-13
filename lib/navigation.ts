@@ -469,6 +469,56 @@ export const navigation = {
       },
     ],
   },
+  "servers-fundamentals": {
+    label: "Sunucular",
+    color: "cyan",
+    description: "Sunucular: nedir, yönetim ve nasıl sızılır",
+    categories: [
+      {
+        id: "intro",
+        title: "Giriş",
+        icon: "Server",
+        tools: [
+          { id: "sunucu-nedir", title: "Sunucu Nedir?", slug: "sunucu-nedir" },
+        ],
+      },
+      {
+        id: "yonetim",
+        title: "Sunucu Yönetimi",
+        icon: "Cpu",
+        tools: [
+          { id: "linux-sunucu",   title: "Linux Sunucu (Ubuntu)", slug: "linux-sunucu" },
+          { id: "windows-sunucu", title: "Windows Server",         slug: "windows-sunucu" },
+          { id: "web-sunucu",     title: "Web Sunucusu",           slug: "web-sunucu" },
+        ],
+      },
+    ],
+  },
+  "database-fundamentals": {
+    label: "Veritabanları",
+    color: "lime",
+    description: "Veritabanları: SQL, yönetim ve nasıl sızılır",
+    categories: [
+      {
+        id: "intro",
+        title: "Temeller",
+        icon: "Database",
+        tools: [
+          { id: "veritabani-nedir", title: "Veritabanı Nedir?", slug: "veritabani-nedir" },
+          { id: "sql-temelleri",    title: "SQL Temelleri",      slug: "sql-temelleri" },
+        ],
+      },
+      {
+        id: "yonetim",
+        title: "Yönetim & Türler",
+        icon: "Server",
+        tools: [
+          { id: "mysql-yonetim", title: "MySQL Yönetimi",            slug: "mysql-yonetim" },
+          { id: "db-cesitleri",  title: "MSSQL, PostgreSQL & NoSQL", slug: "db-cesitleri" },
+        ],
+      },
+    ],
+  },
   "owasp-top10": {
     label: "OWASP Top 10",
     color: "amber",

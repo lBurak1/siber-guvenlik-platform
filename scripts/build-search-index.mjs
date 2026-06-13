@@ -21,6 +21,8 @@ const CATEGORIES = {
   "devops-fundamentals":  { label: "DevOps",       color: "teal",    kind: "modules" },
   "certifications":       { label: "Sertifikalar", color: "indigo",  kind: "modules" },
   "ecosystem":            { label: "Sektör",       color: "pink",    kind: "modules" },
+  "servers-fundamentals": { label: "Sunucular",    color: "cyan",    kind: "modules" },
+  "database-fundamentals":{ label: "Veritabanları",color: "lime",    kind: "modules" },
   "cheatsheet":           { label: "Cheat Sheet",  color: "yellow",  kind: "cheatsheet" },
 };
 

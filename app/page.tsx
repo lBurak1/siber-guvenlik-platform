@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap, Globe, Router, CheckCircle2, MessageCircleQuestion, Crosshair, Server } from "lucide-react";
+import { Shield, Eye, GitMerge, Terminal, ArrowRight, Lock, Cpu, Network, Zap, BookOpen, Monitor, AlertTriangle, Boxes, GraduationCap, Globe, Router, CheckCircle2, MessageCircleQuestion, Crosshair, Server, Database } from "lucide-react";
 
 const sections = [
   {
@@ -189,9 +189,9 @@ const sections = [
     id: "servers",
     href: "/sunucular",
     icon: Server,
-    label: "Sunucular",
-    subtitle: "Sunucu Türleri & Saldırılar",
-    description: "Linux/Windows Server, web (Apache/Nginx/IIS) ve veritabanı (MySQL/MSSQL) sunucuları — ne işe yararlar, saldırı yüzeyleri ve sızma testi. Her sunucu Red Team modülüne bağlı.",
+    label: "Sunucu Saldırıları",
+    subtitle: "Saldırı Vitrini",
+    description: "Linux/Windows Server, web (Apache/Nginx/IIS) ve veritabanı sunucularının saldırı yüzeyleri — her sunucu Red Team detay modülüne bağlı.",
     tools: ["Ubuntu", "Windows Server", "Apache", "Nginx", "IIS", "MySQL", "MSSQL"],
     color: "red",
     border: "border-red-500/20 hover:border-red-500/60",
@@ -199,6 +199,36 @@ const sections = [
     badge: "bg-red-500/10 text-red-400 border-red-500/20",
     cta: "bg-red-500/10 text-red-300 border-red-500/30 hover:bg-red-500/20",
     modules: "4 Tür · 11 Sunucu",
+  },
+  {
+    id: "servers-fundamentals",
+    href: "/servers-fundamentals",
+    icon: Server,
+    label: "Sunucular",
+    subtitle: "Nedir & Nasıl Sızılır",
+    description: "Sunucu nedir, türleri, Linux/Windows Server ve web sunucusu yönetimi — komutlar, yönetim ve saldırgan bakışı bir arada. Temelden detaya.",
+    tools: ["Sunucu nedir", "Ubuntu", "Windows Server", "AD", "Apache/Nginx", "IIS"],
+    color: "cyan",
+    border: "border-cyan-500/20 hover:border-cyan-500/60",
+    glow: "hover:shadow-[0_0_40px_rgba(6,182,212,0.15)]",
+    badge: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+    cta: "bg-cyan-500/10 text-cyan-300 border-cyan-500/30 hover:bg-cyan-500/20",
+    modules: "4 Konu · Yönetim+Saldırı",
+  },
+  {
+    id: "database-fundamentals",
+    href: "/database-fundamentals",
+    icon: Database,
+    label: "Veritabanları",
+    subtitle: "SQL & Nasıl Sızılır",
+    description: "Veritabanı nedir, SQL komutları (SELECT/JOIN), MySQL/MSSQL/PostgreSQL ve NoSQL yönetimi — ve her birinin nasıl sızıldığı. Temelden detaya.",
+    tools: ["DB nedir", "SQL", "JOIN", "MySQL", "MSSQL", "PostgreSQL", "MongoDB"],
+    color: "lime",
+    border: "border-lime-500/20 hover:border-lime-500/60",
+    glow: "hover:shadow-[0_0_40px_rgba(132,204,22,0.15)]",
+    badge: "bg-lime-500/10 text-lime-400 border-lime-500/20",
+    cta: "bg-lime-500/10 text-lime-300 border-lime-500/30 hover:bg-lime-500/20",
+    modules: "4 Konu · SQL+Saldırı",
   },
   {
     id: "arsenal",
@@ -252,6 +282,8 @@ const accentMap: Record<string, { bar: string; text: string }> = {
   pink:    { bar: "from-pink-500/0 via-pink-400 to-pink-500/0",          text: "text-pink-300" },
   amber:   { bar: "from-amber-500/0 via-amber-400 to-amber-500/0",       text: "text-amber-300" },
   yellow:  { bar: "from-yellow-500/0 via-yellow-400 to-yellow-500/0",   text: "text-yellow-300" },
+  cyan:    { bar: "from-cyan-500/0 via-cyan-400 to-cyan-500/0",          text: "text-cyan-300" },
+  lime:    { bar: "from-lime-500/0 via-lime-400 to-lime-500/0",          text: "text-lime-300" },
 };
 
 // Ana sayfa kategorileri (kartları gruplar)
@@ -260,6 +292,8 @@ const groups = [
     ids: ["linux-fundamentals", "windows-fundamentals", "devops-fundamentals"] },
   { id: "network", title: "Network", short: "Network", icon: Network, subtitle: "Temelden CCNA seviyesine ağ bilgisi", accent: "emerald",
     ids: ["network-fundamentals", "advanced-network"] },
+  { id: "infra", title: "Sunucu & Veritabanı", short: "Altyapı", icon: Server, subtitle: "Sunucu ve veritabanı: nedir, yönetim ve nasıl sızılır", accent: "cyan",
+    ids: ["servers-fundamentals", "database-fundamentals"] },
   { id: "security", title: "Siber Güvenlik", short: "Siber Güvenlik", icon: Shield, subtitle: "Saldırı, savunma, araçlar, sunucular ve web güvenliği", accent: "red",
     ids: ["red-team", "arsenal", "servers", "blue-team", "purple-team", "owasp-top10"] },
   { id: "career", title: "Kariyer & Referans", short: "Kariyer", icon: GraduationCap, subtitle: "Sertifika yolu, sektör, mülakat ve hızlı başvuru", accent: "indigo",

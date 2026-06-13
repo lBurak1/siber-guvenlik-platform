@@ -135,6 +135,22 @@ const ecosystemMap: Record<string, () => Promise<any>> = {
   "concepts":          () => import("@/content/ecosystem/concepts.json"),
 };
 
+// ─── Servers Fundamentals ────────────────────────────────────────────
+const serversMap: Record<string, () => Promise<any>> = {
+  "sunucu-nedir":   () => import("@/content/servers-fundamentals/sunucu-nedir.json"),
+  "linux-sunucu":   () => import("@/content/servers-fundamentals/linux-sunucu.json"),
+  "windows-sunucu": () => import("@/content/servers-fundamentals/windows-sunucu.json"),
+  "web-sunucu":     () => import("@/content/servers-fundamentals/web-sunucu.json"),
+};
+
+// ─── Database Fundamentals ───────────────────────────────────────────
+const databaseMap: Record<string, () => Promise<any>> = {
+  "veritabani-nedir": () => import("@/content/database-fundamentals/veritabani-nedir.json"),
+  "sql-temelleri":    () => import("@/content/database-fundamentals/sql-temelleri.json"),
+  "mysql-yonetim":    () => import("@/content/database-fundamentals/mysql-yonetim.json"),
+  "db-cesitleri":     () => import("@/content/database-fundamentals/db-cesitleri.json"),
+};
+
 // ─── Cheat Sheet ─────────────────────────────────────────────────────
 const cheatsheetMap: Record<string, () => Promise<any>> = {
   "ssh":    () => import("@/content/cheatsheet/port-22-ssh.json"),
@@ -195,6 +211,14 @@ export async function getCertTopic(slug: string): Promise<NetworkTopic | null> {
 
 export async function getEcosystemTopic(slug: string): Promise<NetworkTopic | null> {
   return load<NetworkTopic>(ecosystemMap, slug);
+}
+
+export async function getServersTopic(slug: string): Promise<NetworkTopic | null> {
+  return load<NetworkTopic>(serversMap, slug);
+}
+
+export async function getDatabaseTopic(slug: string): Promise<NetworkTopic | null> {
+  return load<NetworkTopic>(databaseMap, slug);
 }
 
 export async function getCheatSheet(slug: string): Promise<PortCheatSheet | null> {

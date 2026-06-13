@@ -1,0 +1,69 @@
+{
+  "id": "web-sunucu",
+  "slug": "web-sunucu",
+  "title": "Web Sunucusu Yönetimi",
+  "subtitle": "Apache, Nginx & IIS Kurulum/Yapılandırma",
+  "description": "Web sunucularını kurmayı ve yapılandırmayı öğren: Apache/Nginx/IIS, virtual host, SSL/TLS, log yönetimi ve sertleştirme. Sonunda nasıl sızıldığına bağlantı.",
+  "icon": "🌐",
+  "order": 4,
+  "tags": ["apache", "nginx", "iis", "web server", "virtual host", "ssl", "yönetim"],
+  "modules": [
+    {
+      "id": "setup-config",
+      "title": "Kurulum ve Yapılandırma",
+      "description": "Apache/Nginx kurulumu, virtual host ve SSL",
+      "difficulty": "beginner",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Web Sunucusu Mantığı",
+          "content": "**Web sunucusu**, HTTP isteklerini karşılayıp web içeriği döndürür. Statik dosya sunar veya bir uygulamaya (PHP, Python) yönlendirir.\n\n**Üç büyük:**\n| Sunucu | Güçlü yanı | Yapılandırma |\n|--------|-----------|--------------|\n| **Apache** | Esnek, .htaccess, modüler | /etc/apache2/ |\n| **Nginx** | Hızlı, reverse proxy, az kaynak | /etc/nginx/ |\n| **IIS** | Windows/.NET entegre | GUI / web.config |\n\n**Temel kavramlar:**\n- **Document root:** Web dosyalarının kök dizini (/var/www/html)\n- **Virtual host / server block:** Tek sunucuda birden çok site\n- **Reverse proxy:** İstekleri arka uç uygulamaya yönlendirme\n- **SSL/TLS:** HTTPS için sertifika (Let's Encrypt ücretsiz)\n\n> Güvenlik: Web sunucusu internete açıktır → en çok saldırı alan katman. Doğru yapılandırma kritiktir."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Kurulum & Yapılandırma Komutları",
+          "commands": [
+            {
+              "command": "sudo apt install nginx -y\nsudo systemctl enable --now nginx",
+              "description": "Nginx kur ve başlat",
+              "tip": "--now hem enable hem start yapar. http://sunucu-ip ile test et."
+            },
+            {
+              "command": "# /etc/nginx/sites-available/site.conf\nserver {\n    listen 80;\n    server_name ornek.com;\n    root /var/www/ornek;\n    index index.html;\n}",
+              "description": "Nginx server block (virtual host) tanımı",
+              "tip": "sites-available'da tanımla, sites-enabled'a symlink ver, nginx -t ile test et, reload et."
+            },
+            {
+              "command": "sudo apt install certbot python3-certbot-nginx -y\nsudo certbot --nginx -d ornek.com",
+              "description": "Let's Encrypt ile ücretsiz SSL/HTTPS kur",
+              "tip": "Certbot sertifikayı otomatik kurar ve yeniler. HTTPS artık standart."
+            },
+            {
+              "command": "sudo nginx -t && sudo systemctl reload nginx\nsudo tail -f /var/log/nginx/access.log",
+              "description": "Yapılandırmayı test et, yeniden yükle ve logları izle",
+              "tip": "nginx -t syntax kontrolü yapar (reload öncesi şart). access.log saldırı tespitinin de temelidir."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "harden-attack",
+      "title": "Sertleştirme & Nasıl Sızılır",
+      "description": "Güvenli yapılandırma ve saldırı bağlantısı",
+      "difficulty": "intermediate",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "defense",
+          "type": "defense",
+          "title": "Sertleştirme ve Saldırgan Bakışı",
+          "content": "**Bu sunucuya nasıl sızılır?**\n- Sürüm CVE'leri (Apache 2.4.49 path traversal)\n- Yanlış yapılandırma: directory listing açık, .git/.env erişilebilir\n- Açık HTTP metotları (PUT) → web shell\n- Web uygulaması zafiyetleri (OWASP)\n- Zayıf SSL/TLS yapılandırması\n\n**Sertleştirme kontrol listesi:**\n- ✅ Sürüm bilgisini gizle (server_tokens off / ServerTokens Prod)\n- ✅ Directory listing'i kapat (autoindex off)\n- ✅ .git, .env, yedek dosyaları web kökünden çıkar\n- ✅ Gereksiz HTTP metotlarını (PUT/DELETE) kapat\n- ✅ Güvenlik başlıkları ekle (CSP, X-Frame-Options, HSTS)\n- ✅ HTTPS zorunlu, güçlü TLS yapılandırması\n- ✅ WAF (ModSecurity) + rate limiting\n- ✅ Dosya izinleri: web kullanıcısı en az yetkiyle\n- ✅ Logları SIEM'e gönder\n\n**Güvenlik başlığı örneği (Nginx):**\n```\nadd_header X-Frame-Options SAMEORIGIN;\nadd_header X-Content-Type-Options nosniff;\nserver_tokens off;\n```\n\n> 🔗 Detaylı saldırı için: **Red Team → Web Sunucuları**, **Nikto**, **Web Sömürü (LFI/Upload)** ve **OWASP Top 10** modülleri."
+        }
+      ]
+    }
+  ]
+}

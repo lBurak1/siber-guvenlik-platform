@@ -1,0 +1,42 @@
+{
+  "id": "veritabani-nedir",
+  "slug": "veritabani-nedir",
+  "title": "Veritabanı Nedir?",
+  "subtitle": "Temel Kavramlar: RDBMS, NoSQL, Tablolar",
+  "description": "Veritabanı nedir, nasıl çalışır, ilişkisel (SQL) ve NoSQL farkı, tablo/satır/sütun/anahtar kavramları ve neden saldırganların en değerli hedefidir.",
+  "icon": "🗄️",
+  "order": 1,
+  "tags": ["veritabanı", "database", "rdbms", "nosql", "tablo", "acid", "temel"],
+  "modules": [
+    {
+      "id": "intro",
+      "title": "Veritabanı Kavramı",
+      "description": "Veritabanı nedir, DBMS, tablo/satır/sütun ve anahtarlar",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Veritabanını Anlamak",
+          "content": "**Veritabanı (Database):** Verinin düzenli, kalıcı ve hızlı erişilebilir şekilde saklandığı sistemdir. Bir web sitesinin kullanıcıları, ürünleri, siparişleri hep veritabanında durur.\n\n**DBMS (Database Management System):** Veritabanını yöneten yazılım (MySQL, PostgreSQL, MSSQL).\n\n**İlişkisel veritabanı temel kavramları:**\n| Kavram | Açıklama | Excel benzetmesi |\n|--------|----------|------------------|\n| **Tablo (table)** | Veri kümesi | Sayfa |\n| **Satır (row/record)** | Tek bir kayıt | Satır |\n| **Sütun (column/field)** | Veri alanı | Sütun |\n| **Primary Key** | Satırı benzersiz tanımlayan alan | ID |\n| **Foreign Key** | Başka tabloya referans | İlişki |\n\n**Örnek 'users' tablosu:**\n```\nid | username | email           | password_hash\n1  | admin    | admin@site.com  | 5f4dcc3b...\n2  | ahmet    | ahmet@site.com  | 482c811d...\n```\n\n**Neden saldırganın #1 hedefi?** Tüm değerli veri (kullanıcı adları, parola hash'leri, kişisel/finansal bilgi) buradadır. Bir veritabanı ihlali = veri sızıntısı."
+        }
+      ]
+    },
+    {
+      "id": "sql-vs-nosql",
+      "title": "SQL vs NoSQL ve ACID",
+      "description": "İlişkisel ve NoSQL veritabanı türleri, ne zaman hangisi",
+      "difficulty": "beginner",
+      "duration": "15 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Veritabanı Türleri",
+          "content": "**İlişkisel (SQL) Veritabanları:** Veriyi tablolarda, ilişkilerle saklar. SQL diliyle sorgulanır.\n| DBMS | Kullanım |\n|------|----------|\n| MySQL/MariaDB | Web (en yaygın) |\n| PostgreSQL | Gelişmiş özellikler |\n| MSSQL | Windows/kurumsal |\n| Oracle | Büyük kurumsal |\n| SQLite | Gömülü, tek dosya |\n\n**NoSQL Veritabanları:** Tablo yapısı yerine esnek modeller.\n| Tür | Örnek | Veri modeli |\n|-----|-------|-------------|\n| Doküman | MongoDB | JSON benzeri |\n| Anahtar-değer | Redis | key:value (cache) |\n| Geniş sütun | Cassandra | Büyük ölçek |\n| Graf | Neo4j | İlişki grafiği |\n\n**ACID (ilişkisel DB güvencesi):**\n- **Atomicity:** İşlem ya tamamen olur ya hiç\n- **Consistency:** Veri tutarlı kalır\n- **Isolation:** İşlemler birbirini bozmaz\n- **Durability:** Onaylanan veri kalıcıdır\n\n**Güvenlik açısından:**\n- SQL DB → **SQL Injection** ana tehdit\n- NoSQL DB → **NoSQL Injection**, sık **kimliksiz açık** kalma (Redis/MongoDB)\n\n> Sonraki konularda SQL komutlarını, MySQL yönetimini öğrenecek ve her birinin **nasıl sızıldığını** Red Team modülüne bağlayacağız."
+        }
+      ]
+    }
+  ]
+}
