@@ -43,3 +43,8 @@ next-env.d.ts
 # Otomatik üretilen dosyalar (prebuild/predev ile yenilenir)
 public/search-index.json
 public/learn-stats.json
+
+# Yerel otomatik baslatma scriptleri (GitHub'a eklenmez)
+install-autostart.ps1
+uninstall-autostart.ps1
+start-site.ps1
