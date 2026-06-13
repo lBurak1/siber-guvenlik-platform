@@ -14,7 +14,7 @@ const CATEGORIES = {
   "red-team":             { label: "Red Team",     color: "red",     kind: "modules" },
   "blue-team":            { label: "Blue Team",    color: "blue",    kind: "modules" },
   "purple-team":          { label: "Purple Team",  color: "purple",  kind: "modules" },
-  "network-fundamentals": { label: "Ağ Temelleri", color: "emerald", kind: "modules" },
+  "network-fundamentals": { label: "Network",      color: "emerald", kind: "modules" },
   "linux-fundamentals":   { label: "Linux",        color: "orange",  kind: "modules" },
   "windows-fundamentals": { label: "Windows",      color: "sky",     kind: "modules" },
   "owasp-top10":          { label: "OWASP",        color: "amber",   kind: "modules" },

@@ -11,7 +11,7 @@ const stages: Stage[] = [
     n: 1, title: "Başlangıç — Temeller", accent: "orange",
     desc: "Sistem ve ağ hakimiyeti olmadan güvenlik olmaz. Buradan başla.",
     nodes: [
-      { label: "Ağ Temelleri", href: "/network-fundamentals", color: "emerald" },
+      { label: "Network", href: "/network-fundamentals", color: "emerald" },
       { label: "Linux Eğitimi", href: "/linux-fundamentals", color: "orange" },
       { label: "Windows Eğitimi", href: "/windows-fundamentals", color: "sky" },
     ],

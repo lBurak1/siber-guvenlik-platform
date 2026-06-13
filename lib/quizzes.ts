@@ -34,7 +34,7 @@ export const quizzes: Quiz[] = [
   },
   {
     slug: "network",
-    title: "Ağ Temelleri",
+    title: "Network",
     icon: "🌐",
     color: "emerald",
     questions: [

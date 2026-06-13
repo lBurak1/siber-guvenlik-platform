@@ -8,7 +8,7 @@ Türkçe, kapsamlı ve senaryo odaklı bir siber güvenlik eğitim platformu.
 |-------|------|-------|
 | 🖥️ Linux Eğitimi | Terminal, Dosya Sistemi, İzinler, Scripting | 9 konu |
 | 🪟 Windows Eğitimi | CMD, PowerShell, Servis, Ağ | 5 konu |
-| 🌐 Ağ Temelleri | OSI, TCP/IP, Protokoller | 4 konu |
+| 🌐 Network | OSI, TCP/IP, Protokoller, CCNA | 13 konu |
 | 🔴 Red Team | OSINT, Nmap, SQLMap, Burp Suite, PrivEsc | 11 araç |
 | 🔵 Blue Team | Wireshark, Log Analizi | 2 araç |
 | 🟣 Purple Team | MITRE ATT&CK, Sigma | 1 metodoloji |

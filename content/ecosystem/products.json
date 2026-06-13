@@ -49,7 +49,7 @@
           "id": "theory",
           "type": "theory",
           "title": "Ağ Güvenliği Ürünleri",
-          "content": "**Next-Gen Firewall (NGFW):**\n| Ürün | Üretici |\n|------|---------|\n| Palo Alto PA Serisi | Palo Alto Networks (lider) |\n| FortiGate | Fortinet |\n| Cisco Secure Firewall | Cisco |\n| Check Point Quantum | Check Point |\n| **pfSense / OPNsense** | Açık kaynak |\n\n**WAF (Web Application Firewall) & CDN:**\n- Cloudflare, Akamai, Imperva, F5, AWS WAF\n\n**ZTNA / SASE (modern uzaktan erişim):**\n- Zscaler, Palo Alto Prisma Access, Netskope, Cloudflare\n\n**IDS/IPS (açık kaynak):**\n- Snort, Suricata, Zeek (eski Bro)\n\n> Bu platformdaki **Ağ Temelleri** ve **Blue Team → Wireshark** modülleri bu ürünlerin arkasındaki teknolojiyi öğretir."
+          "content": "**Next-Gen Firewall (NGFW):**\n| Ürün | Üretici |\n|------|---------|\n| Palo Alto PA Serisi | Palo Alto Networks (lider) |\n| FortiGate | Fortinet |\n| Cisco Secure Firewall | Cisco |\n| Check Point Quantum | Check Point |\n| **pfSense / OPNsense** | Açık kaynak |\n\n**WAF (Web Application Firewall) & CDN:**\n- Cloudflare, Akamai, Imperva, F5, AWS WAF\n\n**ZTNA / SASE (modern uzaktan erişim):**\n- Zscaler, Palo Alto Prisma Access, Netskope, Cloudflare\n\n**IDS/IPS (açık kaynak):**\n- Snort, Suricata, Zeek (eski Bro)\n\n> Bu platformdaki **Network** ve **Blue Team → Wireshark** modülleri bu ürünlerin arkasındaki teknolojiyi öğretir."
         }
       ]
     },

@@ -11,7 +11,7 @@ export default async function NetworkModulePage({ params }: Props) {
   const asTool = {
     ...topic,
     team: "network-fundamentals" as const,
-    category: "Ağ Temelleri",
+    category: "Network",
     phase: "Foundation",
     color: "#10b981",
     slug: topic.slug,
@@ -23,5 +23,5 @@ export default async function NetworkModulePage({ params }: Props) {
 
 export async function generateMetadata({ params }: Props) {
   const topic = await getNetworkTopic(params.topic);
-  return { title: topic ? `${topic.title} — Ağ Temelleri` : "Bulunamadı" };
+  return { title: topic ? `${topic.title} — Network` : "Bulunamadı" };
 }
