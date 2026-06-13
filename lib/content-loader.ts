@@ -145,8 +145,9 @@ const serversMap: Record<string, () => Promise<any>> = {
 
 // ─── Metodoloji ──────────────────────────────────────────────────────
 const metodolojiMap: Record<string, () => Promise<any>> = {
-  "saldiri-zinciri": () => import("@/content/metodoloji/saldiri-zinciri.json"),
-  "kapsam-yetki":    () => import("@/content/metodoloji/kapsam-yetki.json"),
+  "saldiri-zinciri":    () => import("@/content/metodoloji/saldiri-zinciri.json"),
+  "kapsam-yetki":       () => import("@/content/metodoloji/kapsam-yetki.json"),
+  "ad-saldiri-zinciri": () => import("@/content/metodoloji/ad-saldiri-zinciri.json"),
 };
 
 // ─── Database Fundamentals ───────────────────────────────────────────

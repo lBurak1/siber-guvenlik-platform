@@ -4,8 +4,9 @@ import { GitBranch, ArrowRight, Crosshair } from "lucide-react";
 export const metadata = { title: "Metodoloji" };
 
 const topics = [
-  { slug: "saldiri-zinciri", icon: "🧠", title: "Pentest Metodolojisi & Saldırı Zinciri", desc: "Bir testin baştan sona akışı, PTES/Kill Chain/MITRE ATT&CK, 7 fazın karar haritası ve 'foothold aldım, şimdi ne?' triyajı + raporlama.", level: "Temel → İleri" },
-  { slug: "kapsam-yetki",    icon: "📜", title: "Kapsam, Yetki & Yasal Çerçeve",          desc: "Pre-engagement: yetkilendirme, Rules of Engagement, scope belirleme ve etik sınırlar. İşe alımda en çok sorulan, junior'ın en çok atladığı konu.", level: "Temel → Orta" },
+  { slug: "saldiri-zinciri",    icon: "🧠", title: "Pentest Metodolojisi & Saldırı Zinciri", desc: "Bir testin baştan sona akışı, PTES/Kill Chain/MITRE ATT&CK, 7 fazın karar haritası ve 'foothold aldım, şimdi ne?' triyajı + raporlama.", level: "Temel → İleri" },
+  { slug: "kapsam-yetki",       icon: "📜", title: "Kapsam, Yetki & Yasal Çerçeve",          desc: "Pre-engagement: yetkilendirme, Rules of Engagement, scope belirleme ve etik sınırlar. İşe alımda en çok sorulan, junior'ın en çok atladığı konu.", level: "Temel → Orta" },
+  { slug: "ad-saldiri-zinciri", icon: "🏰", title: "AD Saldırı Zinciri — SMB'den Domain Admin'e", desc: "LLMNR zehirleme → NetNTLMv2 hash yakalama → Kerberoasting → BloodHound yol analizi → DCSync → Pass-the-Hash → Golden Ticket. Gerçek komutlar + 'neden çalışır' açıklaması.", level: "Orta → İleri" },
 ];
 
 // Saldırı zincirinin fazları — omurgayı görselleştir

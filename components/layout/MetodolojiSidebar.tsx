@@ -24,6 +24,14 @@ const categories = [
       { slug: "kapsam-yetki", title: "Kapsam, Yetki & Yasal Çerçeve" },
     ],
   },
+  {
+    id: "ad-zinciri",
+    title: "AD Saldırı Zinciri",
+    icon: "GitBranch",
+    tools: [
+      { slug: "ad-saldiri-zinciri", title: "SMB'den Domain Admin'e — Tam AD Zinciri" },
+    ],
+  },
 ];
 
 export default function MetodolojiSidebar() {

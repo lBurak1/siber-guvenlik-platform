@@ -20,6 +20,14 @@ export const navigation = {
           { id: "kapsam-yetki", title: "Kapsam, Yetki & Yasal Çerçeve", slug: "kapsam-yetki" },
         ],
       },
+      {
+        id: "ad-zinciri",
+        title: "AD Saldırı Zinciri",
+        icon: "GitBranch",
+        tools: [
+          { id: "ad-saldiri-zinciri", title: "SMB'den Domain Admin'e — Tam AD Zinciri", slug: "ad-saldiri-zinciri" },
+        ],
+      },
     ],
   },
   "network-fundamentals": {
