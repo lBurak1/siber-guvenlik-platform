@@ -31,7 +31,21 @@ type NavGroup = {
 type NavItem = NavLink | NavGroup;
 
 const navItems: NavItem[] = [
-  { href: "/altyapi",        icon: Layers,        label: "Altyapı",      color: "emerald" },
+  {
+    kind: "group",
+    label: "Altyapı",
+    icon: Layers,
+    color: "emerald",
+    items: [
+      { href: "/altyapi",               icon: Layers,    label: "Genel Bakış",   color: "emerald" },
+      { href: "/linux-fundamentals",    icon: Terminal,  label: "Linux",         color: "orange" },
+      { href: "/windows-fundamentals",  icon: Monitor,   label: "Windows",       color: "sky" },
+      { href: "/network-fundamentals",  icon: Network,   label: "Network",       color: "emerald" },
+      { href: "/devops-fundamentals",   icon: Boxes,     label: "DevOps",        color: "teal" },
+      { href: "/servers-fundamentals",  icon: Server,    label: "Sunucular",     color: "cyan" },
+      { href: "/database-fundamentals", icon: Database,  label: "Veritabanları", color: "lime" },
+    ],
+  },
   { href: "/metodoloji",     icon: GitBranch,     label: "Metodoloji",   color: "fuchsia" },
   {
     kind: "group",
