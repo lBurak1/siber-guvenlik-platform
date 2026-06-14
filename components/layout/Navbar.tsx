@@ -3,25 +3,53 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Shield, Terminal, Eye, GitMerge,
-  Network, BookOpen, Menu, X, Zap, Monitor, Cpu, AlertTriangle, Search, Boxes, GraduationCap, Globe, LayoutDashboard, Server, Database, GitBranch, Layers, FlaskConical
+  Network, BookOpen, Menu, X, Zap, Monitor, Cpu, AlertTriangle, Search, Boxes, GraduationCap, Globe, LayoutDashboard, Server, Database, GitBranch, Layers, FlaskConical, ChevronDown
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn, teamConfig } from "@/lib/utils";
 import CommandPalette from "@/components/search/CommandPalette";
 import { useProgressStore } from "@/lib/progress-store";
 
-const navLinks = [
-  { href: "/altyapi",               icon: Layers,     label: "Altyapı",      color: "emerald" },
-  { href: "/metodoloji",            icon: GitBranch,  label: "Metodoloji",   color: "fuchsia" },
-  { href: "/red-team",              icon: Shield,     label: "Red Team",     color: "red" },
-  { href: "/blue-team",             icon: Eye,        label: "Blue Team",    color: "blue" },
-  { href: "/purple-team",           icon: GitMerge,   label: "Purple Team",  color: "purple" },
-  { href: "/owasp-top10",           icon: AlertTriangle, label: "OWASP Top 10", color: "amber" },
-  { href: "/certifications",        icon: GraduationCap, label: "Sertifikalar", color: "indigo" },
-  { href: "/ecosystem",             icon: Globe,      label: "Sektör",       color: "pink" },
-  { href: "/cheatsheet",            icon: Zap,        label: "Cheat Sheet",  color: "yellow" },
-  { href: "/lab",                   icon: FlaskConical, label: "Komut Lab",  color: "teal" },
-  { href: "/osint-araclari",        icon: Search,      label: "OSINT Araçları", color: "purple" },
+/* ── single link ── */
+type NavLink = {
+  kind?: "link";
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  color: string;
+};
+
+/* ── dropdown group ── */
+type NavGroup = {
+  kind: "group";
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  items: Omit<NavLink, "kind">[];
+};
+
+type NavItem = NavLink | NavGroup;
+
+const navItems: NavItem[] = [
+  { href: "/altyapi",        icon: Layers,        label: "Altyapı",      color: "emerald" },
+  { href: "/metodoloji",     icon: GitBranch,     label: "Metodoloji",   color: "fuchsia" },
+  {
+    kind: "group",
+    label: "Siber Güvenlik",
+    icon: Shield,
+    color: "red",
+    items: [
+      { href: "/red-team",    icon: Shield,        label: "Red Team",     color: "red" },
+      { href: "/blue-team",   icon: Eye,           label: "Blue Team",    color: "blue" },
+      { href: "/purple-team", icon: GitMerge,      label: "Purple Team",  color: "purple" },
+      { href: "/owasp-top10", icon: AlertTriangle, label: "OWASP Top 10", color: "amber" },
+      { href: "/cheatsheet",  icon: Zap,           label: "Cheat Sheet",  color: "yellow" },
+    ],
+  },
+  { href: "/certifications", icon: GraduationCap, label: "Sertifikalar", color: "indigo" },
+  { href: "/ecosystem",      icon: Globe,         label: "Sektör",       color: "pink" },
+  { href: "/lab",            icon: FlaskConical,  label: "Komut Lab",    color: "teal" },
+  { href: "/osint-araclari", icon: Search,        label: "OSINT Araçları", color: "purple" },
 ] as const;
 
 const colorMap: Record<string, { active: string; hover: string }> = {
@@ -41,6 +69,64 @@ const colorMap: Record<string, { active: string; hover: string }> = {
   fuchsia: { active: "bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/30", hover: "hover:text-fuchsia-300 hover:bg-fuchsia-500/5" },
 };
 
+/* ── Dropdown component ── */
+function NavDropdown({ group, pathname }: { group: NavGroup; pathname: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const isActive = group.items.some((item) => pathname.startsWith(item.href));
+  const c = colorMap[group.color];
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const Icon = group.icon;
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150",
+          isActive ? c.active : `text-terminal-comment ${c.hover}`
+        )}
+      >
+        <Icon className="w-3.5 h-3.5" />
+        {group.label}
+        <ChevronDown className={cn("w-3 h-3 transition-transform duration-150", open && "rotate-180")} />
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 w-48 rounded-lg border border-surface-3 bg-surface-1/95 backdrop-blur-xl shadow-xl z-50 py-1">
+          {group.items.map((item) => {
+            const ItemIcon = item.icon;
+            const ic = colorMap[item.color];
+            const itemActive = pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 text-xs font-medium transition-colors",
+                  itemActive ? `${ic.active} mx-1 rounded-md` : `text-terminal-comment ${ic.hover}`
+                )}
+              >
+                <ItemIcon className="w-3.5 h-3.5" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -48,6 +134,11 @@ export default function Navbar() {
   const recordVisit = useProgressStore((s) => s.recordVisit);
 
   useEffect(() => { recordVisit(); }, [recordVisit]);
+
+  /* flat list of all hrefs for mobile menu */
+  const allLinks: Omit<NavLink, "kind">[] = navItems.flatMap((item) =>
+    item.kind === "group" ? item.items : [item]
+  );
 
   return (
     <header className="sticky top-0 z-50 border-b border-surface-3 bg-surface/90 backdrop-blur-xl">
@@ -68,7 +159,11 @@ export default function Navbar() {
 
         {/* Desktop nav */}
         <div className="hidden lg:flex items-center gap-1 flex-1">
-          {navLinks.map(({ href, icon: Icon, label, color }) => {
+          {navItems.map((item) => {
+            if (item.kind === "group") {
+              return <NavDropdown key={item.label} group={item} pathname={pathname} />;
+            }
+            const { href, icon: Icon, label, color } = item;
             const isActive = pathname.startsWith(href);
             const c = colorMap[color];
             return (
@@ -130,10 +225,10 @@ export default function Navbar() {
         </button>
       </nav>
 
-      {/* Mobile menu */}
+      {/* Mobile menu — flat list of all links */}
       {mobileOpen && (
         <div className="lg:hidden border-t border-surface-3 bg-surface-1 p-3 grid grid-cols-2 gap-2">
-          {navLinks.map(({ href, icon: Icon, label, color }) => {
+          {allLinks.map(({ href, icon: Icon, label, color }) => {
             const isActive = pathname.startsWith(href);
             const c = colorMap[color];
             return (
