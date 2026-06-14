@@ -1,0 +1,118 @@
+{
+  "tool": "Recon-ng",
+  "slug": "recon-ng",
+  "icon": "🕸️",
+  "description": "Recon-ng — Python tabanlı modüler OSINT framework. Metasploit benzeri arayüzüyle hedef hakkında e-posta, kişi, subdomain, sosyal medya ve şirket verisi toplar.",
+  "modules": [
+    {
+      "id": "recon-ng-temeller",
+      "title": "Recon-ng Framework Temelleri",
+      "icon": "🔧",
+      "sections": [
+        {
+          "type": "theory",
+          "title": "Recon-ng Nedir?",
+          "content": "Recon-ng, Metasploit'in OSINT versiyonudur — modüler yapısı sayesinde farklı kaynaklardan veri toplayıp tek bir veritabanında birleştirir.\n\n**Temel kavramlar:**\n- **Workspace:** Her hedef için ayrı veritabanı (sqlite)\n- **Module:** Belirli bir kaynaktan veri çeken script\n- **Keys:** API anahtarları (Shodan, VirusTotal, Twitter vs)\n- **Tables:** hosts, contacts, credentials, domains, locations\n\n**Neden kullanılır?**\nSonuçlar birbiriyle otomatik korelasyona girer. Bir modülün bulduğu domain başka bir modüle otomatik beslenir. Rapor çıktısı (HTML/CSV) built-in gelir."
+        },
+        {
+          "type": "installation",
+          "title": "Kurulum & Başlangıç",
+          "content": "```bash\n# Kali Linux — zaten kurulu\nrecon-ng\n\n# Manuel kurulum\ngit clone https://github.com/lanmaster53/recon-ng.git\ncd recon-ng\npip install -r REQUIREMENTS\n./recon-ng\n```"
+        },
+        {
+          "type": "commands",
+          "title": "Temel Komutlar",
+          "items": [
+            {
+              "command": "recon-ng",
+              "desc": "Framework'ü başlat"
+            },
+            {
+              "command": "workspaces create target_name",
+              "desc": "Yeni workspace oluştur — hedef başına ayrı DB"
+            },
+            {
+              "command": "workspaces load target_name",
+              "desc": "Var olan workspace'i yükle"
+            },
+            {
+              "command": "marketplace search",
+              "desc": "Tüm mevcut modülleri listele"
+            },
+            {
+              "command": "marketplace install recon/domains-hosts/hackertarget",
+              "desc": "Modül yükle — hackertarget subdomain finder"
+            },
+            {
+              "command": "modules load recon/domains-hosts/hackertarget",
+              "desc": "Modülü aktif et"
+            },
+            {
+              "command": "options set SOURCE example.com",
+              "desc": "Hedefi ayarla"
+            },
+            {
+              "command": "run",
+              "desc": "Modülü çalıştır — sonuçlar DB'ye kaydedilir"
+            },
+            {
+              "command": "show hosts",
+              "desc": "Toplanan host/subdomain listesi"
+            },
+            {
+              "command": "show contacts",
+              "desc": "Toplanan e-posta/kişi listesi"
+            }
+          ]
+        },
+        {
+          "type": "advanced",
+          "title": "Kullanışlı Modüller",
+          "content": "```\n# Subdomain keşfi\nrecon/domains-hosts/hackertarget\nrecon/domains-hosts/certificate_transparency\nrecon/domains-hosts/brute_hosts\n\n# E-posta/kişi toplama\nrecon/domains-contacts/whois_pocs\nrecon/companies-contacts/linkedin_crawl\n\n# Sosyal medya\nrecon/profiles-profiles/twitter\n\n# IP → Konum\nrecon/hosts-hosts/ipinfodb\n\n# API key gerektiren (daha güçlü)\nrecon/hosts-hosts/shodan_ip          # Shodan key\nrecon/domains-hosts/virustotal       # VT key\n```\n\n**Workflow:**\n1. Domain ekle → subdomain modülleri çalıştır\n2. Subdomainlerden IP çıkar → geolocation modülleri\n3. Şirketten kişi topla → e-posta format modülü\n4. Son raporu HTML olarak çıkar"
+        }
+      ]
+    },
+    {
+      "id": "recon-ng-workflow",
+      "title": "Pentest Recon Workflow",
+      "icon": "🗺️",
+      "sections": [
+        {
+          "type": "commands",
+          "title": "Tam Recon Senaryosu",
+          "items": [
+            {
+              "command": "workspaces create pentest_target && db insert domains example.com",
+              "desc": "1. Workspace kur, hedef domain'i ekle"
+            },
+            {
+              "command": "marketplace install recon/domains-hosts/hackertarget recon/domains-hosts/certificate_transparency recon/domains-contacts/whois_pocs",
+              "desc": "2. Gerekli modülleri yükle"
+            },
+            {
+              "command": "modules load recon/domains-hosts/certificate_transparency && options set SOURCE example.com && run",
+              "desc": "3. Sertifika şeffaflığından subdomain topla"
+            },
+            {
+              "command": "modules load recon/domains-contacts/whois_pocs && options set SOURCE example.com && run",
+              "desc": "4. WHOIS'ten şirket kişi bilgisi çek"
+            },
+            {
+              "command": "show hosts && show contacts",
+              "desc": "5. Toplanan veriyi görüntüle"
+            },
+            {
+              "command": "reporting/html && options set FILENAME /tmp/report.html && run",
+              "desc": "6. HTML rapor çıkar"
+            }
+          ]
+        },
+        {
+          "type": "theory",
+          "title": "API Anahtarı Eklemek",
+          "content": "```bash\n# Mevcut key'leri listele\nkeys list\n\n# Key ekle\nkeys add shodan_api YOUR_KEY_HERE\nkeys add virustotal_api YOUR_KEY_HERE\nkeys add github_api YOUR_KEY_HERE\n\n# Key gerektiren modüller çok daha fazla veri döner\n# Shodan entegrasyonuyla IP → açık port verisi otomatik gelir\n```\n\n**Defense notu:** Recon-ng gibi OSINT araçları sadece pasif kaynak kullanır — hiçbir HTTP isteği hedef sisteme gitmez. Ancak toplanan e-posta listeleri phishing kampanyalarına, subdomain listesi kaba kuvvet saldırılarına girdi olabilir. Organizasyonlar: WHOIS gizleme, minimal sosyal medya ayak izi, subdomain honeypot önerilir."
+        }
+      ]
+    }
+  ]
+}

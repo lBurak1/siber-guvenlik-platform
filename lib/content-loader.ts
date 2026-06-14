@@ -43,6 +43,8 @@ const redTeamMap: Record<string, () => Promise<any>> = {
   "wordlist-uretimi": () => import("@/content/red-team/wordlist-uretimi.json"),
   "pentest-raporlama":() => import("@/content/red-team/pentest-raporlama.json"),
   "htb-metodoloji":   () => import("@/content/red-team/htb-metodoloji.json"),
+  "amass":            () => import("@/content/red-team/amass.json"),
+  "recon-ng":         () => import("@/content/red-team/recon-ng.json"),
 };
 
 // ─── Blue Team Tools ─────────────────────────────────────────────────

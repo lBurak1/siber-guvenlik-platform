@@ -1,0 +1,120 @@
+{
+  "tool": "Amass",
+  "slug": "amass",
+  "icon": "🌐",
+  "description": "OWASP Amass — subdomain enumeration ve saldırı yüzeyi haritalama. DNS brute force, sertifika şeffaflığı, pasif OSINT kaynaklarını tek çatı altında birleştirir.",
+  "modules": [
+    {
+      "id": "amass-temeller",
+      "title": "Amass ile Subdomain Enumeration",
+      "icon": "🔍",
+      "sections": [
+        {
+          "type": "theory",
+          "title": "Amass Nedir ve Neden Önemli?",
+          "content": "Amass, OWASP bünyesinde geliştirilen en kapsamlı subdomain keşif aracıdır. Sadece DNS brute force yapmaz — Certificate Transparency logları, web arşivleri, VirusTotal, Shodan gibi 50+ kaynaktan pasif veri toplar.\n\n**Çalışma modları:**\n- `enum` — Aktif + pasif tam enumeration\n- `intel` — Pasif OSINT, organizasyon bilgisi\n- `viz` — Graf görselleştirme\n- `db` — Kaydedilmiş sonuçları sorgula\n\n**Neden diğerlerinden farklı?**\nSubfinder ve theHarvester'dan farkı: Amass veri kaynaklarını korelasyona sokar, ASN ve IP bloklarını çapraz referans verir, aynı organizasyona ait ek domainleri otomatik bulur."
+        },
+        {
+          "type": "installation",
+          "title": "Kurulum",
+          "content": "```bash\n# Kali/Debian\nsudo apt install amass\n\n# Go ile (güncel versiyon)\ngo install -v github.com/owasp-amass/amass/v4/...@master\n\n# API key config dosyası\nmkdir -p ~/.config/amass\ncp /usr/share/amass/examples/config.yaml ~/.config/amass/config.yaml\n# Dosyayı düzenle: VirusTotal, Shodan, Censys API key'lerini ekle\n```"
+        },
+        {
+          "type": "commands",
+          "title": "Temel Kullanım",
+          "items": [
+            {
+              "command": "amass enum -d example.com",
+              "desc": "Temel pasif enumeration — tüm kaynaklardan subdomain topla"
+            },
+            {
+              "command": "amass enum -passive -d example.com",
+              "desc": "Sadece pasif — DNS sorgusu atmadan, iz bırakmadan"
+            },
+            {
+              "command": "amass enum -active -d example.com",
+              "desc": "Aktif mod — DNS brute force + zone transfer denemesi"
+            },
+            {
+              "command": "amass enum -brute -d example.com -w /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-5000.txt",
+              "desc": "Brute force modda wordlist ile subdomain tara"
+            },
+            {
+              "command": "amass enum -d example.com -o results.txt",
+              "desc": "Sonuçları dosyaya kaydet"
+            },
+            {
+              "command": "amass enum -d example.com -json results.json",
+              "desc": "JSON formatında kaydet — işleme ve filtreleme için"
+            }
+          ]
+        },
+        {
+          "type": "commands",
+          "title": "İleri Kullanım",
+          "items": [
+            {
+              "command": "amass intel -org 'Target Corp' -max-dns-queries 2500",
+              "desc": "Şirket adından ASN ve IP bloklarını bul"
+            },
+            {
+              "command": "amass intel -asn 12345",
+              "desc": "ASN numarasından tüm alt domainleri çıkar"
+            },
+            {
+              "command": "amass enum -d example.com -src -ip",
+              "desc": "Her subdomaini hangi kaynaktan bulduğunu ve IP'sini göster"
+            },
+            {
+              "command": "amass enum -d example.com -config ~/.config/amass/config.yaml",
+              "desc": "API key'li config ile daha fazla kaynak kullan (Shodan, Censys, VirusTotal)"
+            }
+          ]
+        },
+        {
+          "type": "advanced",
+          "title": "Sonuçları İşleme",
+          "content": "```bash\n# Sadece benzersiz subdomainleri listele\namass enum -d example.com | sort -u > subdomains.txt\n\n# Canlı olanları filtrele (httpx ile)\ncat subdomains.txt | httpx -silent -status-code\n\n# Sadece 200 dönen subdomainler\ncat subdomains.txt | httpx -silent -mc 200\n\n# IP adreslerini çıkar\ncat subdomains.txt | dnsx -silent -a -resp\n```\n\n**Defense notu:** Kurumsal ortamda Amass gibi araçları tespit etmek için DNS query anomali tespiti kullan. Rate limiting ve honeypot subdomain'ler faydalıdır."
+        }
+      ]
+    },
+    {
+      "id": "amass-ctf-lab",
+      "title": "CTF & Bug Bounty Workflow",
+      "icon": "🎯",
+      "sections": [
+        {
+          "type": "commands",
+          "title": "Bug Bounty Recon Pipeline",
+          "items": [
+            {
+              "command": "amass enum -passive -d target.com -o amass_out.txt 2>/dev/null",
+              "desc": "1. Pasif ile başla — en az iz, en geniş kapsam"
+            },
+            {
+              "command": "subfinder -d target.com -silent >> amass_out.txt",
+              "desc": "2. Subfinder sonuçlarını ekle — farklı kaynak seti"
+            },
+            {
+              "command": "sort -u amass_out.txt > all_subs.txt",
+              "desc": "3. Tekrarları temizle"
+            },
+            {
+              "command": "cat all_subs.txt | httpx -silent -title -status-code -content-length",
+              "desc": "4. Canlı subdomainleri tespit et, başlık + boyut bilgisi al"
+            },
+            {
+              "command": "cat all_subs.txt | nuclei -t exposures/ -severity high,critical",
+              "desc": "5. Nuclei ile exposed panel ve yüksek önem CVE tara"
+            }
+          ]
+        },
+        {
+          "type": "theory",
+          "title": "Karşılaştırma: Amass vs Subfinder vs theHarvester",
+          "content": "| Araç | Hız | Kaynak Sayısı | Pasif | ASN Keşfi |\n|------|-----|---------------|-------|----------|\n| Amass | Yavaş | 50+ | ✓ | ✓ |\n| Subfinder | Hızlı | 40+ | ✓ | ✗ |\n| theHarvester | Orta | 15+ | ✓ | ✗ |\n| DNSrecon | Hızlı | DNS odaklı | Kısmi | ✗ |\n\n**Öneri:** Amass + Subfinder birlikte kullan, sonuçları birleştir ve httpx ile canlı olanları filtrele. Bu üçlü kombinasyon bug bounty recon'ının omurgasıdır."
+        }
+      ]
+    }
+  ]
+}

@@ -12,10 +12,12 @@ const toolCategories = [
     emoji: "🔍",
     desc: "Pasif/aktif keşif — hedefi tanı, iz bırakma",
     items: [
-      { slug: "osint-basics",                       title: "OSINT Temelleri",         desc: "WHOIS, DNS, crt.sh, Wayback — pasif keşif omurgası", level: "Başlangıç" },
-      { slug: "osint-basics/shodan-ileri",           title: "Shodan İleri",            desc: "İnternete açık servis arama motoru — dork'lar, API, ICS/SCADA keşfi", level: "Orta" },
-      { slug: "osint-basics/theharvester-maltego",  title: "theHarvester & Maltego",  desc: "E-posta/çalışan toplama, Recon-ng, Maltego ilişki grafiği", level: "Orta" },
-      { slug: "google-dorking",                      title: "Google Dorking",          desc: "İleri seviye arama operatörleriyle hassas veri keşfi", level: "Orta" },
+      { slug: "osint-basics",                      title: "OSINT Temelleri",         desc: "WHOIS, DNS, crt.sh, Wayback — pasif keşif omurgası", level: "Başlangıç" },
+      { slug: "osint-basics/shodan-ileri",          title: "Shodan İleri",            desc: "İnternete açık servis arama motoru — dork'lar, API, ICS/SCADA keşfi", level: "Orta" },
+      { slug: "osint-basics/theharvester-maltego", title: "theHarvester & Maltego",  desc: "E-posta/çalışan toplama, Recon-ng, Maltego ilişki grafiği", level: "Orta" },
+      { slug: "google-dorking",                     title: "Google Dorking",          desc: "İleri seviye arama operatörleriyle hassas veri keşfi", level: "Orta" },
+      { slug: "amass",                              title: "Amass",                   desc: "OWASP subdomain enumeration — 50+ kaynak, ASN keşfi, CT logları", level: "Orta" },
+      { slug: "recon-ng",                           title: "Recon-ng Framework",      desc: "Modüler OSINT framework — e-posta, kişi, subdomain, sosyal medya", level: "Orta" },
     ],
   },
   {
@@ -449,45 +451,60 @@ export default function RedTeamPage() {
         </button>
       </div>
 
-      {/* ARAÇLAR — Accordion */}
+      {/* ARAÇLAR — Kart Grid */}
       {tab === "araclar" && (
-        <div className="space-y-2">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {toolCategories.map((cat) => {
             const isOpen = openCats[cat.id] ?? false;
             return (
-              <div key={cat.id} className="border border-surface-3 rounded-lg overflow-hidden">
+              <div
+                key={cat.id}
+                className={cn(
+                  "border rounded-xl overflow-hidden transition-all duration-200 flex flex-col",
+                  isOpen
+                    ? "border-red-500/40 shadow-[0_0_24px_rgba(239,68,68,0.1)] sm:col-span-2 lg:col-span-3"
+                    : "border-surface-3 hover:border-red-500/30 hover:shadow-[0_0_16px_rgba(239,68,68,0.07)]"
+                )}
+              >
+                {/* Kart başlığı */}
                 <button
                   onClick={() => toggle(cat.id)}
-                  className={cn("w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
-                    isOpen ? "bg-red-500/5" : "hover:bg-surface-2")}
+                  className={cn(
+                    "w-full text-left p-4 transition-colors flex gap-3 items-start",
+                    isOpen ? "bg-red-500/5" : "hover:bg-surface-2"
+                  )}
                 >
-                  <span className="text-base">{cat.emoji}</span>
+                  <span className="text-2xl mt-0.5 shrink-0">{cat.emoji}</span>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="text-sm font-semibold text-terminal-white">{cat.category}</span>
                       <span className="text-xs font-mono text-red-400/60 bg-red-500/5 border border-red-500/15 px-1.5 py-0.5 rounded">
                         {cat.items.length} araç
                       </span>
                     </div>
-                    <p className="text-xs text-terminal-comment">{cat.desc}</p>
+                    <p className="text-xs text-terminal-comment leading-relaxed">{cat.desc}</p>
                   </div>
-                  {isOpen
-                    ? <ChevronDown className="w-4 h-4 text-red-400 shrink-0" />
-                    : <ChevronRight className="w-4 h-4 text-terminal-comment shrink-0" />}
+                  <span className="mt-1 shrink-0">
+                    {isOpen
+                      ? <ChevronDown className="w-4 h-4 text-red-400" />
+                      : <ChevronRight className="w-4 h-4 text-terminal-comment" />}
+                  </span>
                 </button>
+
+                {/* Açık hâl — araç listesi */}
                 {isOpen && (
-                  <div className="border-t border-surface-3 grid sm:grid-cols-2 gap-2 p-3 bg-surface-1/50">
+                  <div className="border-t border-surface-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-2 p-3 bg-surface-1/40">
                     {cat.items.map((tool) => (
                       <Link key={tool.slug} href={`/red-team/${tool.slug}`} className="group">
-                        <div className="module-card border border-surface-3 hover:border-red-500/40 hover:shadow-[0_0_20px_rgba(239,68,68,0.08)] transition-all">
-                          <div className="flex items-start justify-between">
-                            <h3 className="font-semibold text-terminal-white group-hover:text-red-300 transition-colors text-sm">
+                        <div className="h-full rounded-lg border border-surface-3 hover:border-red-500/40 hover:shadow-[0_0_14px_rgba(239,68,68,0.1)] bg-surface-1 p-3 transition-all flex flex-col gap-1">
+                          <div className="flex items-start justify-between gap-1">
+                            <span className="text-xs font-semibold text-terminal-white group-hover:text-red-300 transition-colors leading-snug">
                               {tool.title}
-                            </h3>
-                            <ArrowRight className="w-3.5 h-3.5 text-terminal-comment group-hover:text-red-400 group-hover:translate-x-1 transition-all shrink-0" />
+                            </span>
+                            <ArrowRight className="w-3 h-3 text-terminal-comment group-hover:text-red-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
                           </div>
-                          <p className="text-xs text-terminal-comment mt-1 leading-relaxed">{tool.desc}</p>
-                          <span className="mt-2 inline-block text-xs font-mono text-red-400/70 bg-red-500/5 border border-red-500/15 px-2 py-0.5 rounded">
+                          <p className="text-xs text-terminal-comment leading-relaxed flex-1">{tool.desc}</p>
+                          <span className="text-xs font-mono text-red-400/70 bg-red-500/5 border border-red-500/15 px-1.5 py-0.5 rounded w-fit mt-1">
                             {tool.level}
                           </span>
                         </div>

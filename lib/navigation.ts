@@ -113,6 +113,8 @@ export const navigation = {
           { id: "google-dorking", title: "Google Dorking", slug: "google-dorking" },
           { id: "osint-shodan", title: "Shodan — İleri Keşif", slug: "osint-basics/shodan-ileri" },
           { id: "osint-harvester", title: "theHarvester & Maltego", slug: "osint-basics/theharvester-maltego" },
+          { id: "amass", title: "Amass — Subdomain Enumeration", slug: "amass" },
+          { id: "recon-ng", title: "Recon-ng Framework", slug: "recon-ng" },
         ],
       },
       {
