@@ -393,10 +393,7 @@ const scenarios = scenarioCategories.flatMap((c) => c.scenarios);
 
 // ─── Bileşen ─────────────────────────────────────────────────────────
 export default function RedTeamPage() {
-  const [openCats, setOpenCats] = useState<Record<string, boolean>>({
-    "bilgi-toplama": true,
-    "ag-kesfi": true,
-  });
+  const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
   const [tab, setTab] = useState<"araclar" | "senaryolar">("araclar");
   const [openScenario, setOpenScenario] = useState<string | null>(null);
 
