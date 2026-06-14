@@ -359,6 +359,166 @@
           ]
         }
       ]
+    },
+    {
+      "id": "sadece-ip-var",
+      "title": "Sadece Bir IP Var — Adım Adım Ne Yapmalıyım?",
+      "icon": "🤔",
+      "sections": [
+        {
+          "type": "theory",
+          "title": "Junior'ın En Büyük Sorunu",
+          "content": "**Aracı biliyorsun ama nerede başlayacağını bilmiyorsun.** Bu modül tam olarak bunu çözüyor.\n\nMakineyi aldığında beynindeki düşünce akışı şu olmalı:\n\n```\n[IP ALDIM]\n    ↓\n[PING → Makine açık mı?]\n    ↓\n[NMAP — Hangi portlar açık?]\n    ↓\n[Her porta göre → triage tablosuna bak]\n    ↓\n[En zayıf görünen servisi seç → enum]\n    ↓\n[Bir vektör bul → exploit]\n    ↓\n[Shell → PrivEsc]\n```\n\n**Asla şunu yapma:** Rastgele araç çalıştırma. Gobuster çalıştırmadan önce 80 portunun açık olduğunu doğrula. Hydra çalıştırmadan önce SSH'ın açık olduğunu bil."
+        },
+        {
+          "type": "commands",
+          "title": "İlk 10 Dakika Oyun Planı",
+          "items": [
+            {
+              "command": "ping -c 3 10.10.10.X && echo 'Makine açık'",
+              "desc": "0. Makineyi doğrula — cevap vermiyorsa VPN bağlantısını kontrol et"
+            },
+            {
+              "command": "sudo nmap -sV -sC -T4 -oA nmap/initial 10.10.10.X",
+              "desc": "1. İlk hızlı tarama — 60-90 saniye sürer, açık portları görürsün"
+            },
+            {
+              "command": "sudo nmap -p- --min-rate 5000 -oA nmap/allports 10.10.10.X &",
+              "desc": "2. Full port taramasını arka plana al (& ile) — çalışırken diğer işlere devam et"
+            },
+            {
+              "command": "mkdir -p {nmap,web,smb,privesc,loot} && echo '10.10.10.X target.htb' | sudo tee -a /etc/hosts",
+              "desc": "3. Klasör yapısını hazırla ve hedefi /etc/hosts'a ekle"
+            },
+            {
+              "command": "cat nmap/initial.nmap | grep 'open'",
+              "desc": "4. İlk tarama bitince açık portları hızlıca gör — hangi servislere odaklanacağına karar ver"
+            }
+          ]
+        },
+        {
+          "type": "theory",
+          "title": "Port → Servis → Aksiyon Karar Tablosu",
+          "content": "| Açık Port | Servis | İlk Yapacağın 3 Şey |\n|-----------|--------|---------------------|\n| **22** | SSH | 1. Versiyon not et 2. Kullanıcı adı bulduktan sonra dene 3. Default cred: admin/admin |\n| **21** | FTP | 1. `ftp IP` → user: anonymous 2. Dosya listele 3. İndirilebilir dosya var mı? |\n| **23** | Telnet | 1. `nc IP 23` → banner 2. Default cred dene 3. CVE ara |\n| **25** | SMTP | 1. `nc IP 25` → VRFY/EXPN ile user enum 2. Open relay? |\n| **53** | DNS | 1. Zone transfer dene 2. Subdomain brute force 3. Reverse lookup |\n| **80/443** | HTTP | 1. Web sitesini gez 2. Gobuster/ffuf 3. Kaynak kodu + teknoloji |\n| **110/143** | Email | 1. Default cred 2. Ne tür mail var? |\n| **139/445** | SMB | 1. Null session 2. enum4linux 3. Share listesi |\n| **3306** | MySQL | 1. Default root cred 2. `mysql -h IP -u root` |\n| **3389** | RDP | 1. Cred olunca kullan 2. BlueKeep CVE-2019-0708 |\n| **5985** | WinRM | 1. Cred olunca evil-winrm 2. PowerShell remoting |\n| **8080** | Alt HTTP | 1. Admin paneli? 2. Jenkins? Tomcat? |\n\n**Kural:** Bir servis gördüğünde önce manuel + hafif enum, sonra ağır araç."
+        },
+        {
+          "type": "advanced",
+          "title": "Senaryoya Göre Başlangıç Stratejisi",
+          "content": "**Sadece port 22 açık:**\n```\n→ SSH version CVE var mı? searchsploit openssh X.X\n→ Username enumeration: ssh -o StrictHostKeyChecking=no root@IP\n→ Başka port bulana kadar nmap -p- ile bekle\n```\n\n**80 + 22 açık (en yaygın):**\n```\n→ Web'e git, kaynağa bak, robotsa bak\n→ Gobuster → Burp → teknoloji tespiti\n→ Foothold web'den → SSH ile kalıcı erişim\n```\n\n**445 + 22 + 80 açık:**\n```\n→ Önce SMB: null session, share listesi\n→ Share'de dosya → cred → SSH/web giriş\n→ Web'i paralel çalıştır\n```\n\n**Sadece 443 açık:**\n```\n→ SSL sertifikasına bak → hostname, org adı\n→ HTTPS dizin enum → api endpoint?\n→ /etc/hosts'a hostname ekle ve tekrar dene\n```\n\n**Hiçbir şey bulamıyorsam:**\n```\n→ nmap -sU (UDP portları!) 53, 161, 500\n→ nmap -sV --version-intensity 9 (versiyon doğrulama)\n→ Farklı source port dene: nmap --source-port 53\n```"
+        }
+      ]
+    },
+    {
+      "id": "foothold-triage",
+      "title": "Foothold Triage — Önce Ne Denerim?",
+      "icon": "🎯",
+      "sections": [
+        {
+          "type": "theory",
+          "title": "Triage Mantığı",
+          "content": "Triage = önceliklendirme. Her servise eşit zaman harcama — **önce düşük asılı meyveleri topla.**\n\n**Düşük zorluk sırası (genelde böyle gider):**\n\n```\n1. Default credential (en az efor, yüksek getiri)\n2. Anonymous/null access (FTP, SMB, LDAP)\n3. Outdated version CVE (searchsploit)\n4. Web dizin/parametre fuzzing (gobuster, ffuf)\n5. Brute force (hydra) → en son dene, çok gürültülü\n```\n\n**Senior ile junior farkı:** Junior her şeyi brute force ile çözmeye çalışır. Senior önce servislere manuel bakar, 2 dakikada default credential'ı bulur."
+        },
+        {
+          "type": "theory",
+          "title": "Web Servisi Triage (80/443)",
+          "content": "Web bulduğunda bu sırayla ilerle:\n\n```\n[WEB SERVİSİ AÇIK]\n    ↓\n1. Ana sayfayı ziyaret et\n   → CMS var mı? (WordPress, Joomla, Drupal, vb.)\n   → Login sayfası var mı?\n   → /robots.txt /sitemap.xml kontrol et\n    ↓\n2. Teknoloji tespiti\n   → whatweb http://IP veya Wappalyzer\n   → HTTP başlıklarına bak (Server: Apache/2.4.29 → CVE?)\n    ↓\n3. Kaynak kodu incele\n   → HTML yorum <!-- TODO: kaldır -->\n   → JavaScript dosyaları (endpoint, API key)\n   → Gizli input alanları\n    ↓\n4. Dizin keşfi\n   → gobuster dir -u http://IP -w medium.txt -x php,txt,html,bak\n    ↓\n5. Parametre fuzzing (LFI, SQLi)\n   → ffuf -u 'http://IP/page?FUZZ=test' -w params.txt\n    ↓\n6. CMS spesifik tarama\n   → wpscan (WordPress) / droopescan (Drupal)\n    ↓\n7. Virtual host keşfi\n   → ffuf -u http://IP -H 'Host: FUZZ.target.htb' -w subdomains.txt\n```"
+        },
+        {
+          "type": "theory",
+          "title": "SMB Triage (139/445)",
+          "content": "SMB bulduğunda:\n\n```\n[SMB AÇIK]\n    ↓\n1. Null session dene\n   smbclient -L //IP -N\n   → Share listesi görüyor musun?\n    ↓\n2. Her share'i kontrol et\n   smbclient //IP/sharename -N\n   → ls → get [ilginç dosya]\n    ↓  \n3. Enum4linux ile detaylı bilgi\n   enum4linux -a IP\n   → Kullanıcı listesi!\n   → Parola politikası (lockout var mı?)\n    ↓\n4. Versiyon CVE'si\n   nmap -p 445 --script smb-vuln-* IP\n   → EternalBlue (MS17-010)?\n    ↓\n5. Cred varsa\n   smbmap -H IP -u user -p pass\n   netexec smb IP -u user -p pass --shares\n```\n\n**Kritik:** Null session'da boş görünse bile, sonraki adımlarda kullanıcı adı bulduktan sonra tekrar dene."
+        },
+        {
+          "type": "commands",
+          "title": "Hızlı Triage Komutları",
+          "items": [
+            {
+              "command": "ftp 10.10.10.X",
+              "desc": "FTP — user: anonymous, pass: (boş enter) → anonymous giriş"
+            },
+            {
+              "command": "smbclient -L //10.10.10.X -N && smbclient //10.10.10.X/SHARE -N",
+              "desc": "SMB null session → share listesi → içine gir"
+            },
+            {
+              "command": "curl -s http://10.10.10.X/robots.txt && curl -s http://10.10.10.X/.htaccess",
+              "desc": "Web — gizli path'ler için hızlı kontrol"
+            },
+            {
+              "command": "whatweb http://10.10.10.X -v",
+              "desc": "Web teknoloji parmak izi — CMS + versiyon → CVE araması"
+            },
+            {
+              "command": "searchsploit apache 2.4.29",
+              "desc": "Servis versiyon → exploit araması (her servis için yap)"
+            },
+            {
+              "command": "netexec smb 10.10.10.X -u '' -p '' --shares",
+              "desc": "SMB null session modern yöntem (netexec/CME)"
+            },
+            {
+              "command": "ldapsearch -x -H ldap://10.10.10.X -b 'DC=domain,DC=local'",
+              "desc": "LDAP anonymous bind → AD kullanıcı listesi"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rabbit-hole",
+      "title": "Rabbit Hole'dan Çıkış — 30 Dk Takıldın, Ne Yaparsın?",
+      "icon": "🐇",
+      "sections": [
+        {
+          "type": "theory",
+          "title": "Rabbit Hole Nedir?",
+          "content": "**Rabbit hole:** Seni uğraştıran ama sonuç vermeyen, makine çözümüyle ilgisiz bir yol.\n\nHTB'de kasıtlı konulur. Amacı: **dikkat dağıtmak ve sabırsız olanları eliyor.**\n\n**Rabbit hole belirtileri:**\n- 30+ dakika aynı servis/parametre üzerinde çalışıyorsun, hiç ilerleme yok\n- Brute force çalışıyor ama milyonlarca denemeden sonuç çıkmıyor\n- Bir exploit buluyorsun ama uygulamıyorsun — hata üstüne hata\n- \"Şu an doğru yoldayım, biraz daha\" düşüncesi 30 dakika boyunca devam etti\n\n**Gerçek örnek:** Web'de bir giriş formu var, 2 saat hydra ile brute force yapıyorsun. Cevap: SSH'da public key authentication açık, web'de ayrı bir admin panel var `/secret-admin/`."
+        },
+        {
+          "type": "theory",
+          "title": "Takıldığında Yap Listesi",
+          "content": "**1. DUR ve notlarına bak (2 dk)**\nToplanan bilgileri listele:\n- Açık portlar hangileri?\n- Her servise gerçekten baktım mı?\n- Hangi dizinleri keşfettim?\n- Hangi kullanıcı adlarını biliyorum?\n\n**2. Sıfırdan tara (5 dk)**\n```bash\n# UDP portları hiç baktın mı?\nsudo nmap -sU --top-ports 20 10.10.10.X\n\n# Full port tarama tamamlandı mı?\ncat nmap/allports.nmap | grep open\n\n# SSL sertifikasına baktın mı?\nopenssl s_client -connect 10.10.10.X:443 | grep CN\n\n# HTTP başlıklarına baktın mı?\ncurl -I http://10.10.10.X\n```\n\n**3. Versiyon'a göre CVE bak**\n```bash\n# Her servise bu soruyu sor:\nsearchsploit [servis_adı] [versiyon]\n\n# Nmap'in bulduğu versiyonları listele\ncat nmap/initial.nmap | grep 'Service'\n```\n\n**4. Kullanıcı adı ile ne yapabilirsin?**\n```bash\n# Kullanıcı adı bulduysan:\n# → web girişi dene\n# → SSH dene (şifreli mi?)\n# → SMB'de share'e eriş\n# → Email var mı? Credential stuffing?\n```\n\n**5. HackTricks'te ara**\nHer servis için: `https://book.hacktricks.xyz/network-services-pentesting/pentesting-[PORT]`\n\n**6. Writeup ipucu al (son çare)**\nEğer 2 saat geçtiyse, IppSec'in videosunun ilk 5 dakikasını izle — sadece başlangıç ipucunu al, devamını izleme."
+        },
+        {
+          "type": "commands",
+          "title": "Takıldığında Çalıştır Listesi",
+          "items": [
+            {
+              "command": "sudo nmap -sU --top-ports 20 -oA nmap/udp 10.10.10.X",
+              "desc": "UDP portları — DNS(53), SNMP(161), NFS(2049) sık atlanır"
+            },
+            {
+              "command": "curl -v http://10.10.10.X 2>&1 | grep -E 'Location|Server|X-|Set-Cookie'",
+              "desc": "HTTP header'ları gözden kaçtı mı? Redirect? Custom header?"
+            },
+            {
+              "command": "gobuster dir -u http://10.10.10.X -w /usr/share/seclists/Discovery/Web-Content/raft-large-directories.txt -x php,asp,aspx,txt,html,bak,old,zip -t 50",
+              "desc": "Büyük wordlist + daha fazla uzantı dene (ilk tarama küçük wordlist miydi?)"
+            },
+            {
+              "command": "gobuster vhost -u http://10.10.10.X -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt --append-domain",
+              "desc": "Virtual host / subdomain baktın mı? target.htb → dev.target.htb?"
+            },
+            {
+              "command": "nmap -p 445 --script 'smb-vuln-*' 10.10.10.X",
+              "desc": "SMB zafiyet taraması — EternalBlue, PrintNightmare vs."
+            },
+            {
+              "command": "showmount -e 10.10.10.X",
+              "desc": "NFS mount noktaları — port 2049 açıksa, mount edilebilir share var mı?"
+            },
+            {
+              "command": "snmpwalk -v2c -c public 10.10.10.X",
+              "desc": "SNMP (UDP 161) — sistem bilgisi, kullanıcı adları, running process"
+            }
+          ]
+        },
+        {
+          "type": "theory",
+          "title": "Zihin Sıfırlama Tekniği",
+          "content": "**5 dakika tamamen dur.** Kahve iç. Sonra şu soruları sor:\n\n1. **'Bunun neden çalışmadığını' değil, 'Ne çalışabilir?' diye düşün**\n   - Elimde ne var? (kullanıcı adı, potansiyel şifre, versiyon numarası)\n   - Bu bilgiyle başka ne yapabilirim?\n\n2. **Basite dön**\n   - Makine Easy/Medium ise çözüm genellikle karmaşık değil\n   - Default credential, yaygın CVE, basit LFI — bunlar Easy/Medium'da işe yarar\n\n3. **Yanlış anladığın bir şey var mı?**\n   - Web sitesinde fark etmediğin bir link?\n   - Nmap çıktısında gözden kaçırdığın bir versiyon?\n   - Bir dosyada gizli bilgi (metadata, comment, hidden field)?\n\n4. **Lateral thinking (yan düşünce)**\n   - Giriş formu şifre ile mi, yoksa başka bir yol var mı?\n   - Direkt exploit yerine, konfigürasyon dosyasını okuyabilir miyim?\n   - Credential reuse: bir yerde şifre bulduysan her yerde dene!\n\n**Altın kural:** HTB'de her bilgi bir anlam taşır. Not defterindeki küçük detay, saatler sonra çözüm anahtarı olabilir."
+        }
+      ]
     }
   ]
 }

