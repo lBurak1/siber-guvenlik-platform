@@ -21,6 +21,7 @@ const navLinks = [
   { href: "/ecosystem",             icon: Globe,      label: "Sektör",       color: "pink" },
   { href: "/cheatsheet",            icon: Zap,        label: "Cheat Sheet",  color: "yellow" },
   { href: "/lab",                   icon: FlaskConical, label: "Komut Lab",  color: "teal" },
+  { href: "/osint-araclari",        icon: Search,      label: "OSINT Araçları", color: "purple" },
 ] as const;
 
 const colorMap: Record<string, { active: string; hover: string }> = {

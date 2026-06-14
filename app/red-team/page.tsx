@@ -104,18 +104,6 @@ const toolCategories = [
     ],
   },
   {
-    id: "ctf",
-    category: "CTF Teknikleri",
-    emoji: "🚩",
-    desc: "Forensics, kripto, binary — CTF kategorileri",
-    items: [
-      { slug: "stego-forensics",     title: "Steganografi & Forensics",                  desc: "binwalk, steghide, exiftool, zsteg, PCAP analizi", level: "Başlangıç–Orta" },
-      { slug: "crypto-ctf",          title: "Kriptografi & Encoding",                    desc: "Base64/hex, XOR, klasik şifreler, RSA, CyberChef", level: "Başlangıç–İleri" },
-      { slug: "binary-exploitation", title: "Binary Exploitation",                       desc: "Ghidra, gdb, pwntools, buffer overflow, ret2win", level: "Orta–İleri" },
-      { slug: "htb-metodoloji",      title: "HTB Metodoloji — İlk Kutunun Anatomisi",   desc: "Recon'dan root'a sistematik HTB/THM çözüm yaklaşımı", level: "Başlangıç–Orta" },
-    ],
-  },
-  {
     id: "sunucu-saldiri",
     category: "Sunucu Saldırıları",
     emoji: "🖥️",
@@ -596,13 +584,13 @@ const sevBadge: Record<string, string> = {
 
 // ─── Bileşen ─────────────────────────────────────────────────────────
 export default function RedTeamPage() {
-  const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
+  const [openCats,        setOpenCats]        = useState<Record<string, boolean>>({});
+  const [openScenarioCat, setOpenScenarioCat] = useState<string | null>(null);
+  const [openScenario,    setOpenScenario]    = useState<string | null>(null);
+  const [openVuln,        setOpenVuln]        = useState<string | null>(null);
   const [tab, setTab] = useState<"araclar" | "senaryolar" | "zafiyetler">("araclar");
-  const [openScenario, setOpenScenario] = useState<string | null>(null);
-  const [openVuln, setOpenVuln] = useState<string | null>(null);
 
-  const toggle = (id: string) =>
-    setOpenCats((s) => ({ ...s, [id]: !s[id] }));
+  const toggleCat = (id: string) => setOpenCats((s) => ({ ...s, [id]: !s[id] }));
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -617,38 +605,30 @@ export default function RedTeamPage() {
         </Link>
       </p>
 
-      {/* Sekme başlıkları */}
+      {/* Sekmeler */}
       <div className="flex gap-1 mb-6 border-b border-surface-3">
-        <button
-          onClick={() => setTab("araclar")}
-          className={cn("px-4 py-2 text-sm font-semibold transition-colors border-b-2 -mb-px",
-            tab === "araclar"
-              ? "border-red-500 text-red-300"
-              : "border-transparent text-terminal-comment hover:text-terminal-white")}
-        >
-          <Shield className="w-3.5 h-3.5 inline mr-1.5" />Araçlar
-        </button>
-        <button
-          onClick={() => setTab("senaryolar")}
-          className={cn("px-4 py-2 text-sm font-semibold transition-colors border-b-2 -mb-px",
-            tab === "senaryolar"
-              ? "border-red-500 text-red-300"
-              : "border-transparent text-terminal-comment hover:text-terminal-white")}
-        >
-          <GitBranch className="w-3.5 h-3.5 inline mr-1.5" />Saldırı Senaryoları
-        </button>
-        <button
-          onClick={() => setTab("zafiyetler")}
-          className={cn("px-4 py-2 text-sm font-semibold transition-colors border-b-2 -mb-px",
-            tab === "zafiyetler"
-              ? "border-red-500 text-red-300"
-              : "border-transparent text-terminal-comment hover:text-terminal-white")}
-        >
-          <Bug className="w-3.5 h-3.5 inline mr-1.5" />Popüler Zafiyetler
-        </button>
+        {([
+          { id: "araclar",    icon: Shield,    label: "Araçlar" },
+          { id: "senaryolar", icon: GitBranch, label: "Saldırı Senaryoları" },
+          { id: "zafiyetler", icon: Bug,       label: "Popüler Zafiyetler" },
+        ] as const).map(({ id, icon: Icon, label }) => (
+          <button
+            key={id}
+            onClick={() => setTab(id)}
+            className={cn(
+              "flex items-center gap-1.5 px-4 py-2 text-sm font-semibold transition-colors border-b-2 -mb-px",
+              tab === id
+                ? "border-red-500 text-red-300"
+                : "border-transparent text-terminal-comment hover:text-terminal-white"
+            )}
+          >
+            <Icon className="w-3.5 h-3.5" />
+            {label}
+          </button>
+        ))}
       </div>
 
-      {/* ARAÇLAR — Kart Grid */}
+      {/* ── ARAÇLAR ── */}
       {tab === "araclar" && (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {toolCategories.map((cat) => {
@@ -657,43 +637,38 @@ export default function RedTeamPage() {
               <div
                 key={cat.id}
                 className={cn(
-                  "border rounded-xl overflow-hidden transition-all duration-200 flex flex-col",
+                  "border rounded-xl overflow-hidden transition-all duration-200",
                   isOpen
-                    ? "border-red-500/40 shadow-[0_0_24px_rgba(239,68,68,0.1)] sm:col-span-2 lg:col-span-3"
-                    : "border-surface-3 hover:border-red-500/30 hover:shadow-[0_0_16px_rgba(239,68,68,0.07)]"
+                    ? "border-red-500/40 shadow-[0_0_24px_rgba(239,68,68,0.08)] sm:col-span-2 lg:col-span-3"
+                    : "border-surface-3 hover:border-red-500/30"
                 )}
               >
-                {/* Kart başlığı */}
                 <button
-                  onClick={() => toggle(cat.id)}
+                  onClick={() => toggleCat(cat.id)}
                   className={cn(
-                    "w-full text-left p-4 transition-colors flex gap-3 items-start",
+                    "w-full text-left px-4 py-3.5 transition-colors flex items-center gap-3",
                     isOpen ? "bg-red-500/5" : "hover:bg-surface-2"
                   )}
                 >
-                  <span className="text-2xl mt-0.5 shrink-0">{cat.emoji}</span>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
                       <span className="text-sm font-semibold text-terminal-white">{cat.category}</span>
-                      <span className="text-xs font-mono text-red-400/60 bg-red-500/5 border border-red-500/15 px-1.5 py-0.5 rounded">
+                      <span className="text-xs font-mono text-red-400/70 bg-red-500/5 border border-red-500/15 px-1.5 py-0.5 rounded">
                         {cat.items.length} araç
                       </span>
                     </div>
-                    <p className="text-xs text-terminal-comment leading-relaxed">{cat.desc}</p>
+                    <p className="text-xs text-terminal-comment">{cat.desc}</p>
                   </div>
-                  <span className="mt-1 shrink-0">
-                    {isOpen
-                      ? <ChevronDown className="w-4 h-4 text-red-400" />
-                      : <ChevronRight className="w-4 h-4 text-terminal-comment" />}
-                  </span>
+                  {isOpen
+                    ? <ChevronDown className="w-4 h-4 text-red-400 shrink-0" />
+                    : <ChevronRight className="w-4 h-4 text-terminal-comment shrink-0" />}
                 </button>
 
-                {/* Açık hâl — araç listesi */}
                 {isOpen && (
                   <div className="border-t border-surface-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-2 p-3 bg-surface-1/40">
                     {cat.items.map((tool) => (
                       <Link key={tool.slug} href={`/red-team/${tool.slug}`} className="group">
-                        <div className="h-full rounded-lg border border-surface-3 hover:border-red-500/40 hover:shadow-[0_0_14px_rgba(239,68,68,0.1)] bg-surface-1 p-3 transition-all flex flex-col gap-1">
+                        <div className="h-full rounded-lg border border-surface-3 hover:border-red-500/40 bg-surface-1 p-3 transition-all flex flex-col gap-1">
                           <div className="flex items-start justify-between gap-1">
                             <span className="text-xs font-semibold text-terminal-white group-hover:text-red-300 transition-colors leading-snug">
                               {tool.title}
@@ -701,7 +676,7 @@ export default function RedTeamPage() {
                             <ArrowRight className="w-3 h-3 text-terminal-comment group-hover:text-red-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
                           </div>
                           <p className="text-xs text-terminal-comment leading-relaxed flex-1">{tool.desc}</p>
-                          <span className="text-xs font-mono text-red-400/70 bg-red-500/5 border border-red-500/15 px-1.5 py-0.5 rounded w-fit mt-1">
+                          <span className="text-xs font-mono text-red-400/60 bg-red-500/5 border border-red-500/10 px-1.5 py-0.5 rounded w-fit mt-1">
                             {tool.level}
                           </span>
                         </div>
@@ -715,23 +690,148 @@ export default function RedTeamPage() {
         </div>
       )}
 
-      {/* POPÜLER ZAFİYETLER */}
+      {/* ── SALDIRI SENARYOLARI ── */}
+      {tab === "senaryolar" && (
+        <div>
+          <p className="text-xs text-terminal-comment mb-5">
+            Tek başına araç bilmek yetmez —{" "}
+            <span className="text-red-300">zincirleyen düşünce biçimi</span> seni senior yapan şeydir.
+            Tüm senaryolar yalnızca yetkili pentest veya izole lab{" "}
+            <span className="text-cyan-400">(HTB / THM / CTF)</span> içindir.
+          </p>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            {scenarioCategories.map((cat) => {
+              const isCatOpen = openScenarioCat === cat.id;
+              return (
+                <div
+                  key={cat.id}
+                  className={cn(
+                    "border rounded-xl overflow-hidden transition-all duration-200",
+                    isCatOpen
+                      ? "border-red-500/40 shadow-[0_0_24px_rgba(239,68,68,0.08)] sm:col-span-2"
+                      : "border-surface-3 hover:border-red-500/30"
+                  )}
+                >
+                  {/* Kategori başlığı */}
+                  <button
+                    onClick={() => {
+                      setOpenScenarioCat(isCatOpen ? null : cat.id);
+                      setOpenScenario(null);
+                    }}
+                    className={cn(
+                      "w-full text-left px-4 py-3.5 transition-colors flex items-center gap-3",
+                      isCatOpen ? "bg-red-500/5" : "hover:bg-surface-2"
+                    )}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <span className="text-sm font-semibold text-terminal-white">{cat.label}</span>
+                        <span className="text-xs font-mono text-red-400/70 bg-red-500/5 border border-red-500/15 px-1.5 py-0.5 rounded">
+                          {cat.scenarios.length} senaryo
+                        </span>
+                      </div>
+                      <p className="text-xs text-terminal-comment">
+                        {cat.scenarios.map((s) => s.difficulty).join(" · ")}
+                      </p>
+                    </div>
+                    {isCatOpen
+                      ? <ChevronDown className="w-4 h-4 text-red-400 shrink-0" />
+                      : <ChevronRight className="w-4 h-4 text-terminal-comment shrink-0" />}
+                  </button>
+
+                  {/* Senaryolar */}
+                  {isCatOpen && (
+                    <div className="border-t border-surface-3 p-3 space-y-2 bg-surface-1/30">
+                      {cat.scenarios.map((s) => {
+                        const isOpen = openScenario === s.id;
+                        return (
+                          <div key={s.id} className={cn("border rounded-lg overflow-hidden transition-all",
+                            isOpen ? "border-red-500/30" : "border-surface-3")}>
+                            <button
+                              onClick={() => setOpenScenario(isOpen ? null : s.id)}
+                              className={cn("w-full flex items-start gap-3 px-4 py-3 text-left transition-colors",
+                                isOpen ? "bg-red-500/5" : "hover:bg-surface-2")}
+                            >
+                              <Crosshair className={cn("w-4 h-4 shrink-0 mt-0.5", isOpen ? "text-red-400" : "text-terminal-comment")} />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                                  <span className="text-sm font-semibold text-terminal-white leading-snug">{s.title}</span>
+                                  <span className={cn("text-xs font-mono px-1.5 py-0.5 rounded border", levelColor[s.diffColor])}>
+                                    {s.difficulty}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-terminal-comment">{s.target}</p>
+                              </div>
+                              {isOpen
+                                ? <ChevronDown className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                                : <ChevronRight className="w-4 h-4 text-terminal-comment shrink-0 mt-0.5" />}
+                            </button>
+
+                            {isOpen && (
+                              <div className="border-t border-surface-3 p-4 space-y-3 bg-surface-1/50">
+                                <p className="text-xs text-terminal-comment leading-relaxed">{s.desc}</p>
+                                <div className="space-y-2">
+                                  {s.chain.map((c, i) => (
+                                    <div key={c.step} className="flex gap-3">
+                                      <div className="flex flex-col items-center">
+                                        <div className="w-6 h-6 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-xs font-mono text-red-400 shrink-0">
+                                          {c.step}
+                                        </div>
+                                        {i < s.chain.length - 1 && <div className="w-px flex-1 bg-red-500/10 mt-1" />}
+                                      </div>
+                                      <div className="pb-3 min-w-0 flex-1">
+                                        <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                                          <span className="text-sm font-semibold text-terminal-white">{c.label}</span>
+                                          <Link
+                                            href={c.href}
+                                            className="text-xs font-mono text-red-400 bg-red-500/5 border border-red-500/20 px-1.5 py-0.5 rounded hover:bg-red-500/15 transition-colors"
+                                          >
+                                            {c.tool} →
+                                          </Link>
+                                        </div>
+                                        <p className="text-xs text-terminal-comment font-mono leading-relaxed">{c.detail}</p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="rounded-md border border-blue-500/20 bg-blue-500/5 px-3 py-2">
+                                  <p className="text-xs text-blue-300/80">
+                                    <span className="font-semibold text-blue-300">Savunma: </span>{s.defense}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── POPÜLER ZAFİYETLER ── */}
       {tab === "zafiyetler" && (
         <div className="space-y-2">
           <p className="text-xs text-terminal-comment mb-4">
             Mülakatların ve bug bounty'nin omurgası —{" "}
             <span className="text-red-300">her zafiyeti teori + payload + savunma</span> üçlüsüyle öğren.
-            Tüm içerik yalnızca yetkili pentest veya izole lab <span className="text-terminal-cyan">(HTB / THM / CTF)</span> içindir.
+            Tüm içerik yalnızca yetkili pentest veya izole lab <span className="text-cyan-400">(HTB / THM / CTF)</span> içindir.
           </p>
           {vulnList.map((v) => {
             const isOpen = openVuln === v.id;
             return (
-              <div key={v.id} className={cn("border rounded-lg overflow-hidden transition-all", isOpen ? "border-red-500/40" : "border-surface-3")}>
+              <div key={v.id} className={cn("border rounded-lg overflow-hidden transition-all",
+                isOpen ? "border-red-500/40" : "border-surface-3")}>
                 <button
                   onClick={() => setOpenVuln(isOpen ? null : v.id)}
-                  className={cn("w-full flex items-center gap-3 px-4 py-3 text-left transition-colors", isOpen ? "bg-red-500/5" : "hover:bg-surface-2")}
+                  className={cn("w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
+                    isOpen ? "bg-red-500/5" : "hover:bg-surface-2")}
                 >
-                  <span className="text-lg shrink-0">{v.emoji}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-0.5">
                       <span className="text-sm font-semibold text-terminal-white">{v.title}</span>
@@ -740,20 +840,19 @@ export default function RedTeamPage() {
                     </div>
                     <p className="text-xs text-terminal-comment">{v.desc}</p>
                   </div>
-                  {isOpen ? <ChevronDown className="w-4 h-4 text-red-400 shrink-0" /> : <ChevronRight className="w-4 h-4 text-terminal-comment shrink-0" />}
+                  {isOpen
+                    ? <ChevronDown className="w-4 h-4 text-red-400 shrink-0" />
+                    : <ChevronRight className="w-4 h-4 text-terminal-comment shrink-0" />}
                 </button>
 
                 {isOpen && (
                   <div className="border-t border-surface-3 divide-y divide-surface-3/50">
-                    {/* Nasıl çalışır */}
-                    <div className="p-4 space-y-1">
-                      <p className="text-xs font-semibold text-terminal-white mb-2">⚙️ Nasıl Çalışır?</p>
-                      <pre className="text-xs text-terminal-cyan font-mono bg-surface-2 rounded-md p-3 whitespace-pre-wrap leading-relaxed">{v.howWorks}</pre>
-                    </div>
-
-                    {/* Payload'lar */}
                     <div className="p-4">
-                      <p className="text-xs font-semibold text-terminal-white mb-2">🎯 Test Payload'ları</p>
+                      <p className="text-xs font-semibold text-terminal-white mb-2">Nasıl Çalışır?</p>
+                      <pre className="text-xs text-cyan-400 font-mono bg-surface-2 rounded-md p-3 whitespace-pre-wrap leading-relaxed">{v.howWorks}</pre>
+                    </div>
+                    <div className="p-4">
+                      <p className="text-xs font-semibold text-terminal-white mb-2">Test Payload'ları</p>
                       <div className="space-y-2">
                         {v.payloads.map((pl, i) => (
                           <div key={i} className="rounded border border-surface-3 bg-surface-1 p-2.5">
@@ -763,25 +862,25 @@ export default function RedTeamPage() {
                         ))}
                       </div>
                     </div>
-
-                    {/* Araç + Savunma + Mülakat */}
                     <div className="grid sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-surface-3/50">
                       <div className="p-4">
-                        <p className="text-xs font-semibold text-terminal-white mb-1.5">🔧 Araç</p>
+                        <p className="text-xs font-semibold text-terminal-white mb-1.5">Araç</p>
                         <p className="text-xs text-terminal-comment mb-2">{v.tool}</p>
                         <Link href={`/red-team/${v.toolSlug}`} className="text-xs text-red-400 hover:text-red-300 transition-colors inline-flex items-center gap-1">
                           Araca Git <ArrowRight className="w-3 h-3" />
                         </Link>
                       </div>
                       <div className="p-4">
-                        <p className="text-xs font-semibold text-terminal-white mb-1.5">🛡 Savunma</p>
+                        <p className="text-xs font-semibold text-terminal-white mb-1.5">Savunma</p>
                         <p className="text-xs text-blue-300/80 leading-relaxed">{v.defense}</p>
                       </div>
                       <div className="p-4">
-                        <p className="text-xs font-semibold text-terminal-white mb-1.5">🎤 Mülakat Soruları</p>
+                        <p className="text-xs font-semibold text-terminal-white mb-1.5">Mülakat Soruları</p>
                         <ul className="space-y-1">
                           {v.interview.map((q, i) => (
-                            <li key={i} className="text-xs text-terminal-comment before:content-['›'] before:text-red-400 before:mr-1.5">{q}</li>
+                            <li key={i} className="flex gap-1.5 text-xs text-terminal-comment">
+                              <span className="text-red-400 shrink-0">›</span>{q}
+                            </li>
                           ))}
                         </ul>
                       </div>
@@ -791,97 +890,6 @@ export default function RedTeamPage() {
               </div>
             );
           })}
-        </div>
-      )}
-
-      {/* SALDIRI SENARYOLARI */}
-      {tab === "senaryolar" && (
-        <div className="space-y-6">
-          <p className="text-xs text-terminal-comment">
-            Tek başına araç bilmek yetmez —{" "}
-            <span className="text-red-300">zincirleyen düşünce biçimi</span> seni senior yapan şeydir.
-            Tüm senaryolar yalnızca yetkili pentest veya izole lab{" "}
-            <span className="text-terminal-cyan">(HTB / THM / CTF)</span> içindir.
-          </p>
-
-          {scenarioCategories.map((cat) => (
-            <div key={cat.id}>
-              {/* Kategori başlığı */}
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-base">{cat.emoji}</span>
-                <span className="text-xs font-semibold text-terminal-white tracking-wide uppercase">{cat.label}</span>
-                <span className="text-xs font-mono text-red-400/50 bg-red-500/5 border border-red-500/10 px-1.5 py-0.5 rounded">
-                  {cat.scenarios.length} senaryo
-                </span>
-                <div className="flex-1 h-px bg-surface-3 ml-1" />
-              </div>
-
-              <div className="space-y-2">
-                {cat.scenarios.map((s) => {
-                  const isOpen = openScenario === s.id;
-                  return (
-                    <div key={s.id} className="border border-surface-3 rounded-lg overflow-hidden">
-                      <button
-                        onClick={() => setOpenScenario(isOpen ? null : s.id)}
-                        className={cn("w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
-                          isOpen ? "bg-red-500/5" : "hover:bg-surface-2")}
-                      >
-                        <Crosshair className={cn("w-4 h-4 shrink-0", isOpen ? "text-red-400" : "text-terminal-comment")} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                            <span className="text-sm font-semibold text-terminal-white">{s.title}</span>
-                            <span className={cn("text-xs font-mono px-1.5 py-0.5 rounded border", levelColor[s.diffColor])}>
-                              {s.difficulty}
-                            </span>
-                          </div>
-                          <p className="text-xs text-terminal-comment">{s.target} — {s.desc}</p>
-                        </div>
-                        {isOpen
-                          ? <ChevronDown className="w-4 h-4 text-red-400 shrink-0" />
-                          : <ChevronRight className="w-4 h-4 text-terminal-comment shrink-0" />}
-                      </button>
-
-                      {isOpen && (
-                        <div className="border-t border-surface-3 p-4 space-y-3 bg-surface-1/50">
-                          <div className="space-y-2">
-                            {s.chain.map((c, i) => (
-                              <div key={c.step} className="flex gap-3">
-                                <div className="flex flex-col items-center">
-                                  <div className="w-6 h-6 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-xs font-mono text-red-400 shrink-0">
-                                    {c.step}
-                                  </div>
-                                  {i < s.chain.length - 1 && (
-                                    <div className="w-px flex-1 bg-red-500/10 mt-1" />
-                                  )}
-                                </div>
-                                <div className="pb-3 min-w-0 flex-1">
-                                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                                    <span className="text-sm font-semibold text-terminal-white">{c.label}</span>
-                                    <Link
-                                      href={c.href}
-                                      className="text-xs font-mono text-red-400 bg-red-500/5 border border-red-500/20 px-1.5 py-0.5 rounded hover:bg-red-500/15 transition-colors"
-                                    >
-                                      {c.tool} →
-                                    </Link>
-                                  </div>
-                                  <p className="text-xs text-terminal-comment font-mono leading-relaxed">{c.detail}</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="rounded-md border border-blue-500/20 bg-blue-500/5 px-3 py-2">
-                            <p className="text-xs text-blue-300/80">
-                              <span className="font-semibold text-blue-300">🛡 Savunma: </span>{s.defense}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
         </div>
       )}
     </div>

@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useProgressStore } from "@/lib/progress-store";
 import {
-  LayoutDashboard, Flame, CheckCircle2, Star, Award, TrendingUp, ArrowRight, BookOpen
+  LayoutDashboard, Flame, CheckCircle2, Star, Award, TrendingUp, ArrowRight, BookOpen,
+  Shield, Eye, GitMerge, AlertTriangle, Zap, GitBranch
 } from "lucide-react";
 
 interface StatEntry { label: string; color: string; topics: number; modules: number; }
@@ -93,8 +94,34 @@ export default function PanelPage() {
         </div>
       </div>
 
+      {/* Siber Güvenlik Hızlı Erişim */}
+      <h2 className="text-sm font-mono text-terminal-comment uppercase tracking-wider mb-4">Siber Güvenlik</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-8">
+        {[
+          { href: "/metodoloji",  icon: GitBranch,     label: "Metodoloji",   color: "fuchsia", bar: "bg-fuchsia-500",  text: "text-fuchsia-400",  border: "border-fuchsia-500/30",  bg: "bg-fuchsia-500/5" },
+          { href: "/red-team",    icon: Shield,        label: "Red Team",     color: "red",     bar: "bg-red-500",      text: "text-red-400",      border: "border-red-500/30",      bg: "bg-red-500/5" },
+          { href: "/blue-team",   icon: Eye,           label: "Blue Team",    color: "blue",    bar: "bg-blue-500",     text: "text-blue-400",     border: "border-blue-500/30",     bg: "bg-blue-500/5" },
+          { href: "/purple-team", icon: GitMerge,      label: "Purple Team",  color: "purple",  bar: "bg-purple-500",   text: "text-purple-400",   border: "border-purple-500/30",   bg: "bg-purple-500/5" },
+          { href: "/owasp-top10", icon: AlertTriangle, label: "OWASP Top 10", color: "amber",   bar: "bg-amber-500",    text: "text-amber-400",    border: "border-amber-500/30",    bg: "bg-amber-500/5" },
+          { href: "/cheatsheet",  icon: Zap,           label: "Cheat Sheet",  color: "yellow",  bar: "bg-yellow-500",   text: "text-yellow-400",   border: "border-yellow-500/30",   bg: "bg-yellow-500/5" },
+        ].map(({ href, icon: Icon, label, text, border, bg }) => {
+          const done = doneByTeam(href.slice(1));
+          return (
+            <Link key={href} href={href} className="group">
+              <div className={`rounded-xl border ${border} ${bg} p-3 text-center hover:opacity-90 transition-all`}>
+                <Icon className={`w-5 h-5 mx-auto mb-1.5 ${text}`} />
+                <p className={`text-xs font-semibold ${text}`}>{label}</p>
+                {done > 0 && (
+                  <p className="text-[10px] text-terminal-comment mt-0.5">{done} modül</p>
+                )}
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+
       {/* Bölüm ilerlemeleri */}
-      <h2 className="text-sm font-mono text-terminal-comment uppercase tracking-wider mb-4">Bölüm İlerlemesi</h2>
+      <h2 className="text-sm font-mono text-terminal-comment uppercase tracking-wider mb-4">Tüm Bölümler</h2>
       <div className="space-y-3 mb-10">
         {stats && Object.entries(stats).sort((a, b) => b[1].modules - a[1].modules).map(([dir, s]) => {
           const done = doneByTeam(dir);
