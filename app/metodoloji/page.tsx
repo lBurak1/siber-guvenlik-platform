@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GitBranch, ArrowRight, Crosshair } from "lucide-react";
+import { GitBranch, ArrowRight, Crosshair, Flag } from "lucide-react";
 
 export const metadata = { title: "Metodoloji" };
 
@@ -68,6 +68,36 @@ export default function MetodolojiPage() {
             </div>
           </Link>
         ))}
+      </div>
+
+      {/* CTF Teknikleri */}
+      <div className="mt-10">
+        <div className="flex items-center gap-2 mb-1">
+          <Flag className="w-5 h-5 text-amber-400" />
+          <h2 className="text-base font-bold text-terminal-white">CTF Teknikleri</h2>
+        </div>
+        <p className="text-xs text-terminal-comment mb-4 ml-7">
+          Capture-The-Flag yarışmalarında ve izole lab ortamlarında uygulanan teknikler. Gerçek pentest metodolojisini kavramak için iyi zemin.
+        </p>
+        <div className="grid sm:grid-cols-2 gap-3">
+          {[
+            { href: "/red-team/stego-forensics",    title: "Steganografi & Forensics",           desc: "Gizli veri tespiti, metadata analizi, disk imaj inceleme. Dijital delil zinciri.", level: "Temel → Orta" },
+            { href: "/red-team/crypto-ctf",         title: "Kriptografi & Encoding",             desc: "Caesar, XOR, Base64/32/16, RSA zayıflıkları, hash kırma yöntemleri.", level: "Temel → Orta" },
+            { href: "/red-team/binary-exploitation", title: "Binary Exploitation (Pwn)",          desc: "Buffer overflow, format string, ROP chain, pwntools — bellek saldırılarının temeli.", level: "Orta → İleri" },
+            { href: "/red-team/htb-metodoloji",     title: "HTB Metodoloji — İlk Kutunun Anatomisi", desc: "HackTheBox makinelerine yaklaşım: IP triyajı, rabbit hole yönetimi, foothold alma akışı.", level: "Orta → İleri" },
+          ].map((item) => (
+            <Link key={item.href} href={item.href} className="group">
+              <div className="rounded-xl border border-surface-3 bg-surface-1 p-4 hover:border-amber-500/30 hover:shadow-[0_0_16px_rgba(245,158,11,0.06)] transition-all h-full">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <h3 className="font-semibold text-terminal-white group-hover:text-amber-300 transition-colors text-sm">{item.title}</h3>
+                  <ArrowRight className="w-4 h-4 text-terminal-comment group-hover:text-amber-400 group-hover:translate-x-1 transition-all shrink-0 mt-0.5" />
+                </div>
+                <p className="text-xs text-terminal-comment leading-relaxed">{item.desc}</p>
+                <span className="mt-3 inline-block text-xs font-mono text-amber-400/70 bg-amber-500/5 border border-amber-500/15 px-2 py-0.5 rounded">{item.level}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

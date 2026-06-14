@@ -29,7 +29,7 @@ export default function Sidebar({ team }: SidebarProps) {
   const { isComplete } = useProgressStore();
 
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(
-    () => Object.fromEntries(teamNav.categories.map((c) => [c.id, true]))
+    () => Object.fromEntries(teamNav.categories.map((c) => [c.id, false]))
   );
 
   const toggleCategory = (id: string) =>
@@ -49,7 +49,7 @@ export default function Sidebar({ team }: SidebarProps) {
       <nav className="flex-1 overflow-y-auto p-3 space-y-1">
         {teamNav.categories.map((category) => {
           const Icon = iconMap[category.icon] ?? Search;
-          const isOpen = openCategories[category.id] ?? true;
+          const isOpen = openCategories[category.id] ?? false;
 
           return (
             <div key={category.id}>
