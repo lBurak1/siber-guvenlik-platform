@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Shield, Terminal, Eye, GitMerge,
-  Network, BookOpen, Menu, X, Zap, Monitor, Cpu, AlertTriangle, Search, Boxes, GraduationCap, Globe, LayoutDashboard, Server, Database, GitBranch
+  Network, BookOpen, Menu, X, Zap, Monitor, Cpu, AlertTriangle, Search, Boxes, GraduationCap, Globe, LayoutDashboard, Server, Database, GitBranch, Layers
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn, teamConfig } from "@/lib/utils";
@@ -11,12 +11,7 @@ import CommandPalette from "@/components/search/CommandPalette";
 import { useProgressStore } from "@/lib/progress-store";
 
 const navLinks = [
-  { href: "/network-fundamentals",  icon: Network,    label: "Network",      color: "emerald" },
-  { href: "/linux-fundamentals",    icon: Terminal,   label: "Linux",        color: "orange" },
-  { href: "/windows-fundamentals",  icon: Monitor,    label: "Windows",      color: "sky" },
-  { href: "/devops-fundamentals",   icon: Boxes,      label: "DevOps",       color: "teal" },
-  { href: "/servers-fundamentals",  icon: Server,     label: "Sunucular",    color: "cyan" },
-  { href: "/database-fundamentals", icon: Database,   label: "Veritabanları", color: "lime" },
+  { href: "/altyapi",               icon: Layers,     label: "Altyapı",      color: "emerald" },
   { href: "/metodoloji",            icon: GitBranch,  label: "Metodoloji",   color: "fuchsia" },
   { href: "/red-team",              icon: Shield,     label: "Red Team",     color: "red" },
   { href: "/blue-team",             icon: Eye,        label: "Blue Team",    color: "blue" },
