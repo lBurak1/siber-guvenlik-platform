@@ -42,6 +42,7 @@ const toolCategories = [
       { slug: "nikto",            title: "Nikto",                  desc: "Web sunucu zafiyet ve yanlış yapılandırma tarayıcısı", level: "Başlangıç" },
       { slug: "wpscan",           title: "WPScan",                 desc: "WordPress eklenti, tema, kullanıcı zafiyet taraması", level: "Orta" },
       { slug: "web-exploitation", title: "Web Sömürü Teknikleri", desc: "LFI/RFI, dosya yükleme bypass, log poisoning, command injection", level: "Orta–İleri" },
+      { slug: "xss",              title: "XSS — Cross-Site Scripting", desc: "Reflected/Stored/DOM XSS, cookie hırsızlığı, keylogger, CSP bypass", level: "Orta" },
     ],
   },
   {
@@ -52,6 +53,7 @@ const toolCategories = [
     items: [
       { slug: "reverse-shells", title: "Reverse Shell & TTY", desc: "Bash/Python/PHP/PowerShell reverse shell + tam etkileşimli TTY", level: "Başlangıç–Orta" },
       { slug: "file-transfer",  title: "Dosya Transferi",     desc: "HTTP, certutil, SMB, scp ile hedefe/hedeften dosya aktarma", level: "Başlangıç–Orta" },
+      { slug: "netcat",         title: "Netcat (nc)",         desc: "Ağın İsviçre çakısı — listener, reverse/bind shell, port scan, file transfer", level: "Başlangıç" },
     ],
   },
   {
@@ -60,9 +62,10 @@ const toolCategories = [
     emoji: "🔑",
     desc: "Online brute force, offline hash kırma",
     items: [
-      { slug: "hydra",   title: "Hydra",            desc: "Online brute force — SSH, FTP, HTTP, SMB form saldırıları", level: "Orta" },
-      { slug: "john",    title: "John the Ripper",  desc: "Offline hash kırma, /etc/shadow ve özel format desteği", level: "Orta" },
-      { slug: "hashcat", title: "Hashcat",          desc: "GPU hızlandırmalı hash kırma — NTLM, Kerberoast, WPA", level: "Orta–İleri" },
+      { slug: "hydra",            title: "Hydra",                          desc: "Online brute force — SSH, FTP, HTTP, SMB form saldırıları", level: "Orta" },
+      { slug: "john",             title: "John the Ripper",                desc: "Offline hash kırma, /etc/shadow ve özel format desteği", level: "Orta" },
+      { slug: "hashcat",          title: "Hashcat",                        desc: "GPU hızlandırmalı hash kırma — NTLM, Kerberoast, WPA", level: "Orta–İleri" },
+      { slug: "wordlist-uretimi", title: "Wordlist Üretimi (CeWL/Crunch)", desc: "Hedef odaklı wordlist — CeWL web crawler, Crunch pattern, CUPP kişisel", level: "Orta" },
     ],
   },
   {
@@ -71,7 +74,8 @@ const toolCategories = [
     emoji: "💥",
     desc: "Public exploit, msfvenom, meterpreter",
     items: [
-      { slug: "metasploit", title: "Metasploit Framework", desc: "Exploit, msfvenom payload üretimi ve meterpreter post-exploitation", level: "Orta–İleri" },
+      { slug: "metasploit",   title: "Metasploit Framework",        desc: "Exploit, msfvenom payload üretimi ve meterpreter post-exploitation", level: "Orta–İleri" },
+      { slug: "searchsploit", title: "Searchsploit & ExploitDB",    desc: "Offline CVE/exploit araması, PoC okuma, Metasploit yönlendirme", level: "Başlangıç–Orta" },
     ],
   },
   {
@@ -103,9 +107,10 @@ const toolCategories = [
     emoji: "🚩",
     desc: "Forensics, kripto, binary — CTF kategorileri",
     items: [
-      { slug: "stego-forensics",     title: "Steganografi & Forensics", desc: "binwalk, steghide, exiftool, zsteg, PCAP analizi", level: "Başlangıç–Orta" },
-      { slug: "crypto-ctf",          title: "Kriptografi & Encoding",   desc: "Base64/hex, XOR, klasik şifreler, RSA, CyberChef", level: "Başlangıç–İleri" },
-      { slug: "binary-exploitation", title: "Binary Exploitation",      desc: "Ghidra, gdb, pwntools, buffer overflow, ret2win", level: "Orta–İleri" },
+      { slug: "stego-forensics",     title: "Steganografi & Forensics",                  desc: "binwalk, steghide, exiftool, zsteg, PCAP analizi", level: "Başlangıç–Orta" },
+      { slug: "crypto-ctf",          title: "Kriptografi & Encoding",                    desc: "Base64/hex, XOR, klasik şifreler, RSA, CyberChef", level: "Başlangıç–İleri" },
+      { slug: "binary-exploitation", title: "Binary Exploitation",                       desc: "Ghidra, gdb, pwntools, buffer overflow, ret2win", level: "Orta–İleri" },
+      { slug: "htb-metodoloji",      title: "HTB Metodoloji — İlk Kutunun Anatomisi",   desc: "Recon'dan root'a sistematik HTB/THM çözüm yaklaşımı", level: "Başlangıç–Orta" },
     ],
   },
   {
@@ -129,6 +134,15 @@ const toolCategories = [
       { slug: "cloud-pentest",  title: "Cloud Pentest",        desc: "S3 bucket, IAM enum, metadata SSRF, ScoutSuite, Pacu", level: "Orta–İleri" },
       { slug: "wifi-pentest",   title: "Wi-Fi Güvenlik Testi", desc: "Monitor mod, handshake yakalama, Evil Twin, Enterprise", level: "Orta–İleri" },
       { slug: "mobile-pentest", title: "Mobil Uygulama",       desc: "APK analizi, Burp araya girme, SSL Pinning bypass, Frida", level: "Orta–İleri" },
+    ],
+  },
+  {
+    id: "raporlama",
+    category: "Raporlama & Kariyer",
+    emoji: "📋",
+    desc: "Pentest raporu yazımı, CVSS puanlama, kariyer gelişimi",
+    items: [
+      { slug: "pentest-raporlama", title: "Pentest Raporlama", desc: "Executive summary, CVSS v3.1, bulgu şablonu, kanıt portfolyosu", level: "Tüm Seviyeler" },
     ],
   },
 ];

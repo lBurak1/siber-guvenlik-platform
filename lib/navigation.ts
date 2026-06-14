@@ -137,6 +137,7 @@ export const navigation = {
           { id: "nikto", title: "Nikto", slug: "nikto" },
           { id: "wpscan", title: "WPScan", slug: "wpscan" },
           { id: "web-exploitation", title: "Web Sömürü (LFI/Upload)", slug: "web-exploitation" },
+          { id: "xss", title: "XSS — Cross-Site Scripting", slug: "xss" },
         ],
       },
       {
@@ -146,6 +147,7 @@ export const navigation = {
         tools: [
           { id: "reverse-shells", title: "Reverse Shell & TTY", slug: "reverse-shells" },
           { id: "file-transfer", title: "Dosya Transferi", slug: "file-transfer" },
+          { id: "netcat", title: "Netcat (nc)", slug: "netcat" },
         ],
       },
       {
@@ -156,6 +158,7 @@ export const navigation = {
           { id: "hydra", title: "Hydra", slug: "hydra" },
           { id: "john", title: "John the Ripper", slug: "john" },
           { id: "hashcat", title: "Hashcat", slug: "hashcat" },
+          { id: "wordlist-uretimi", title: "Wordlist Üretimi (CeWL/Crunch)", slug: "wordlist-uretimi" },
         ],
       },
       {
@@ -164,6 +167,7 @@ export const navigation = {
         icon: "Crosshair",
         tools: [
           { id: "metasploit", title: "Metasploit", slug: "metasploit" },
+          { id: "searchsploit", title: "Searchsploit & ExploitDB", slug: "searchsploit" },
         ],
       },
       {
@@ -195,6 +199,15 @@ export const navigation = {
           { id: "stego-forensics", title: "Steganografi & Forensics", slug: "stego-forensics" },
           { id: "crypto-ctf", title: "Kriptografi & Encoding", slug: "crypto-ctf" },
           { id: "binary-exploitation", title: "Binary Exploitation (Pwn)", slug: "binary-exploitation" },
+          { id: "htb-metodoloji", title: "HTB Metodoloji — İlk Kutunun Anatomisi", slug: "htb-metodoloji" },
+        ],
+      },
+      {
+        id: "raporlama",
+        title: "Raporlama & Kariyer",
+        icon: "FileText",
+        tools: [
+          { id: "pentest-raporlama", title: "Pentest Raporlama", slug: "pentest-raporlama" },
         ],
       },
       {

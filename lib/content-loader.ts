@@ -37,6 +37,12 @@ const redTeamMap: Record<string, () => Promise<any>> = {
   "windows-server": () => import("@/content/red-team/windows-server.json"),
   "web-servers":    () => import("@/content/red-team/web-servers.json"),
   "database-servers": () => import("@/content/red-team/database-servers.json"),
+  "netcat":           () => import("@/content/red-team/netcat.json"),
+  "searchsploit":     () => import("@/content/red-team/searchsploit.json"),
+  "xss":              () => import("@/content/red-team/xss.json"),
+  "wordlist-uretimi": () => import("@/content/red-team/wordlist-uretimi.json"),
+  "pentest-raporlama":() => import("@/content/red-team/pentest-raporlama.json"),
+  "htb-metodoloji":   () => import("@/content/red-team/htb-metodoloji.json"),
 };
 
 // ─── Blue Team Tools ─────────────────────────────────────────────────

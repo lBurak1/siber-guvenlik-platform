@@ -1,0 +1,148 @@
+{
+  "id": "wordlist-uretimi",
+  "slug": "wordlist-uretimi",
+  "title": "Wordlist Üretimi — CeWL, Crunch & Kurallar",
+  "subtitle": "Rockyou Yetmediğinde — Hedef Odaklı Liste Yap",
+  "description": "rockyou.txt bulunamadı ya da işe yaramadı — şimdi ne yapacaksın? CeWL ile hedefin sitesinden kelime listesi çıkar, Crunch ile örüntü tabanlı üret, Hashcat kurallarıyla mutasyona uğrat.",
+  "team": "red-team",
+  "category": "Parola Saldırıları",
+  "phase": "Credential Access",
+  "icon": "📋",
+  "color": "#eab308",
+  "tags": ["cewl", "crunch", "wordlist", "custom-wordlist", "hashcat-rules", "password-spray", "cupp", "mentalist", "parola-uretimi", "brute-force"],
+  "modules": [
+    {
+      "id": "cewl-temeller",
+      "title": "CeWL — Hedefin Sitesinden Wordlist",
+      "description": "Hedef web sitesini tara, özgün kelimeler topla ve kişiselleştirilmiş parola listesi oluştur.",
+      "difficulty": "beginner",
+      "duration": "20 dk",
+      "sections": [
+        {
+          "id": "cewl-theory",
+          "type": "theory",
+          "title": "Neden Özel Wordlist?",
+          "content": "**rockyou.txt** (14 milyon parola) genel saldırılar için güçlüdür. Ama kurumsal hedefler genellikle şu kalıpları kullanır:\n- Şirket adı + yıl: `Acme2024!`\n- Ürün adı: `Firewall@Corp`\n- Çalışan ismi + rakam: `Burak123`\n\nBu parolalar rockyou'da yoktur ama **hedefi anlayarak üretilebilir**.\n\n**CeWL (Custom Word List generator)** — hedefin web sitesini crawl eder, metinden kelimeler çıkarır. Şirket adları, ürünler, proje isimleri, çalışan isimleri web sitesinde açıkça yazıyor.\n\n**Ne zaman kullanılır?**\n- Password spray'de 1-3 deneme hakkın var, doğru kelimelerle harcamalısın\n- Hash kırma: genel liste kıramadı, hedefe özgü liste dene\n- CTF: 'kıramazsın' diye görünen hash, site adından üretilen listede kırılır"
+        },
+        {
+          "id": "cewl-komutlar",
+          "type": "commands",
+          "title": "CeWL Komutları",
+          "commands": [
+            {
+              "command": "# Temel kullanım:\ncewl http://hedef.com -w hedef_wordlist.txt\n\n# Daha derin tarama (derinlik 3, min 6 karakter):\ncewl http://hedef.com -d 3 -m 6 -w cewl_output.txt\n\n# E-posta adreslerini de topla:\ncewl http://hedef.com -d 2 -m 5 --email -e -w kelimeler.txt\n\n# Kimlik doğrulamalı tarama (Basic Auth):\ncewl http://hedef.com -d 2 -a --auth-type basic --auth-user admin --auth-pass password -w kelimeler.txt\n\n# Sonucu görüntüle ve say:\nwc -l kelimeler.txt\nsort -u kelimeler.txt | head -20",
+              "description": "CeWL ile hedef siteden kelime toplama — -d derinlik, -m minimum kelime uzunluğu.",
+              "output": "$ cewl http://hedef.com -d 3 -m 6 -w kelimeler.txt\n[+] Starting to crawl http://hedef.com\n[+] Visited: http://hedef.com\n[+] Visited: http://hedef.com/about\n[+] Visited: http://hedef.com/team\n...\n$ wc -l kelimeler.txt\n347 kelimeler.txt\n$ head -5 kelimeler.txt\nAcmeSecure\nFirewall\nEnterprise\nSecurity\nDashboard",
+              "flags": [
+                { "flag": "-d N", "description": "Tarama derinliği (default 2). -d 3 linkleri takip eder" },
+                { "flag": "-m N", "description": "Minimum kelime uzunluğu (default 3). -m 8 parola politikasına uygun" },
+                { "flag": "--email / -e", "description": "E-posta adreslerini topla" },
+                { "flag": "--with-numbers", "description": "Rakam içeren kelimeleri dahil et" },
+                { "flag": "-w dosya", "description": "Çıktı dosyası" }
+              ]
+            },
+            {
+              "command": "# CeWL çıktısını hashcat ile kullan:\nhashcat -m 0 hashes.txt kelimeler.txt\n\n# Hydra ile password spray:\nhydra -L users.txt -P kelimeler.txt ssh://10.10.10.1\n\n# NetExec ile AD spray:\nnetexec smb 10.10.10.1 -u users.txt -P kelimeler.txt --no-bruteforce",
+              "description": "Üretilen wordlist'i doğrudan saldırı araçlarına ver."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crunch-uretim",
+      "title": "Crunch — Örüntü Tabanlı Wordlist",
+      "description": "Bildiğin parola formatına göre tüm kombinasyonları üret: uzunluk, karakter seti, pattern.",
+      "difficulty": "intermediate",
+      "duration": "25 dk",
+      "sections": [
+        {
+          "id": "crunch-komutlar",
+          "type": "commands",
+          "title": "Crunch Komutları",
+          "commands": [
+            {
+              "command": "# Temel söz dizimi:\n# crunch <min_uzunluk> <max_uzunluk> [karakter_seti] [seçenekler]\n\n# 8 karakterli sadece rakam:\ncrunch 8 8 0123456789 -o rakamlar.txt\n\n# 6-10 karakter, küçük harf + rakam:\ncrunch 6 10 abcdefghijklmnopqrstuvwxyz0123456789 -o karma.txt\n\n# Büyük harf + küçük harf + rakam (8 karakter):\ncrunch 8 8 ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 -o tum.txt",
+              "description": "Crunch ile belirtilen karakter setinden tüm kombinasyonları üret.",
+              "warning": "Uzun listeler devasa dosyalar üretir. crunch 8 8 abcdef0-9 → GB boyutunda. Pipe ile direkt hashcat'e ver."
+            },
+            {
+              "command": "# Pattern (kalıp) tabanlı üretim — en güçlü özellik:\n# @ = küçük harf  , = büyük harf  % = rakam  ^ = özel karakter\n\n# 'Acme' + 4 rakam: Acme2024, Acme1234...\ncrunch 8 8 -t Acme%%%% -o acme_list.txt\n\n# Büyük harf + küçük harf + 3 rakam + ! : Burak123!\ncrunch 8 8 -t ,@@@%%%^ -o pattern.txt\n\n# Bilinen prefix: 'Summer' + yıl\ncrunch 10 10 -t Summer%%%% -o summer.txt\n\n# Bilinen format: Ad + soyad ilk harf + rakam: BurakT123\ncrunch 8 12 -t @@@@,%%%%  -o isim_format.txt",
+              "description": "-t ile kalıp tabanlı üretim — kurumsal parola kalıplarını hedefle.",
+              "output": "$ crunch 8 8 -t Acme%%%% -o acme_list.txt\nCrunch will now generate the following amount of data: 810 bytes\n0 MB\n0 GB\n0 TB\n0 PB\nCrunch will now generate the following number of lines: 10000\n\n$ head -5 acme_list.txt\nAcme0000\nAcme0001\nAcme0002",
+              "tip": "Pipe ile direkt hashcat'e ilet — dosyaya yazmadan: crunch 8 8 -t Acme%%%% | hashcat -m 1000 hash.txt"
+            },
+            {
+              "command": "# Kelime listesine permütasyon:\ncrunch 1 1 -p Acme 2024 Secure Summer\n# → Acme2024Secure, 2024AcmeSecure, SecureAcme2024...\n\n# Sözlük + rakam ekleme:\ncrunch 1 1 -q kelimeler.txt\n\n# Çıktıyı direkt hashcat'e pipe et (disk dolmasın):\ncrunch 8 10 -t Hedef%%%^ | hashcat -m 0 hash.txt --stdin",
+              "description": "Permütasyon ve sözlük temelli kombinasyonlar — kelime listesinin tüm sıralamaları.",
+              "tip": "-p ile permütasyon listesi küçük kalır ama kombinasyon sayısı kelime sayısının faktöriyeli kadar olabilir."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hashcat-rules-cupp",
+      "title": "Hashcat Kuralları, CUPP ve İleri Teknikler",
+      "description": "Hazır listeyi kuralla mutasyona uğrat, CUPP ile kişiye özel wordlist oluştur ve kombinasyonları birleştir.",
+      "difficulty": "intermediate",
+      "duration": "30 dk",
+      "sections": [
+        {
+          "id": "rules-komutlar",
+          "type": "commands",
+          "title": "Hashcat Kuralları ile Mutasyon",
+          "commands": [
+            {
+              "command": "# Kural dosyaları Kali'de nerede:\nls /usr/share/hashcat/rules/\n# best64.rule     — 64 yaygın mutasyon\n# rockyou-30000.rule — 30.000 kural\n# dive.rule       — çok kapsamlı, yavaş\n# d3ad0ne.rule    — agresif mutasyon\n\n# CeWL listesine kural uygula:\nhashcat -m 0 hash.txt cewl_output.txt -r /usr/share/hashcat/rules/best64.rule\n\n# Birden fazla kural:\nhashcat -m 0 hash.txt cewl_output.txt \\\n  -r /usr/share/hashcat/rules/best64.rule \\\n  -r /usr/share/hashcat/rules/toggles1.rule",
+              "description": "Hashcat rule'ları — 'Acme' kelimesinden 'Acme2024!', 'acme', 'ACME', '@cme' gibi yüzlerce varyant üretir.",
+              "tip": "best64.rule en iyi başlangıç noktasıdır — hızlı, kapsamlı. rockyou-30000 çok daha fazla kombinasyon ama yavaş."
+            },
+            {
+              "command": "# Kendi kuralını yaz:\n# Kural dosyası oluştur:\ncat > ozel_kural.rule << 'EOF'\n:\n$1\n$2024\n$!\n^A\nu\nl\nc\nso@\nss $\nEOF\n\n# Kural syntax:\n# :       → değişiklik yok (orijinal)\n# $X      → sona X ekle\n# ^X      → başa X ekle\n# u       → BÜYÜK harf\n# l       → küçük harf\n# c       → İlk harf büyük\n# so@     → 'o' harfini '@' ile değiştir (leetspeak)\n# ss $    → 's' harflerini '$' ile değiştir\n\nhashcat -m 0 hash.txt kelimeler.txt -r ozel_kural.rule",
+              "description": "Özel kural dosyası yazma — hedefin parola politikasına özel mutasyonlar.",
+              "output": "# 'acme' kelimesine kurallar uygulanınca:\nacme        (: orijinal)\nacme1        ($1)\nacme2024     ($2024)\nacme!        ($!)\nAcme         (c — ilk büyük)\nACME         (u — tümü büyük)\n@cme         (so@ — o→@)\nacme         değil → \nacm3         (se3 — e→3)"
+            },
+            {
+              "command": "# CUPP — Common User Passwords Profiler:\npip3 install cupp  # veya: git clone https://github.com/Mebus/cupp.git\npython3 cupp.py -i\n\n# Etkileşimli mod sorar:\n# > First Name: Burak\n# > Surname: Tekcan\n# > Nickname: burak\n# > Birthdate: 21051998\n# > Partner's name: \n# > Company: Acme\n# > Keywords: security pentest\n\n# Çıktı: burak.txt — kişiye özel yüzlerce kombinasyon\n# BurakTekcan, burak1998, Burak21, Acme@Burak...",
+              "description": "CUPP — hedef kişinin bilgilerini girerek kişiselleştirilmiş wordlist üret. OSINT bilgisiyle birleşince çok güçlü.",
+              "tip": "OSINT ile LinkedIn'den bilgi topla → CUPP'a gir → kişiye özel wordlist. Hedefli saldırılarda rockyou'yu geçer."
+            },
+            {
+              "command": "# Wordlist kombinasyonu (combinator saldırısı):\n# İki listeyi birleştir: her kelime1 + her kelime2\nhashcat -m 0 hash.txt -a 1 liste1.txt liste2.txt\n\n# Örnek:\n# liste1.txt: Burak / Acme / Summer\n# liste2.txt: 2024 / ! / @123\n# Kombinasyon: Burak2024, Burak!, Burak@123, Acme2024...\n\n# Mask saldırısı (brute force ama akıllı):\n# ?l=küçük ?u=büyük ?d=rakam ?s=özel ?a=hepsi\nhashcat -m 0 hash.txt -a 3 ?u?l?l?l?d?d?d?s\n# → Abcd123!\n\n# Sözlük + mask kombinasyonu:\nhashcat -m 0 hash.txt -a 6 kelimeler.txt ?d?d?d?d\n# → Acme2024, Burak1234",
+              "description": "Hashcat saldırı modları — combinator (-a 1), mask (-a 3) ve hybrid (-a 6 sözlük+mask, -a 7 mask+sözlük).",
+              "tip": "-a 6 (sözlük+mask) en verimli kombinasyon — 'kelime + 4 rakam' kalıbı kurumsal parolaların büyük kısmını kapsar."
+            }
+          ]
+        },
+        {
+          "id": "wordlist-lab",
+          "type": "lab",
+          "title": "Lab: CeWL + Crunch + Kural ile Hash Kırma",
+          "scenario": {
+            "title": "Hedef Odaklı Wordlist Pipeline",
+            "objective": "Bir web sitesinden CeWL ile kelime topla, Crunch ile şirket adı + yıl kombinasyonları üret, Hashcat kurallarıyla mutasyona uğrat ve verilen hash'i kır.",
+            "environment": "TryHackMe: 'Password Attacks' odası | Kali Linux (CeWL, Crunch, Hashcat kurulu) | Hash: 8743b52063cd84097a65d1633f5c74f5 (test için: MD5 of 'Acme2024!')",
+            "difficulty": "intermediate",
+            "steps": [
+              "CeWL ile hedef siteyi tara: cewl http://hedef.com -d 3 -m 5 -w site_words.txt",
+              "Manuel olarak bilinen şirket bilgilerini ekle: echo -e 'Acme\\nACME\\nacme\\n2024\\n2023' >> site_words.txt",
+              "Crunch ile şirket adı + yıl kalıpları üret: crunch 8 12 -t Acme%%%% >> site_words.txt",
+              "Duplicate'leri temizle: sort -u site_words.txt -o site_words.txt",
+              "Hashcat ile önce direkt dene: hashcat -m 0 hash.txt site_words.txt",
+              "Bulamazsa kural uygula: hashcat -m 0 hash.txt site_words.txt -r /usr/share/hashcat/rules/best64.rule",
+              "Hala bulamazsa hybrid dene: hashcat -m 0 hash.txt -a 6 site_words.txt ?d?d?d?s"
+            ],
+            "hints": [
+              "Hash: 8743b52063cd84097a65d1633f5c74f5 → MD5 → hashcat -m 0",
+              "CeWL çıktısı + best64.rule genellikle CTF MD5 hash'lerini kırar",
+              "Kırılamazsa: hashcat --show hash.txt → daha önce kırılmış mı kontrol et"
+            ],
+            "flag": "Kırılan parola: Acme2024!",
+            "defenseNote": "Savunma: Minimum 12+ karakter parola politikası. Parolaların sözlük kelimesi içermemesi. MFA (parola kırılsa bile giriş yapılamaz). Düzenli parola değişimi için SIEM uyarısı. HIBP (Have I Been Pwned) API ile kırılmış parola kontrolü."
+          }
+        }
+      ]
+    }
+  ]
+}
