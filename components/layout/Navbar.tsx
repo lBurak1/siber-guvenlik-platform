@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Shield, Terminal, Eye, GitMerge,
-  Network, BookOpen, Menu, X, Zap, Monitor, Cpu, AlertTriangle, Search, Boxes, GraduationCap, Globe, LayoutDashboard, Server, Database, GitBranch, Layers
+  Network, BookOpen, Menu, X, Zap, Monitor, Cpu, AlertTriangle, Search, Boxes, GraduationCap, Globe, LayoutDashboard, Server, Database, GitBranch, Layers, FlaskConical
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn, teamConfig } from "@/lib/utils";
@@ -20,6 +20,7 @@ const navLinks = [
   { href: "/certifications",        icon: GraduationCap, label: "Sertifikalar", color: "indigo" },
   { href: "/ecosystem",             icon: Globe,      label: "Sektör",       color: "pink" },
   { href: "/cheatsheet",            icon: Zap,        label: "Cheat Sheet",  color: "yellow" },
+  { href: "/lab",                   icon: FlaskConical, label: "Komut Lab",  color: "teal" },
 ] as const;
 
 const colorMap: Record<string, { active: string; hover: string }> = {
