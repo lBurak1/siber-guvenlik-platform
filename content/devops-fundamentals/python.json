@@ -189,6 +189,125 @@
           }
         }
       ]
+    },
+    {
+      "id": "zafiyet-tarama-araclari",
+      "title": "Zafiyet Tarama Araçları — CV'deki Beceriyi Yaz",
+      "description": "python-nmap ile Nmap otomasyonu, threaded subdomain brute forcer, directory fuzzer, hash identifier ve CVE banner tarayıcı — CV'de yazdığın 'Python ile temel zafiyet tarama araçları geliştirme' becerisi somutlaşıyor.",
+      "difficulty": "advanced",
+      "duration": "60 dk",
+      "sections": [
+        {
+          "id": "python-nmap-theory",
+          "type": "theory",
+          "title": "Araç Geliştirme Felsefesi — Neden Kendi Aracını Yazarsın?",
+          "content": "Hazır araçlar (Nmap, Gobuster, Hydra) harika — ama gerçek dünyada üç durum olur:\n\n1. **Özelleştirme:** Nmap çıktısını alıp otomatik CVE araması yapan bir script lazım. Hazır araç yok → kendin yaz.\n2. **Kısıt:** CTF sunucusunda Nmap yok, sadece Python var. Kendi mini tarayıcını kullan.\n3. **Mülakat:** 'Bir port tarayıcı yaz' sorusu teknik mülakatların klasiği. Cevabın hazır olsun.\n\n**Bu modülde yazacağın araçlar:**\n- `python-nmap` wrapper → Nmap'i Python'dan kontrol et, çıktıyı parse et\n- Threaded subdomain brute forcer → 1000 subdomain'i paralel tara\n- Web directory fuzzer → Gobuster'ın Python versiyonu\n- Hash identifier → hash tipini regex ile tespit et\n- CVE banner tarayıcı → port banner → versiyon → NVD API sorgusu\n\n**Kütüphane kurulumları:**\n```bash\npip3 install python-nmap requests colorama concurrent.futures\n```"
+        },
+        {
+          "id": "python-nmap-komutlar",
+          "type": "commands",
+          "title": "python-nmap — Nmap'i Python'dan Kontrol Et",
+          "commands": [
+            {
+              "command": "pip3 install python-nmap\n\n# Kurulum testi:\nimport nmap\nnm = nmap.PortScanner()\nprint(nm.nmap_version())",
+              "description": "python-nmap kurulumu ve versiyon kontrolü",
+              "tip": "python-nmap, Nmap'in çıktısını otomatik parse eden bir wrapper'dır — XML çıktısını elle işlemek zorunda kalmazsın."
+            },
+            {
+              "command": "#!/usr/bin/env python3\nimport nmap\n\nhedef = \"10.10.10.1\"\nnm = nmap.PortScanner()\n\n# Servis versiyonu + OS tespiti taraması\nnm.scan(hedef, arguments=\"-sV -O --open -T4\")\n\nfor host in nm.all_hosts():\n    print(f\"\\n[+] Host: {host} ({nm[host].hostname()})\")\n    print(f\"    Durum: {nm[host].state()}\")\n    for proto in nm[host].all_protocols():\n        portlar = nm[host][proto].keys()\n        for port in sorted(portlar):\n            bilgi = nm[host][proto][port]\n            servis  = bilgi['name']\n            versiyon = bilgi['version']\n            print(f\"    {port}/{proto}  {bilgi['state']}  {servis} {versiyon}\")",
+              "description": "python-nmap ile servis versiyonu tespiti — Nmap'i Python'dan çalıştır, sonuçları dict olarak işle.",
+              "output": "[+] Host: 10.10.10.1 (hedef.local)\n    Durum: up\n    22/tcp  open  ssh OpenSSH 7.2p2 Ubuntu\n    80/tcp  open  http Apache httpd 2.4.18\n    3306/tcp open  mysql MySQL 5.7.33",
+              "tip": "nm[host][proto][port] bir dict döner: 'state', 'name', 'product', 'version', 'extrainfo', 'cpe' anahtarları var."
+            },
+            {
+              "command": "#!/usr/bin/env python3\nimport nmap\nimport argparse\n\nparser = argparse.ArgumentParser(description=\"python-nmap wrapper\")\nparser.add_argument(\"-t\", \"--target\", required=True, help=\"Hedef IP veya subnet\")\nparser.add_argument(\"-p\", \"--ports\", default=\"1-1024\", help=\"Port aralığı\")\nparser.add_argument(\"--vuln\", action=\"store_true\", help=\"Zafiyet taraması (NSE)\")\nargs = parser.parse_args()\n\nnm = nmap.PortScanner()\ntarama = \"-sV -T4\"\nif args.vuln:\n    tarama += \" --script=vuln\"\n\nprint(f\"[*] Tarama başlıyor: {args.target} — portlar: {args.ports}\")\nnm.scan(args.target, ports=args.ports, arguments=tarama)\n\naçik_portlar = []\nfor host in nm.all_hosts():\n    for proto in nm[host].all_protocols():\n        for port in nm[host][proto]:\n            if nm[host][proto][port]['state'] == 'open':\n                açik_portlar.append(port)\n                print(f\"[+] {port}/{proto} AÇIK — {nm[host][proto][port]['name']} {nm[host][proto][port]['version']}\")\n\nprint(f\"\\n[*] Toplam açık port: {len(açik_portlar)}\")",
+              "description": "Tam argparse destekli python-nmap aracı — --vuln bayrağıyla NSE zafiyet scriptlerini de çalıştırır.",
+              "tip": "--vuln bayrağı Nmap'in vuln script kategorisini çalıştırır: ms17-010 (EternalBlue), smb-vuln-ms08-067 gibi."
+            }
+          ]
+        },
+        {
+          "id": "subdomain-fuzzer",
+          "type": "commands",
+          "title": "Threaded Subdomain Brute Forcer",
+          "commands": [
+            {
+              "command": "#!/usr/bin/env python3\nimport requests\nimport concurrent.futures\nimport argparse\nfrom colorama import Fore, Style, init\n\ninit(autoreset=True)\n\nparser = argparse.ArgumentParser(description=\"Subdomain Brute Forcer\")\nparser.add_argument(\"-d\", \"--domain\", required=True, help=\"Hedef domain: hedef.com\")\nparser.add_argument(\"-w\", \"--wordlist\", default=\"/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt\")\nparser.add_argument(\"-t\", \"--threads\", type=int, default=50, help=\"Thread sayısı\")\nargs = parser.parse_args()\n\ndef subdomain_kontrol(sub):\n    url = f\"http://{sub}.{args.domain}\"\n    try:\n        r = requests.get(url, timeout=3, allow_redirects=True)\n        if r.status_code < 404:\n            print(f\"{Fore.GREEN}[+] BULUNDU: {url}  [{r.status_code}]{Style.RESET_ALL}\")\n            return url\n    except requests.exceptions.ConnectionError:\n        pass\n    except requests.exceptions.Timeout:\n        pass\n    return None\n\nwith open(args.wordlist) as f:\n    subdomainler = [s.strip() for s in f.readlines()]\n\nprint(f\"[*] {len(subdomainler)} subdomain test ediliyor — {args.threads} thread\")\n\nwith concurrent.futures.ThreadPoolExecutor(max_workers=args.threads) as executor:\n    sonuclar = list(executor.map(subdomain_kontrol, subdomainler))\n\nbuluntular = [s for s in sonuclar if s]\nprint(f\"\\n[*] {len(buluntular)} subdomain bulundu.\")",
+              "description": "50 paralel thread ile subdomain brute forcer — concurrent.futures ile hız, colorama ile renkli çıktı.",
+              "output": "[*] 5000 subdomain test ediliyor — 50 thread\n[+] BULUNDU: http://admin.hedef.com  [200]\n[+] BULUNDU: http://mail.hedef.com   [301]\n[+] BULUNDU: http://dev.hedef.com    [200]\n[+] BULUNDU: http://api.hedef.com    [403]\n\n[*] 4 subdomain bulundu.",
+              "tip": "SecLists wordlist'leri için: apt install seclists. En iyi liste: subdomains-top1million-5000.txt veya bitquark-subdomains-top100000.txt"
+            }
+          ]
+        },
+        {
+          "id": "dir-fuzzer",
+          "type": "commands",
+          "title": "Web Directory Fuzzer — Python'da Gobuster",
+          "commands": [
+            {
+              "command": "#!/usr/bin/env python3\nimport requests\nimport concurrent.futures\nimport argparse\nfrom colorama import Fore, Style, init\n\ninit(autoreset=True)\n\nparser = argparse.ArgumentParser(description=\"Web Directory Fuzzer\")\nparser.add_argument(\"-u\", \"--url\",      required=True, help=\"Hedef URL: http://hedef.com\")\nparser.add_argument(\"-w\", \"--wordlist\", default=\"/usr/share/wordlists/dirb/common.txt\")\nparser.add_argument(\"-x\", \"--ext\",      default=\"\",   help=\"Uzantı filtresi: php,txt,html\")\nparser.add_argument(\"-t\", \"--threads\",  type=int, default=30)\nparser.add_argument(\"-fc\", \"--filter-codes\", default=\"404\", help=\"Gizlenecek status kodlar\")\nargs = parser.parse_args()\n\nGİZLİ_KODLAR = [int(k) for k in args.filter_codes.split(\",\")]\nEKLER = [\"\"] + [f\".{e}\" for e in args.ext.split(\",\")] if args.ext else [\"\"]\n\nSESSION = requests.Session()\nSESSION.headers[\"User-Agent\"] = \"Mozilla/5.0\"\n\ndef istek_at(kelime):\n    for ek in EKLER:\n        yol = f\"{args.url.rstrip('/')}/{kelime}{ek}\"\n        try:\n            r = SESSION.get(yol, timeout=5, allow_redirects=False)\n            if r.status_code not in GİZLİ_KODLAR:\n                renk = Fore.GREEN if r.status_code == 200 else Fore.YELLOW\n                print(f\"{renk}[{r.status_code}] {yol}{Style.RESET_ALL}\")\n        except Exception:\n            pass\n\nwith open(args.wordlist) as f:\n    kelimeler = [s.strip() for s in f if s.strip() and not s.startswith(\"#\")]\n\nprint(f\"[*] {len(kelimeler)} yol test ediliyor → {args.url}\")\nwith concurrent.futures.ThreadPoolExecutor(max_workers=args.threads) as ex:\n    ex.map(istek_at, kelimeler)",
+              "description": "Gobuster'ın Python versiyonu — uzantı filtresi (-x php,txt), status kod filtresi (-fc 404,403), 30 thread.",
+              "output": "[*] 4614 yol test ediliyor → http://10.10.10.1\n[200] http://10.10.10.1/index.php\n[200] http://10.10.10.1/admin\n[301] http://10.10.10.1/uploads\n[403] http://10.10.10.1/.htaccess\n[200] http://10.10.10.1/config.php.bak",
+              "tip": "config.php.bak → yedek dosya ifşası! -x php,bak,txt ile uzantıları da tara."
+            }
+          ]
+        },
+        {
+          "id": "hash-identifier",
+          "type": "commands",
+          "title": "Hash Identifier + CVE Banner Tarayıcı",
+          "commands": [
+            {
+              "command": "#!/usr/bin/env python3\nimport re\nimport sys\n\n# Hash formatları ve desenleri\nHASH_TIPLERI = [\n    (r\"^[a-f0-9]{32}$\",  \"MD5\",     \"hashcat -m 0\"),\n    (r\"^[a-f0-9]{40}$\",  \"SHA-1\",   \"hashcat -m 100\"),\n    (r\"^[a-f0-9]{56}$\",  \"SHA-224\", \"hashcat -m 1300\"),\n    (r\"^[a-f0-9]{64}$\",  \"SHA-256\", \"hashcat -m 1400\"),\n    (r\"^[a-f0-9]{96}$\",  \"SHA-384\", \"hashcat -m 10800\"),\n    (r\"^[a-f0-9]{128}$\", \"SHA-512\", \"hashcat -m 1700\"),\n    (r\"^\\$2[ayb]\\$.{56}$\", \"bcrypt\", \"hashcat -m 3200\"),\n    (r\"^\\$6\\$.{8}\\$.{86}$\", \"SHA-512crypt\", \"hashcat -m 1800\"),\n    (r\"^\\$1\\$.{8}\\$.{22}$\", \"MD5crypt\",     \"hashcat -m 500\"),\n    (r\"^[a-f0-9]{32}:.+$\", \"MD5 + salt\",   \"hashcat -m 20\"),\n    (r\"^[A-Za-z0-9+/]{43}=$\", \"Base64 (muhtemelen SHA-256)\", \"base64 -d\"),\n    (r\"^[A-Z2-7]{32}$\",  \"NTLM (olası)\",  \"hashcat -m 1000\"),\n]\n\ndef hash_tani(h):\n    h = h.strip()\n    eslesmeler = []\n    for desen, isim, komut in HASH_TIPLERI:\n        if re.match(desen, h, re.IGNORECASE):\n            eslesmeler.append((isim, komut))\n    return eslesmeler\n\nif __name__ == \"__main__\":\n    giris = sys.argv[1] if len(sys.argv) > 1 else input(\"Hash: \")\n    sonuclar = hash_tani(giris)\n    if sonuclar:\n        print(f\"[+] Hash tipi tespit edildi ({len(sonuclar)} eşleşme):\")\n        for isim, komut in sonuclar:\n            print(f\"    {isim}  →  {komut} hash.txt rockyou.txt\")\n    else:\n        print(\"[-] Hash tipi tanınamadı — hash-identifier veya hashid dene\")",
+              "description": "Regex tabanlı hash identifier — MD5, SHA-1/256/512, bcrypt, NT hash, salt'lı hash'leri tanır ve hashcat komutunu verir.",
+              "output": "# python3 hash_id.py 5f4dcc3b5aa765d61d8327deb882cf99\n[+] Hash tipi tespit edildi (1 eşleşme):\n    MD5  →  hashcat -m 0 hash.txt rockyou.txt\n\n# python3 hash_id.py '$2y$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ01234'\n[+] Hash tipi tespit edildi (1 eşleşme):\n    bcrypt  →  hashcat -m 3200 hash.txt rockyou.txt",
+              "tip": "CTF'de hash bulunca anında bu aracı çalıştır — hem tipi öğren hem doğru hashcat mode'unu al."
+            },
+            {
+              "command": "#!/usr/bin/env python3\n\"\"\"Banner → Versiyon → NVD CVE Sorgulama\"\"\"\nimport socket\nimport requests\nimport re\nimport sys\n\ndef banner_al(ip, port, timeout=3):\n    try:\n        s = socket.socket()\n        s.settimeout(timeout)\n        s.connect((ip, port))\n        banner = s.recv(1024).decode(errors=\"ignore\").strip()\n        s.close()\n        return banner\n    except Exception:\n        return None\n\ndef cve_sorgula(arama_terimi, max_sonuc=3):\n    \"\"\"NVD (NIST) API üzerinden CVE arama\"\"\"\n    url = \"https://services.nvd.nist.gov/rest/json/cves/2.0\"\n    params = {\"keywordSearch\": arama_terimi, \"resultsPerPage\": max_sonuc}\n    try:\n        r = requests.get(url, params=params, timeout=10)\n        data = r.json()\n        cve_ler = []\n        for vuln in data.get(\"vulnerabilities\", []):\n            cve_id   = vuln[\"cve\"][\"id\"]\n            açiklama = vuln[\"cve\"][\"descriptions\"][0][\"value\"][:120]\n            puan     = vuln[\"cve\"].get(\"metrics\", {}).get(\"cvssMetricV31\", [{}])[0].get(\"cvssData\", {}).get(\"baseScore\", \"N/A\")\n            cve_ler.append((cve_id, puan, açiklama))\n        return cve_ler\n    except Exception:\n        return []\n\nif __name__ == \"__main__\":\n    hedef_ip = sys.argv[1] if len(sys.argv) > 1 else \"10.10.10.1\"\n    portlar   = [21, 22, 25, 80, 443, 3306, 5432, 6379]\n\n    print(f\"[*] CVE Banner Tarayıcı → {hedef_ip}\\n\")\n    for port in portlar:\n        banner = banner_al(hedef_ip, port)\n        if not banner:\n            continue\n        print(f\"[+] Port {port}: {banner[:80]}\")\n\n        # Sürüm numarasını regex ile çıkar\n        versiyon = re.search(r\"[A-Za-z]+[_/ ]([0-9]+\\.[0-9]+\\.?[0-9]*)\", banner)\n        if versiyon:\n            terim = f\"{banner.split()[0]} {versiyon.group(1)}\"\n            print(f\"    → NVD sorgulanıyor: {terim}\")\n            cve_ler = cve_sorgula(terim)\n            for cve_id, puan, açiklama in cve_ler:\n                print(f\"    {cve_id}  [CVSS: {puan}]  {açiklama}...\")\n        print()",
+              "description": "Banner'dan sürümü çıkar, NVD API'siyle CVE sorgula — tam otomatik 'versiyon tespit → zafiyet araştır' döngüsü.",
+              "output": "[*] CVE Banner Tarayıcı → 10.10.10.1\n\n[+] Port 22: SSH-2.0-OpenSSH_7.2p2 Ubuntu-4ubuntu2.8\n    → NVD sorgulanıyor: OpenSSH 7.2\n    CVE-2016-6515  [CVSS: 7.8]  The auth_password function in auth-passwd.c in sshd...\n    CVE-2016-10009 [CVSS: 7.3]  Untrusted search path vulnerability in ssh-agent...\n\n[+] Port 3306: 5.7.33-MySQL Community Server\n    → NVD sorgulanıyor: MySQL 5.7\n    CVE-2021-2307  [CVSS: 6.1]  Vulnerability in MySQL Server product of Oracle...",
+              "tip": "NVD API günde 5 istek/sn sınırı var. Fazla port tararsan time.sleep(0.5) ekle."
+            }
+          ]
+        },
+        {
+          "id": "zafiyet-lab",
+          "type": "lab",
+          "title": "Proje: Mini Zafiyet Tarayıcı — Tam Araç",
+          "scenario": {
+            "title": "AutoScan — Port Tara → Banner Al → CVE Sorgula → Rapor Yaz",
+            "objective": "Tek komutla çalışan, argparse destekli, tüm bu modülleri birleştiren tam bir zafiyet tarama aracı geliştir. Çıktıyı hem terminale hem TXT/JSON dosyasına yaz.",
+            "environment": "Python 3.8+ | pip: python-nmap, requests, colorama | Hedef: TryHackMe lab makinesi veya Metasploitable2 (VMware)",
+            "difficulty": "advanced",
+            "steps": [
+              "Proje dosya yapısını oluştur: autoscan.py, modules/portscanner.py, modules/bannergrabber.py, modules/cvechecker.py",
+              "argparse ile parametreleri tanımla: -t hedef, -p portlar, --threads, --output rapor.json",
+              "python-nmap ile port ve servis tespiti yap, sonuçları dict'e aktar",
+              "Her açık port için banner_al() fonksiyonunu çalıştır",
+              "Banner'dan regex ile versiyon çıkar, NVD API'siyle CVE sorgula",
+              "colorama ile renkli çıktı: yeşil=açık, sarı=CVE var, kırmızı=kritik CVE",
+              "Sonuçları JSON olarak kaydet: {host, port, service, banner, cves: [{id, score, desc}]}",
+              "Kendi aracını gerçek Nmap + searchsploit ile karşılaştır — farklar nerede?"
+            ],
+            "hints": [
+              "modules/ klasörü için __init__.py oluşturmayı unutma",
+              "NVD API rate limit: istek aralarına time.sleep(0.5) ekle",
+              "JSON çıktı için: json.dump(sonuclar, f, indent=2, ensure_ascii=False)",
+              "Thread-safe print için threading.Lock() kullan — aynı anda yazım karışmasın",
+              "CVE CVSS puanı 9.0+ ise kırmızı göster: Fore.RED"
+            ],
+            "flag": "Metasploitable2'de port 6667 (UnrealIRCd) için CVE-2010-2075 (CVSS 10.0) tespit edildi mi?",
+            "defenseNote": "Bu aracı savunma tarafında da kullan: kendi sunucularını düzenli tara, yeni CVE çıkınca otomatik uyarı al. Bir SIEM'e bağlayarak periyodik tarama pipeline'ı kurulabilir."
+          }
+        },
+        {
+          "id": "python-cheatsheet",
+          "type": "advanced",
+          "title": "Güvenlik Python'u — Hızlı Referans",
+          "content": "### Kütüphane Hızlı Referansı\n```python\n# Ağ\nimport socket          # TCP/UDP bağlantı, port tarama\nimport nmap            # python-nmap: Nmap wrapper\nfrom scapy.all import * # Paket craft/sniff (ileri seviye)\n\n# HTTP / Web\nimport requests        # GET/POST, session, headers\nfrom bs4 import BeautifulSoup  # HTML parse\n\n# Sistem\nimport subprocess      # Sistem komutu çalıştır\nimport os, sys, shutil\nimport argparse        # CLI parametreler\n\n# Paralel işlem\nimport threading\nimport concurrent.futures  # ThreadPoolExecutor\n\n# Şifreleme / Hash\nimport hashlib         # md5, sha256 hesapla\nimport base64          # encode/decode\nimport hmac\n\n# Çıktı\nfrom colorama import Fore, Style, init\nimport json\n```\n\n### Güvenlik Snippet'leri\n```python\n# MD5 hash hesapla\nimport hashlib\nhashlib.md5(b'parola').hexdigest()  # '5f4dcc3b5aa765d61d8327deb882cf99'\n\n# Base64 encode/decode\nimport base64\nbase64.b64encode(b'admin:admin').decode()  # 'YWRtaW46YWRtaW4='\nbase64.b64decode('YWRtaW46YWRtaW4=')       # b'admin:admin'\n\n# URL encode/decode\nfrom urllib.parse import quote, unquote\nquote('../etc/passwd')   # '%2E%2E%2Fetc%2Fpasswd'\nunquote('%2e%2e%2f')     # '../'\n\n# Sistem komutu çalıştır ve çıktı al\nimport subprocess\nsonuc = subprocess.run(['nmap', '-sV', '10.10.10.1'], capture_output=True, text=True)\nprint(sonuc.stdout)\n\n# Renkli terminal çıktısı\nfrom colorama import Fore, Style, init\ninit(autoreset=True)\nprint(f\"{Fore.GREEN}[+] Başarı\")\nprint(f\"{Fore.RED}[-] Hata\")\nprint(f\"{Fore.YELLOW}[!] Uyarı\")\n```\n\n### Araç Geliştirme Kalıbı\n```python\n#!/usr/bin/env python3\nimport argparse, sys\nfrom colorama import Fore, init\ninit(autoreset=True)\n\ndef banner():\n    print(f\"{Fore.RED}\" + r\"\"\"\n  ___ ___ ___ \n |_ _|   \\  _\\\n  | || |) | |  \n |___|___/_|  v1.0\n    \"\"\")\n\ndef main():\n    banner()\n    parser = argparse.ArgumentParser(description='Mini araç şablonu')\n    parser.add_argument('-t', '--target',  required=True)\n    parser.add_argument('-p', '--port',    type=int, default=80)\n    parser.add_argument('-v', '--verbose', action='store_true')\n    args = parser.parse_args()\n    # İşlem burada...\n\nif __name__ == '__main__':\n    main()\n```"
+        }
+      ]
     }
   ]
 }
