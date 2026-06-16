@@ -1,6 +1,10 @@
 # Siber Güvenlik Eğitim Platformu
 
-Türkçe, kapsamlı ve senaryo odaklı bir siber güvenlik eğitim platformu.
+Projenin Amacı
+
+Siber güvenlik serüvenimde kendi öğrenim sürecimi daha iyi planlamak ve öğrenmem gereken tüm materyalleri tek bir merkezde toplamak amacıyla bu platformu geliştirdim.
+
+Teorik notları, ofansif/defansif metodolojileri ve pratik laboratuvar senaryolarını bu yapı altında birleştirerek; çalışmalarım sırasında her şeyin elimin altında bulunduğu, sürekli güncellenen kişisel bir yol haritası oluşturdum.
 
 ## İçerik
 
