@@ -11,12 +11,18 @@ Teorik notları, ofansif/defansif metodolojileri ve pratik laboratuvar senaryola
 | Bölüm | Konu | Modül |
 |-------|------|-------|
 | Linux Eğitimi | Terminal, Dosya Sistemi, İzinler, Scripting | 9 konu |
-| Windows Eğitimi | CMD, PowerShell, Servis, Ağ | 5 konu |
+| Windows Eğitimi | CMD, PowerShell, Servis, Ağ | 6 konu |
 | Network | OSI, TCP/IP, Protokoller, CCNA | 13 konu |
-| Red Team | OSINT, Nmap, SQLMap, Burp Suite, PrivEsc | 11 araç |
-| Blue Team | Wireshark, Log Analizi | 2 araç |
+| DevOps | Docker, CI/CD, Git | 3 konu |
+| Veritabanları | SQL temelleri, güvenlik | 4 konu |
+| Sunucular | Linux/Windows server yönetimi | 4 konu |
+| Red Team | OSINT, Nmap, SQLMap, Burp Suite, Metasploit, PrivEsc, Pivoting | 43 araç |
+| Blue Team | Wireshark, Log Analizi, SIEM | 8 araç |
 | Purple Team | MITRE ATT&CK, Sigma | 1 metodoloji |
-| Cheat Sheet | Port bazlı komut kütüphanesi | 9 port |
+| Metodoloji | Saldırı zinciri, pre-engagement, AD saldırı zinciri | 3 konu |
+| OWASP Top 10 | A01–A10 detaylı analiz | 10 konu |
+| Sertifikalar | Security+, CEH, OSCP yol haritası | 5 konu |
+| Cheat Sheet | Port bazlı komut kütüphanesi | 8 port |
 
 ## Kurulum & Çalıştırma
 
