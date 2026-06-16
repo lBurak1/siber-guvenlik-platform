@@ -41,7 +41,7 @@ export default function DevopsSidebar() {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   return (
-    <aside className="w-64 shrink-0 border-r border-surface-3 bg-surface-1 overflow-y-auto sticky top-14 h-[calc(100vh-3.5rem)]">
+    <aside className="w-64 shrink-0 hidden lg:flex lg:flex-col border-r border-surface-3 bg-surface-1 overflow-y-auto sticky top-14 h-[calc(100vh-3.5rem)]">
       {/* Header */}
       <div className="px-4 py-4 border-b border-surface-3">
         <Link href="/devops-fundamentals" className="flex items-center gap-2 group">
