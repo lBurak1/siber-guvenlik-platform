@@ -141,7 +141,8 @@ const toolCategories = [
     emoji: "🌐",
     desc: "Tarayıcıdan direkt kullanılan yardımcı pentest araçları",
     items: [
-      { slug: "", href: "https://www.revshells.com", title: "RevShells.com", desc: "IP ve port gir, dil seç (bash/python/php/PowerShell...) → hazır reverse shell komutu üret", level: "CTF / Lab" },
+      { slug: "", href: "https://www.revshells.com",        title: "RevShells.com",   desc: "IP ve port gir, dil seç (bash/python/php/PowerShell...) → hazır reverse shell komutu üret", level: "CTF / Lab" },
+      { slug: "", href: "https://gtfobins.github.io",       title: "GTFOBins",        desc: "SUID/sudo/capability ile istismar edilebilen Linux binary'lerin komut veritabanı — PrivEsc'in ilk durağı", level: "CTF / Lab" },
     ],
   },
 ];
