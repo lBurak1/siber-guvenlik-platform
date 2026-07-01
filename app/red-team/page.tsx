@@ -135,6 +135,15 @@ const toolCategories = [
       { slug: "pentest-raporlama", title: "Pentest Raporlama", desc: "Executive summary, CVSS v3.1, bulgu şablonu, kanıt portfolyosu", level: "Tüm Seviyeler" },
     ],
   },
+  {
+    id: "cevrimici-araclar",
+    category: "Çevrimiçi Araçlar",
+    emoji: "🌐",
+    desc: "Tarayıcıdan direkt kullanılan yardımcı pentest araçları",
+    items: [
+      { slug: "", href: "https://www.revshells.com", title: "RevShells.com", desc: "IP ve port gir, dil seç (bash/python/php/PowerShell...) → hazır reverse shell komutu üret", level: "CTF / Lab" },
+    ],
+  },
 ];
 
 // ─── Saldırı Senaryoları ─────────────────────────────────────────────
@@ -1056,8 +1065,11 @@ export default function RedTeamPage() {
 
                 {isOpen && (
                   <div className="border-t border-surface-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-2 p-3 bg-surface-1/40">
-                    {cat.items.map((tool) => (
-                      <Link key={tool.slug} href={`/red-team/${tool.slug}`} className="group">
+                    {cat.items.map((tool) => {
+                      const toolHref = (tool as { href?: string }).href ?? `/red-team/${tool.slug}`;
+                      const isExternal = toolHref.startsWith("http");
+                      return (
+                      <Link key={tool.slug || toolHref} href={toolHref} target={isExternal ? "_blank" : undefined} rel={isExternal ? "noopener noreferrer" : undefined} className="group">
                         <div className="h-full rounded-lg border border-surface-3 hover:border-red-500/40 bg-surface-1 p-3 transition-all flex flex-col gap-1">
                           <div className="flex items-start justify-between gap-1">
                             <span className="text-xs font-semibold text-terminal-white group-hover:text-red-300 transition-colors leading-snug">
@@ -1071,7 +1083,8 @@ export default function RedTeamPage() {
                           </span>
                         </div>
                       </Link>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

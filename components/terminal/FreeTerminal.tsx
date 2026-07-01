@@ -427,6 +427,8 @@ function runCmd(
         ftp:           { desc: "FTP baglantisi",               url: "/linux-fundamentals",      example: "ftp IP  → anonymous / (bos sifre)" },
         curl:          { desc: "HTTP istegi",                  url: "/linux-fundamentals",      example: "curl http://IP/dosya" },
         wget:          { desc: "Dosya indir",                  url: "/linux-fundamentals",      example: "wget http://IP/dosya" },
+        revshell:      { desc: "Reverse shell ureteci (bash/python/php/powershell...)", url: "https://www.revshells.com", example: "IP ve PORT gir, dil sec, kopyala-yapistir" },
+        revshells:     { desc: "Reverse shell ureteci (bash/python/php/powershell...)", url: "https://www.revshells.com", example: "IP ve PORT gir, dil sec, kopyala-yapistir" },
       };
 
       const hint = TOOL_HINTS[cmd.toLowerCase()];
